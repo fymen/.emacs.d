@@ -78,12 +78,10 @@
 (setf org-latex-default-packages-alist
       (remove '("T1" "fontenc" t) org-latex-default-packages-alist))
 
-(setq org-latex-pdf-process '("latexmk -pdflatex=xelatex -pdf -quiet %f"))
-
-(setq org-export-latex-listings t)
+(setq org-latex-pdf-process '("xelatex -shell-escape -pdf -quiet %f"
+			      "xelatex -shell-escape -pdf -quiet %f"))
 (setq org-latex-packages-alist
        '("\\usepackage{fontspec}
-
 	\\XeTeXlinebreaklocale ``zh''
 	\\XeTeXlinebreakskip = 0pt plus 1pt minus 0.1pt
 	\\newcommand\\fontnamehei{WenQuanYi Zen Hei}
@@ -93,30 +91,58 @@
 	\\newcommand\\fontnameroman{FreeSans}
 	\\setmainfont[BoldFont=\\fontnamehei]{\\fontnamesong}
 	\\setsansfont[BoldFont=\\fontnamehei]{\\fontnamekai}
-	\\setmonofont{\\fontnamemono}"))
-(add-to-list 'org-latex-packages-alist '("" "xcolor"))
+	\\setmonofont{\\fontnamemono}
+\\usepackage{geometry}
+\\geometry{left=1.5cm,right=1.5cm,top=1.5cm,bottom=1.5cm}
+"))
+(setq org-export-latex-listings t)
+;(add-to-list 'org-latex-packages-alist '("" "xcolor"))
 (add-to-list 'org-latex-packages-alist '("" "minted"))
 (setq org-latex-listings 'minted)
 
 
 (add-to-list 'org-latex-classes 
 	     '("cn-article"
-		"\\documentclass[11pt]{article}"
+		"\\documentclass{article}
+\\usepackage{xcolor}"
 		("\\section{%s}" . "\\section*{%s}")
 		("\\subsection{%s}" . "\\subsection*{%s}")
 		("\\subsubsection{%s}" . "\\subsubsection*{%s}")
 		("\\paragraph{%s}" . "\\paragraph*{%s}")
 		("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
 
+(setq org-latex-minted-options
+      '(
+;;	("bgcolor" "blue")
+
+))
+
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(org-file-apps (quote ((auto-mode . emacs) ("\\.mm\\'" . default) ("\\.x?html?\\'" . default) ("\\.pdf\\'" . "evince %s")))))
+ '(org-file-apps (quote ((auto-mode . emacs) 
+			 ("\\.mm\\'" . default) ("\\.x?html?\\'" . default) 
+			 ("\\.pdf\\'" . "evince %s")))))
+
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  )
+
+ (defun my-screenshot()
+;; "Take a screenshot into a unique-named file in the current buffer file 
+;; directory and insert a link to this file."
+   (interactive)
+   (setq filename
+	 (concat (make-temp-name  
+		  (concat (file-name-directory (buffer-file-name)) "images/" ) ) ".png"))
+   (if (file-accessible-directory-p (concat (file-name-directory (buffer-file-name)) "images/"))
+       (make-directory "images"))
+   (call-process-shell-command "scrot" nil nil nil nil "-s" (concat filename ))
+    (insert (concat "[["  filename "]]"))
+    (org-toggle-inline-images))
+
