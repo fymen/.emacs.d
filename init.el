@@ -10,11 +10,13 @@
 (blink-cursor-mode 0) 
 (column-number-mode 1)
 (ido-mode 1)
+;(graphviz-dot-mode 1)
 
-;(load-theme 'nzenburn t)
-(require 'color-theme)
+(load-theme 'nzenburn t)
 
-(color-theme-comidia)
+;(require 'solarized-dark-theme)
+;(require 'color-theme)
+;(color-theme-comidia)
 
 ;(require 'ascope)
 
@@ -117,22 +119,6 @@
 
 ))
 
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(org-file-apps (quote ((auto-mode . emacs) 
-			 ("\\.mm\\'" . default) ("\\.x?html?\\'" . default) 
-			 ("\\.pdf\\'" . "evince %s")))))
-
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
-
  (defun my-screenshot()
 ;; "Take a screenshot into a unique-named file in the current buffer file 
 ;; directory and insert a link to this file."
@@ -145,4 +131,50 @@
    (call-process-shell-command "scrot" nil nil nil nil "-s" (concat filename ))
     (insert (concat "[["  filename "]]"))
     (org-toggle-inline-images))
+
+(global-set-key (kbd "C-c d") 'kid-sdcv-to-buffer)
+(defun kid-sdcv-to-buffer ()
+  (interactive)
+  (let ((word (if mark-active
+                  (buffer-substring-no-properties (region-beginning) (region-end))
+                  (current-word nil t))))
+    (setq word (read-string (format "Search the dictionary for (default %s): " word)
+                            nil nil word))
+    (set-buffer (get-buffer-create "*sdcv*"))
+    (buffer-disable-undo)
+    (erase-buffer)
+    (let ((process (start-process-shell-command "sdcv" "*sdcv*" "sdcv" "-n" word)))
+      (set-process-sentinel
+       process
+       (lambda (process signal)
+         (when (memq (process-status process) '(exit signal))
+           (unless (string= (buffer-name) "*sdcv*")
+             (setq kid-sdcv-window-configuration (current-window-configuration))
+             (switch-to-buffer-other-window "*sdcv*")
+             (local-set-key (kbd "d") 'kid-sdcv-to-buffer)
+             (local-set-key (kbd "q") (lambda ()
+                                        (interactive)
+                                        (bury-buffer)
+                                        (unless (null (cdr (window-list))) ; only one window
+                                          (delete-window)))))
+           (goto-char (point-min))))))))
+
+
+
+
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(graphviz-dot-preview-extension "pdf")
+ '(graphviz-dot-view-command "evince %s")
+ '(org-file-apps (quote ((auto-mode . emacs) ("\\.mm\\'" . default) ("\\.x?html?\\'" . default) ("\\.pdf\\'" . "evince %s")))))
+
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
 
