@@ -3,6 +3,8 @@
    (package-initialize)
    (add-to-list 'package-archives '("melpa" . "http://melpa.milkbox.net/packages/") t)
    )
+(add-to-list 'load-path "/home/sgbn/.emacs.d/plugins/hideshow-org/")
+(require 'hideshow-org)
 
 (menu-bar-mode 0)
 (tool-bar-mode 0)
@@ -10,7 +12,6 @@
 (blink-cursor-mode 0) 
 (column-number-mode 1)
 (ido-mode 1)
-;(graphviz-dot-mode 1)
 
 (load-theme 'nzenburn t)
 
@@ -36,6 +37,9 @@
 ;;c程序风格
 (add-hook 'c-mode-hook 'linux-c-mode)
 (add-hook 'c++-mode-hook 'linux-cpp-mode)
+(add-hook 'c-mode-hook 'hs-org/minor-mode)
+(add-hook 'c++-mode-hook 'hs-org/minor-mode)
+
 (defun linux-c-mode()
   ;; 将回车代替C-j的功能，换行的同时对齐
   (define-key c-mode-map [return] 'newline-and-indent)
@@ -119,7 +123,7 @@
 
 ))
 
- (defun my-screenshot()
+ (defun org-screenshot()
 ;; "Take a screenshot into a unique-named file in the current buffer file 
 ;; directory and insert a link to this file."
    (interactive)
@@ -127,7 +131,7 @@
 	 (concat (make-temp-name  
 		  (concat (file-name-directory (buffer-file-name)) "images/" ) ) ".png"))
    (if (file-accessible-directory-p (concat (file-name-directory (buffer-file-name)) "images/"))
-       (make-directory "images"))
+       nil (make-directory "images"))
    (call-process-shell-command "scrot" nil nil nil nil "-s" (concat filename ))
     (insert (concat "[["  filename "]]"))
     (org-toggle-inline-images))
@@ -160,7 +164,9 @@
            (goto-char (point-min))))))))
 
 
-
+(require 'auto-complete-config)  
+(add-to-list 'ac-dictionary-directories "~/.emacs.d/ac-dict")  
+(ac-config-default)  
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
@@ -168,7 +174,6 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(graphviz-dot-preview-extension "pdf")
- '(graphviz-dot-view-command "evince %s")
  '(org-file-apps (quote ((auto-mode . emacs) ("\\.mm\\'" . default) ("\\.x?html?\\'" . default) ("\\.pdf\\'" . "evince %s")))))
 
 (custom-set-faces

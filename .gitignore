@@ -2,3 +2,5 @@
 elpa/
 eshell/
 url/
+/plugins/
+/*.dat
