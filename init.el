@@ -6,12 +6,49 @@
 (add-to-list 'load-path "/home/sgbn/.emacs.d/plugins/hideshow-org/")
 (require 'hideshow-org)
 
+;;
+;; basic comfiguration
+;;
 (menu-bar-mode 0)
 (tool-bar-mode 0)
 (scroll-bar-mode 0)
 (blink-cursor-mode 0) 
 (column-number-mode 1)
 (ido-mode 1)
+(show-paren-mode t) ;; 匹配括号高亮
+
+;; share clipboard with X, 
+(setq x-select-enable-clipboard t)
+;; share clipboard with app, suite for "C-c"
+(setq x-select-enable-primary t)
+
+(display-time-mode 1)
+(setq display-time-24hr-format t) 
+(setq display-time-day-and-date t)
+
+(setq frame-title-format
+      '("emacs:%S" (buffer-file-name "%f"
+			       (dired-directory dired-directory "%b"))))
+
+
+(defun my-isearch-yank-word-or-char-from-beginning ()
+  "Move to beginning of word before yanking word in isearch-mode."
+  (interactive)
+  ;; Making this work after a search string is entered by user
+  ;; is too hard to do, so work only when search string is empty.
+  (if (= 0 (length isearch-string))
+      (beginning-of-thing 'word))
+  (isearch-yank-word-or-char)
+  ;; Revert to 'isearch-yank-word-or-char for subsequent calls
+  (substitute-key-definition 'my-isearch-yank-word-or-char-from-beginning
+			     'isearch-yank-word-or-char
+			     isearch-mode-map))
+(add-hook 'isearch-mode-hook
+	  (lambda ()
+	    "Activate my customized Isearch word yank command."
+	    (substitute-key-definition 'isearch-yank-word-or-char
+				       'my-isearch-yank-word-or-char-from-beginning
+				       isearch-mode-map)))
 
 (load-theme 'nzenburn t)
 
@@ -19,7 +56,7 @@
 ;(require 'color-theme)
 ;(color-theme-comidia)
 
-;(require 'ascope)
+(cscope-setup)
 
 (set-default-font "FreeSans-10")
 ;; 最短时间显示指令序列
@@ -73,10 +110,20 @@
 (global-set-key (kbd "<f5>") 'grep)
 (put 'dired-find-alternate-file 'disabled nil)
 
-(setq x-select-enable-clipboard t)
+(require 'auto-complete-config)  
+(add-to-list 'ac-dictionary-directories "~/.emacs.d/ac-dict")  
+(ac-config-default)  
 
-
+;; every buffer should have a unique name 
+(require 'uniquify)
+(setq
+uniquify-buffer-name-style 'post-forward
+uniquify-separator ":")
+;;
+;; org-mode 
+;;
 (require 'ox-latex)
+(require 'ox-beamer)
 (setq org-latex-coding-system 'utf-8)
 
 (setf org-latex-default-packages-alist
@@ -108,14 +155,20 @@
 
 
 (add-to-list 'org-latex-classes 
-	     '("cn-article"
+	     '(("cn-article"
 		"\\documentclass{article}
 \\usepackage{xcolor}"
 		("\\section{%s}" . "\\section*{%s}")
 		("\\subsection{%s}" . "\\subsection*{%s}")
 		("\\subsubsection{%s}" . "\\subsubsection*{%s}")
 		("\\paragraph{%s}" . "\\paragraph*{%s}")
-		("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
+		("\\subparagraph{%s}" . "\\subparagraph*{%s}"))
+
+	       ("beamer"
+		"\\documentclass\[presentation\]\{beamer\}"
+		("\\section\{%s\}" . "\\section*\{%s\}")
+		("\\subsection\{%s\}" . "\\subsection*\{%s\}")
+		("\\subsubsection\{%s\}" . "\\subsubsection*\{%s\}"))))
 
 (setq org-latex-minted-options
       '(
@@ -164,9 +217,7 @@
            (goto-char (point-min))))))))
 
 
-(require 'auto-complete-config)  
-(add-to-list 'ac-dictionary-directories "~/.emacs.d/ac-dict")  
-(ac-config-default)  
+
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
@@ -182,4 +233,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  )
+
+
+
 
