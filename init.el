@@ -31,25 +31,6 @@
 			       (dired-directory dired-directory "%b"))))
 
 
-(defun my-isearch-yank-word-or-char-from-beginning ()
-  "Move to beginning of word before yanking word in isearch-mode."
-  (interactive)
-  ;; Making this work after a search string is entered by user
-  ;; is too hard to do, so work only when search string is empty.
-  (if (= 0 (length isearch-string))
-      (beginning-of-thing 'word))
-  (isearch-yank-word-or-char)
-  ;; Revert to 'isearch-yank-word-or-char for subsequent calls
-  (substitute-key-definition 'my-isearch-yank-word-or-char-from-beginning
-			     'isearch-yank-word-or-char
-			     isearch-mode-map))
-(add-hook 'isearch-mode-hook
-	  (lambda ()
-	    "Activate my customized Isearch word yank command."
-	    (substitute-key-definition 'isearch-yank-word-or-char
-				       'my-isearch-yank-word-or-char-from-beginning
-				       isearch-mode-map)))
-
 (load-theme 'nzenburn t)
 
 ;(require 'solarized-dark-theme)
@@ -139,14 +120,12 @@ uniquify-separator ":")
 	\\XeTeXlinebreakskip = 0pt plus 1pt minus 0.1pt
 	\\newcommand\\fontnamehei{WenQuanYi Zen Hei}
 	\\newcommand\\fontnamesong{AR PL UMing CN}
-	\\newcommand\\fontnamekai{AR PL KaitiM Big5}
+	\\newcommand\\fontnamekai{AR PL KaitiM GB}
 	\\newcommand\\fontnamemono{FreeMono}
 	\\newcommand\\fontnameroman{FreeSans}
 	\\setmainfont[BoldFont=\\fontnamehei]{\\fontnamesong}
 	\\setsansfont[BoldFont=\\fontnamehei]{\\fontnamekai}
 	\\setmonofont{\\fontnamemono}
-\\usepackage{geometry}
-\\geometry{left=1.5cm,right=1.5cm,top=1.5cm,bottom=1.5cm}
 "))
 (setq org-export-latex-listings t)
 ;(add-to-list 'org-latex-packages-alist '("" "xcolor"))
@@ -155,20 +134,23 @@ uniquify-separator ":")
 
 
 (add-to-list 'org-latex-classes 
-	     '(("cn-article"
+	     '("cn-article"
 		"\\documentclass{article}
-\\usepackage{xcolor}"
+\\usepackage{xcolor}
+\\usepackage{geometry}
+\\geometry{left=1.5cm,right=1.5cm,top=1.5cm,bottom=1.5cm}"
 		("\\section{%s}" . "\\section*{%s}")
 		("\\subsection{%s}" . "\\subsection*{%s}")
 		("\\subsubsection{%s}" . "\\subsubsection*{%s}")
 		("\\paragraph{%s}" . "\\paragraph*{%s}")
-		("\\subparagraph{%s}" . "\\subparagraph*{%s}"))
+		("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
 
-	       ("beamer"
+(add-to-list 'org-latex-classes 
+	     '("beamer"
 		"\\documentclass\[presentation\]\{beamer\}"
 		("\\section\{%s\}" . "\\section*\{%s\}")
 		("\\subsection\{%s\}" . "\\subsection*\{%s\}")
-		("\\subsubsection\{%s\}" . "\\subsubsection*\{%s\}"))))
+		("\\subsubsection\{%s\}" . "\\subsubsection*\{%s\}")))
 
 (setq org-latex-minted-options
       '(
@@ -234,6 +216,13 @@ uniquify-separator ":")
  ;; If there is more than one, they won't work right.
  )
 
+(require 'eshell)
+(require 'em-smart)
+(setq eshell-where-to-jump 'begin)
+(setq eshell-review-quick-commands nil)
+(setq eshell-smart-space-goes-to-end t)
 
+(defalias 'img (lambda(img)(propertize "Image" (quote display) (create-image (expand-file-name img)))))
+(defalias 'ff "find-file $1")
 
-
+ (global-set-key "\C-x\C-k" 'kill-region)
