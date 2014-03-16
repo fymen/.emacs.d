@@ -5,7 +5,6 @@
    )
 (add-to-list 'load-path "/home/sgbn/.emacs.d/plugins/hideshow-org/")
 (require 'hideshow-org)
-
 ;;
 ;; basic comfiguration
 ;;
@@ -126,6 +125,11 @@ uniquify-separator ":")
 	\\setmainfont[BoldFont=\\fontnamehei]{\\fontnamesong}
 	\\setsansfont[BoldFont=\\fontnamehei]{\\fontnamekai}
 	\\setmonofont{\\fontnamemono}
+	\\setromanfont[BoldFont=\\fontnamehei]{\\fontnamesong}
+
+\\makeatletter
+\\def\\verbatim@font{\\rmfamily\\small} %verbatim中使用roman字体族
+\\makeatother
 "))
 (setq org-export-latex-listings t)
 ;(add-to-list 'org-latex-packages-alist '("" "xcolor"))
@@ -226,3 +230,6 @@ uniquify-separator ":")
 (defalias 'ff "find-file $1")
 
  (global-set-key "\C-x\C-k" 'kill-region)
+
+
+
