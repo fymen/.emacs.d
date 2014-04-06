@@ -3,8 +3,8 @@
    (package-initialize)
    (add-to-list 'package-archives '("melpa" . "http://melpa.milkbox.net/packages/") t)
    )
-(add-to-list 'load-path "/home/sgbn/.emacs.d/plugins/hideshow-org/")
 (require 'hideshow-org)
+(require 'dired+)
 ;;
 ;; basic comfiguration
 ;;
@@ -29,7 +29,6 @@
       '("emacs:%S" (buffer-file-name "%f"
 			       (dired-directory dired-directory "%b"))))
 
-
 (load-theme 'nzenburn t)
 
 ;(require 'solarized-dark-theme)
@@ -38,7 +37,8 @@
 
 (cscope-setup)
 
-(set-default-font "FreeSans-10")
+;(set-default-font "DejaVu Sans Mono-10")
+(set-default-font "Droid Sans Mono-10")
 ;; 最短时间显示指令序列
 (setq echo-keystrokes 0.1)
 (setq x-select-enable-clipboard t)
@@ -73,6 +73,7 @@
   (imenu-add-menubar-index)
   ;; 在状态条上显示当前光标在哪个函数体内部
   (which-function-mode)
+  (c-toggle-auto-newline 1)
   )
 (defun linux-cpp-mode()
   (define-key c++-mode-map [return] 'newline-and-indent)
@@ -88,6 +89,7 @@
 
 (global-set-key (kbd "<f8>") 'eshell)
 (global-set-key (kbd "<f5>") 'grep)
+(global-set-key (kbd "<f7>") 'compile)
 (put 'dired-find-alternate-file 'disabled nil)
 
 (require 'auto-complete-config)  
@@ -180,9 +182,10 @@ uniquify-separator ":")
   (interactive)
   (let ((word (if mark-active
                   (buffer-substring-no-properties (region-beginning) (region-end))
-                  (current-word nil t))))
+		(current-word nil t))))
     (setq word (read-string (format "Search the dictionary for (default %s): " word)
                             nil nil word))
+
     (set-buffer (get-buffer-create "*sdcv*"))
     (buffer-disable-undo)
     (erase-buffer)
@@ -192,7 +195,8 @@ uniquify-separator ":")
        (lambda (process signal)
          (when (memq (process-status process) '(exit signal))
            (unless (string= (buffer-name) "*sdcv*")
-             (setq kid-sdcv-window-configuration (current-window-configuration))
+;             (setq kid-sdcv-window-configuration (current-window-configuration))
+;	     (split-window-below)
              (switch-to-buffer-other-window "*sdcv*")
              (local-set-key (kbd "d") 'kid-sdcv-to-buffer)
              (local-set-key (kbd "q") (lambda ()
@@ -201,9 +205,6 @@ uniquify-separator ":")
                                         (unless (null (cdr (window-list))) ; only one window
                                           (delete-window)))))
            (goto-char (point-min))))))))
-
-
-
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
@@ -229,7 +230,26 @@ uniquify-separator ":")
 (defalias 'img (lambda(img)(propertize "Image" (quote display) (create-image (expand-file-name img)))))
 (defalias 'ff "find-file $1")
 
- (global-set-key "\C-x\C-k" 'kill-region)
+(global-set-key "\C-x\C-k" 'kill-region)
+(desktop-save-mode 1)
 
-
-
+; Stunnel
+(setq mew-prog-ssl "/usr/bin/stunnel4")
+; IMAP for Gmail
+(setq mew-proto "%")
+(setq mew-imap-server "imap.gmail.com")
+(setq mew-imap-user "zuijiuru@gmail.com")
+(setq mew-imap-auth  t)
+(setq mew-imap-ssl t)
+(setq mew-imap-ssl-port "993")
+(setq mew-smtp-auth t)
+(setq mew-smtp-ssl t)
+(setq mew-smtp-ssl-port "465")
+(setq mew-smtp-user "zuijiuru@gmail.com")
+(setq mew-smtp-server "smtp.gmail.com")
+(setq mew-fcc "%Sent") ; 
+(setq mew-use-cached-passwd t)
+(setq mew-ssl-verify-level 0)
+(setq mew-name "qifengmao")
+(setq mew-user "zuijiuru")
+(setq mew-mail-domain "gmail.com")

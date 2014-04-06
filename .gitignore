@@ -4,3 +4,5 @@ eshell/
 url/
 /plugins/
 /*.dat
+/.emacs.desktop*
+
