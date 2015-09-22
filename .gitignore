@@ -6,3 +6,6 @@ url/
 /*.dat
 /.emacs.desktop*
 
+/.org-id-locations
+/ede-projects.el
+/smex-items
