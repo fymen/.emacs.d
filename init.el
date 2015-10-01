@@ -105,6 +105,8 @@
   (add-hook it 'turn-on-smartparens-mode))
 
 
+(require 'xcscope)
+;(cscope-setup)
 
 (defun linux-c-mode()
   ;; 将回车代替C-j的功能，换行的同时对齐
@@ -122,7 +124,7 @@
   (imenu-add-menubar-index)
   ;; 在状态条上显示当前光标在哪个函数体内部
   (which-function-mode)
-  (c-toggle-auto-newline 1)
+  (c-toggle-auto-newline 0)
   (c-set-offset 'inextern-lang 0);;在extern c{} 中正常对齐
   )
 
@@ -151,10 +153,10 @@
 (require 'yasnippet)
 (yas-global-mode 1)
 
-;;; auto complete mode
-;;; should be loaded after yasnippet so that they can work together
-;(require 'auto-complete-clang)
-;(define-key c-mode-map (kbd "C-S-<return>") 'ac-complete-clang)
+;; auto complete mode
+;; should be loaded after yasnippet so that they can work together
+;;(require 'auto-complete-clang)
+;;(define-key c-mode-map (kbd "C-S-<return>") 'ac-complete-clang)
 
 (require 'auto-complete-config)
 (add-to-list 'ac-dictionary-directories "~/.emacs.d/ac-dict")
@@ -206,25 +208,38 @@
 \\makeatother
 \\usepackage{array}
 \\usepackage{xcolor}
-\\usepackage{geometry}
-\\geometry{left=1.5cm,right=1.5cm,top=1.5cm,bottom=1.5cm}
+\\definecolor{bg}{rgb}{0.95,0.95,0.95}
+
+%\\usepackage{geometry}
+%\\geometry{left=1.5cm,right=1.5cm,top=1.5cm,bottom=1.5cm}
 "))
-(setq org-export-latex-listings t)
-;(add-to-list 'org-latex-packages-alist '("" "xcolor"))
+
 (add-to-list 'org-latex-packages-alist '("" "minted"))
 (setq org-latex-listings 'minted)
+(setq org-latex-minted-options
+      '(
+	("bgcolor" "bg")
+	("frame" "single")
+	))
 
+;; Make Org use ido-completing-read for most of its completing prompts.
+(setq org-completion-use-ido t)
+
+(setq org-use-sub-superscripts (quote {})
+      org-export-with-sub-superscripts (quote {})) 
 (global-set-key (kbd "C-c s e") 'org-edit-src-code)
 
-
+(setq org-plantuml-jar-path "/home/oscar/.emacs.d/elpa/contrib/scripts/plantuml.jar")
 
 ;; active Babel languages
 (org-babel-do-load-languages
  'org-babel-load-languages
  '((R . t)
    (sh . t)
+   (dot . t)
    (ditaa . t)
    (gnuplot . t)
+   (plantuml . t)
    (emacs-lisp . nil)
    ))
 
@@ -237,7 +252,7 @@
 
 
 
-(global-set-key (kbd "C-c d") 'kid-sdcv-to-buffer)
+(global-set-key (kbd "C-c b") 'kid-sdcv-to-buffer)
 
 (defun kid-sdcv-to-buffer ()
   (interactive)
@@ -265,3 +280,8 @@
                                         (bury-buffer)
                                         (unless (null (cdr (window-list))) ; only one window
                                           (delete-window)))))))))))
+
+(add-hook 'c-mode-common-hook
+	  (lambda ()
+	    (when (derived-mode-p 'c-mode 'c++-mode 'java-mode)
+	      (ggtags-mode 1))))

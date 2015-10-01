@@ -1,0 +1,12 @@
+# -*- mode: snippet -*-
+# name: img
+# key: img3
+# --
+
+#+caption: $1
+#+attr_latex: :align p{6cm}<{\centering}|p{6cm}<{\centering}|p{6cm}<{\centering}
+| ${2:A}    | ${3:B}    | ${6:C}    |
+|-----------+-----------+-----------|
+| [[${4:imgA}]] | [[${5:imgB}]] | [[${7:imgC}]] |
+
+

@@ -1,0 +1,13 @@
+# -*- mode: snippet -*-
+# name: latex
+# key: itex
+# --
+#+LATEX_CLASS: article
+#+LATEX_CLASS_OPTIONS:
+#+LATEX_HEADER: \usepackage{geometry}
+#+LATEX_HEADER_EXTRA:\geometry{left=1.5cm,right=1.5cm,top=1.5cm,bottom=1.5cm}
+#+DESCRIPTION:
+#+KEYWORDS:
+#+SUBTITLE:
+#+DATE: \today
+#+title: $1
