@@ -7,61 +7,15 @@
   (add-to-list 'package-archives '("gnu" . "http://elpa.gnu.org/packages/")))
 (package-initialize) ;; You might already have this line
 
-;;
-;; basic configuration
-;;
-(menu-bar-mode 0)
-(tool-bar-mode 0)
-(scroll-bar-mode 0)
-(blink-cursor-mode 0) 
-(column-number-mode 1)
-(desktop-save-mode 1)
-(show-paren-mode t) ;; 匹配括号高亮
+(setq settings-dir
+      (expand-file-name "settings" user-emacs-directory))
+(add-to-list 'load-path settings-dir)
 
-(global-set-key "\C-w" 'backward-kill-word)
-(global-set-key "\C-x\C-k" 'kill-region)
-(global-set-key "\C-x\C-b" 'ibuffer-list-buffers)
-
-(global-set-key (kbd "<f8>") 'eshell)
-
-
-;; 最短时间显示指令序列
-(setq echo-keystrokes 0.1)
-(setq inhibit-startup-message t)
-(fset 'yes-or-no-p 'y-or-n-p)
-;; 防止页面滚动时跳动,scroll-margin 3可以在靠近屏幕边沿3行时就开始滚动,可
-;; 以很好的看到上下文
-(setq scroll-margin 3
-      scroll-conservatively 10000)
-(setq ring-bell-function 'ignore)
-(mouse-avoidance-mode 'animate)
-
-
-;; share clipboard with X, 
-(setq x-select-enable-clipboard t)
-;; share clipboard with app, suite for "C-c"
-(setq x-select-enable-primary t)
-
-(setq frame-title-format
-      '("emacs:%S" (buffer-file-name "%f"
-			       (dired-directory dired-directory "%b"))))
-
-(load-theme 'zenburn t)
-(set-default-font "Droid Sans Mono-10")
-
-
-(ido-mode 1)
-(ido-everywhere 1)
-
-;; Use ido everywhere
-(require 'ido-ubiquitous)
-(ido-ubiquitous-mode 1)
-
-(require 'flx-ido)
-(flx-ido-mode 1)
-;; disable ido faces to see flx highlights.
-(setq ido-use-faces nil)
-
+(require 'setup-default)
+(require 'setup-dict)
+;(require 'setup-paredit)
+(eval-after-load 'ido '(require 'setup-ido))
+(eval-after-load 'org '(require 'setup-org))
 
 ;; Visual regexp
 (require 'visual-regexp)
@@ -69,7 +23,6 @@
 (define-key global-map (kbd "C-c r") 'vr/replace)
 
 (define-key global-map (kbd "C-c m") 'vr/mc-mark)
-
 
 ;; Fill column indicator
 (require 'fill-column-indicator)
@@ -90,20 +43,7 @@
 (global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
 (global-set-key (kbd "C-c C-<") 'mc/mark-all-like-this)
 
-;; Default setup of smartparens
-(require 'smartparens-config)
-(setq sp-autoescape-string-quote nil)
-(--each '(css-mode-hook
-          restclient-mode-hook
-          js-mode-hook
-          java-mode
-          ruby-mode
-          markdown-mode
-          groovy-mode
-	  c-mode
-          scala-mode)
-  (add-hook it 'turn-on-smartparens-mode))
-
+(require 'setup-smartparens)
 
 (require 'xcscope)
 ;(cscope-setup)
@@ -155,8 +95,8 @@
 
 ;; auto complete mode
 ;; should be loaded after yasnippet so that they can work together
-;;(require 'auto-complete-clang)
-;;(define-key c-mode-map (kbd "C-S-<return>") 'ac-complete-clang)
+;(require 'auto-complete-clang)
+;(define-key c-mode-map (kbd "C-S-<return>") 'ac-complete-clang)
 
 (require 'auto-complete-config)
 (add-to-list 'ac-dictionary-directories "~/.emacs.d/ac-dict")
@@ -173,77 +113,33 @@
  uniquify-buffer-name-style 'post-forward
  uniquify-separator ":")
 
+(add-hook 'c-mode-common-hook
+	  (lambda ()
+	    (when (derived-mode-p 'c-mode 'c++-mode 'java-mode)
+	      (ggtags-mode 1))))
 
 
-;;
-;; org-mode 
-;;
-(require 'ox-latex)
-(require 'ox-beamer)
-(setq org-latex-coding-system 'utf-8)
+;;; This is the binary name of my scheme implementation  
+(setq scheme-program-name "scm")
 
-(setf org-latex-default-packages-alist
-      (remove '("AUTO" "inputenc" t) org-latex-default-packages-alist))
-(setf org-latex-default-packages-alist
-      (remove '("T1" "fontenc" t) org-latex-default-packages-alist))
+;(require 'flyspell-lazy)
+;(flyspell-lazy-mode 1)
+;(flyspell-mode 1)
 
-(setq org-latex-pdf-process '("xelatex -shell-escape -pdf -quiet %f"
-			      "xelatex -shell-escape -pdf -quiet %f"))
-(setq org-latex-packages-alist
-       '("\\usepackage{fontspec}
-	\\XeTeXlinebreaklocale ``zh''
-	\\XeTeXlinebreakskip = 0pt plus 1pt minus 0.1pt
-	\\newcommand\\fontnamehei{WenQuanYi Zen Hei}
-	\\newcommand\\fontnamesong{AR PL UMing CN}
-	\\newcommand\\fontnamekai{AR PL KaitiM GB}
-	\\newcommand\\fontnamemono{FreeMono}
-	\\newcommand\\fontnameroman{FreeSans}
-	\\setmainfont[BoldFont=\\fontnamehei]{\\fontnamesong}
-	\\setsansfont[BoldFont=\\fontnamehei]{\\fontnamekai}
-	\\setmonofont{\\fontnamemono}
-	\\setromanfont[BoldFont=\\fontnamehei]{\\fontnamesong}
+;; hippie expand is dabbrev expand on steroids
+(setq hippie-expand-try-functions-list '(try-expand-dabbrev
+                                         try-expand-dabbrev-all-buffers
+                                         try-expand-dabbrev-from-kill
+                                         try-complete-file-name-partially
+                                         try-complete-file-name
+                                         try-expand-all-abbrevs
+                                         try-expand-list
+                                         try-expand-line
+                                         try-complete-lisp-symbol-partially
+                                         try-complete-lisp-symbol))
+(global-set-key (kbd "M-/") 'hippie-expand)
+(global-set-key (kbd "M-p") 'ace-window)
 
-\\makeatletter
-\\def\\verbatim@font{\\rmfamily\\small} %verbatim中使用roman字体族
-\\makeatother
-\\usepackage{array}
-\\usepackage{xcolor}
-\\definecolor{bg}{rgb}{0.95,0.95,0.95}
-
-%\\usepackage{geometry}
-%\\geometry{left=1.5cm,right=1.5cm,top=1.5cm,bottom=1.5cm}
-"))
-
-(add-to-list 'org-latex-packages-alist '("" "minted"))
-(setq org-latex-listings 'minted)
-(setq org-latex-minted-options
-      '(
-	("bgcolor" "bg")
-	("frame" "single")
-	))
-
-;; Make Org use ido-completing-read for most of its completing prompts.
-(setq org-completion-use-ido t)
-
-(setq org-use-sub-superscripts (quote {})
-      org-export-with-sub-superscripts (quote {})) 
-(global-set-key (kbd "C-c s e") 'org-edit-src-code)
-
-(setq org-plantuml-jar-path "/home/oscar/.emacs.d/elpa/contrib/scripts/plantuml.jar")
-
-;; active Babel languages
-(org-babel-do-load-languages
- 'org-babel-load-languages
- '((R . t)
-   (sh . t)
-   (dot . t)
-   (ditaa . t)
-   (gnuplot . t)
-   (plantuml . t)
-   (emacs-lisp . nil)
-   ))
-
-(require 'org-screenshot)
 
 (global-set-key (kbd "C-;") 'avy-goto-char-2)
 (global-set-key (kbd "M-g f") 'avy-goto-line)
@@ -251,37 +147,6 @@
 (global-set-key (kbd "M-g f") 'avy-goto-line)
 
 
+(add-hook 'emacs-lisp-mode-hook 'rainbow-delimiters-mode)
+(add-hook 'c-mode-hook 'rainbow-delimiters-mode)
 
-(global-set-key (kbd "C-c b") 'kid-sdcv-to-buffer)
-
-(defun kid-sdcv-to-buffer ()
-  (interactive)
-  (let ((word (if mark-active
-                  (buffer-substring-no-properties (region-beginning) (region-end))
-		(current-word nil t))))
-    (setq word (read-string (format "Search the dictionary for (default %s): " word)
-                            nil nil word))
-    
-    (set-buffer (get-buffer-create "*sdcv*"))
-    (buffer-disable-undo)
-    (erase-buffer)
-    (let ((process (start-process-shell-command "sdcv" "*sdcv*" "sdcv" "-n" word)))
-      (set-process-sentinel
-       process
-       (lambda (process signal)
-         (when (memq (process-status process) '(exit signal))
-           (unless (string= (buffer-name) "*sdcv*")
-					;(setq kid-sdcv-window-configuration (current-window-configuration))
-					;(split-window-below)
-             (switch-to-buffer-other-window "*sdcv*")
-             (local-set-key (kbd "d") 'kid-sdcv-to-buffer)
-             (local-set-key (kbd "q") (lambda ()
-                                        (interactive)
-                                        (bury-buffer)
-                                        (unless (null (cdr (window-list))) ; only one window
-                                          (delete-window)))))))))))
-
-(add-hook 'c-mode-common-hook
-	  (lambda ()
-	    (when (derived-mode-p 'c-mode 'c++-mode 'java-mode)
-	      (ggtags-mode 1))))

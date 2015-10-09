@@ -1,0 +1,33 @@
+# -*- mode: snippet -*-
+# name: zh-latex
+# key: zhtex
+# --
+#+LATEX_CLASS: article
+#+LATEX_CLASS_OPTIONS:
+#+LATEX_HEADER: \XeTeXlinebreaklocale \`\`zh''
+#+LATEX_HEADER: \XeTeXlinebreakskip = 0pt plus 1pt minus 0.1pt
+#+LATEX_HEADER: \newcommand\fontnamehei{WenQuanYi Zen Hei}
+#+LATEX_HEADER: \newcommand\fontnamesong{AR PL UMing CN}
+#+LATEX_HEADER: \newcommand\fontnamekai{AR PL KaitiM GB}
+#+LATEX_HEADER: \newcommand\fontnamemono{FreeMono}
+#+LATEX_HEADER: \newcommand\fontnameroman{FreeSans}
+#+LATEX_HEADER: \setmainfont[BoldFont=\fontnamehei]{\fontnamesong}
+#+LATEX_HEADER: \setsansfont[BoldFont=\fontnamehei]{\fontnamekai}
+#+LATEX_HEADER: \setmonofont{\fontnamemono}
+#+LATEX_HEADER: \setromanfont[BoldFont=\fontnamehei]{\fontnamesong}
+#+LATEX_HEADER: \makeatletter
+#+LATEX_HEADER: \def\verbatim@font{\rmfamily\small} %verbatim中使用roman字体族
+#+LATEX_HEADER: \makeatother
+#+LATEX_HEADER: \usepackage{geometry}
+#+LATEX_HEADER_EXTRA:\geometry{left=1.5cm,right=1.5cm,top=1.5cm,bottom=1.5cm}
+#+DESCRIPTION:
+#+KEYWORDS:
+#+SUBTITLE:
+#+DATE: \today
+#+title: $1
+
+
+
+
+
+
