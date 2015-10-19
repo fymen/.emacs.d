@@ -138,7 +138,8 @@
                                          try-complete-lisp-symbol-partially
                                          try-complete-lisp-symbol))
 (global-set-key (kbd "M-/") 'hippie-expand)
-(global-set-key (kbd "M-p") 'ace-window)
+
+(global-set-key (kbd "C-x o") 'ace-window)
 
 
 (global-set-key (kbd "C-;") 'avy-goto-char-2)
@@ -149,4 +150,51 @@
 
 (add-hook 'emacs-lisp-mode-hook 'rainbow-delimiters-mode)
 (add-hook 'c-mode-hook 'rainbow-delimiters-mode)
+
+;;(require 'diminish)
+;;(diminish 'abbrev-mode "Abv")
+;;(diminish 'hs-org/minor-mode)
+;;
+;;
+;;(eval-after-load "yasnippet" '(diminish 'yas-minor-mode))
+;;(eval-after-load "eldoc" '(diminish 'eldoc-mode))
+;;(eval-after-load "paredit" '(diminish 'paredit-mode))
+;;(eval-after-load "tagedit" '(diminish 'tagedit-mode))
+;;(eval-after-load "elisp-slime-nav" '(diminish 'elisp-slime-nav-mode))
+;;(eval-after-load "skewer-mode" '(diminish 'skewer-mode))
+;;(eval-after-load "skewer-css" '(diminish 'skewer-css-mode))
+;;(eval-after-load "skewer-html" '(diminish 'skewer-html-mode))
+;;(eval-after-load "smartparens" '(diminish 'smartparens-mode))
+;;(eval-after-load "guide-key" '(diminish 'guide-key-mode))
+;;(eval-after-load "whitespace-cleanup-mode" '(diminish 'whitespace-cleanup-mode))
+;;(eval-after-load "subword" '(diminish 'subword-mode))
+
+(global-set-key (kbd "C-x w") 'elfeed)
+
+(setq elfeed-feeds
+      '("http://nullprogram.com/feed/"
+        "http://www.terminally-incoherent.com/blog/feed/"))
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(cfs--current-profile-name "profile3" t)
+ '(custom-safe-themes
+   (quote
+    ("c74e83f8aa4c78a121b52146eadb792c9facc5b1f02c917e3dbb454fca931223" "a27c00821ccfd5a78b01e4f35dc056706dd9ede09a8b90c6955ae6a390eb1c1e" "3c83b3676d796422704082049fc38b6966bcad960f896669dfc21a7a37a748fa" default)))
+ '(elfeed-feeds
+   (quote
+    ("http://feeds.feedburner.com/ruanyifeng" "http://feeds.feedburner.com/yizhe" "http://feed.mifengtd.cn/" "http://feed.feedsky.com/tektalk" "http://www.geekonomics10000.com/feed " "http://feeds2.feedburner.com/xumathena" "http://coolshell.cn/feed " "http://nullprogram.com/feed/" "http://www.terminally-incoherent.com/blog/feed/")) t))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
+
+
+(register-input-method
+ "chinese-wbim" "euc-cn" 'chinese-wbim-use-package
+ "五笔" "汉字五笔输入法" "wb.txt")
 

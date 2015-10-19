@@ -72,7 +72,6 @@
 (define-key smartparens-mode-map (kbd"C-c _")  'wrap-with-underscores)
 (define-key smartparens-mode-map (kbd"C-c `")  'wrap-with-back-quotes)
 
-(add-hook 'c-mode-hook 'turn-on-smartparens-strict-mode)
 (add-hook 'emacs-lisp-mode-hook 'turn-on-smartparens-strict-mode)
 (add-hook 'markdown-mode-hook 'turn-on-smartparens-strict-mode)
 

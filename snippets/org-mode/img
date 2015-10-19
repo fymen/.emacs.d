@@ -1,6 +1,6 @@
 # -*- mode: snippet -*-
 # name: img
-# key: img_
+# key: img
 # --
 
 #+caption: $1
