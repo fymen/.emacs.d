@@ -1,6 +1,10 @@
 ;;
 ;; org-mode setup
 ;;
+
+(require 'org-bullets)
+(add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
+
 (require 'ox-latex)
 (require 'ox-beamer)
 (setq org-latex-coding-system 'utf-8)
@@ -83,6 +87,7 @@
    (sh . t)
    (dot . t)
    (ditaa . t)
+   (python . t)
    (gnuplot . t)
    (plantuml . t)
    (emacs-lisp . nil)
@@ -90,13 +95,113 @@
 
 (require 'org-screenshot)
 
+
+(defvar my/org-basic-task-template "* TODO %^{Task}
+SCHEDULED: %^t
+%<%Y-%m-%d %H:%M>
+:PROPERTIES:
+:Effort: %^{effort|1:00|0:05|0:15|0:30|2:00|4:00}
+:END:
+%?
+" "Basic task data")
+(setq org-capture-templates
+      `(("t" "Tasks" entry
+         (file+headline "~/personal/organizer.org" "Tasks")
+         ,my/org-basic-task-template)
+        ("T" "Quick task" entry
+         (file+headline "~/personal/organizer.org" "Tasks")
+         "* TODO %^{Task}"
+         :immediate-finish t)
+        ("i" "Interrupting task" entry
+         (file+headline "~/personal/organizer.org" "Tasks")
+         "* STARTED %^{Task}"
+         :clock-in :clock-resume)
+        ("e" "Emacs idea" entry
+         (file+headline "~/code/dev/emacs-notes/tasks.org" "Emacs")
+         "* TODO %^{Task}"
+         :immediate-finish t)
+        ("b" "Business task" entry
+         (file+headline "~/personal/business.org" "Tasks")
+         ,my/org-basic-task-template)
+        ("p" "People task" entry
+         (file+headline "~/personal/people.org" "Tasks")
+         ,my/org-basic-task-template)
+        ("j" "Journal entry" plain
+         (file+datetree "~/personal/journal.org")
+         "%K - %a\n%i\n%?\n"
+         :unnarrowed t)
+        ("J" "Journal entry with date" plain
+         (file+datetree+prompt "~/personal/journal.org")
+         "%K - %a\n%i\n%?\n"
+         :unnarrowed t)
+        ("s" "Journal entry with date, scheduled" entry
+         (file+datetree+prompt "~/personal/journal.org")
+         "* \n%K - %a\n%t\t%i\n%?\n"
+         :unnarrowed t)
+        ("db" "Done - Business" entry
+         (file+headline "~/personal/business.org" "Tasks")
+         "* DONE %^{Task}\nSCHEDULED: %^t\n%?")
+        ("dp" "Done - People" entry
+         (file+headline "~/personal/people.org" "Tasks")
+         "* DONE %^{Task}\nSCHEDULED: %^t\n%?")
+        ("dt" "Done - Task" entry
+         (file+headline "~/personal/organizer.org" "Tasks")
+         "* DONE %^{Task}\nSCHEDULED: %^t\n%?")
+        ("q" "Quick note" item
+         (file+headline "~/personal/organizer.org" "Quick notes"))
+        ("l" "Ledger entries")
+        ("lm" "MBNA" plain
+         (file "~/personal/ledger")
+         "%(org-read-date) %^{Payee}
+  Liabilities:MBNA
+  Expenses:%^{Account}  $%^{Amount}
+" :immediate-finish t)
+        ("ln" "No Frills" plain
+         (file "~/personal/ledger")
+         "%(let ((org-read-date-prefer-future nil)) (org-read-date)) * No Frills
+  Liabilities:MBNA
+  Assets:Wayne:Groceries  $%^{Amount}
+" :immediate-finish t)
+        ("lc" "Cash" plain
+         (file "~/personal/ledger")
+         "%(org-read-date) * %^{Payee}
+  Expenses:Cash
+  Expenses:%^{Account}  %^{Amount}
+")
+        ("B" "Book" entry
+         (file+datetree "~/personal/books.org" "Inbox")
+         "* %^{Title}  %^g
+%i
+*Author(s):* %^{Author} \\\\
+*ISBN:* %^{ISBN}
+
+%?
+
+*Review on:* %^t \\
+%a
+%U"
+         :clock-in :clock-resume)
+	("c" "Contact" entry (file "~/personal/contacts.org")
+	 "* %(org-contacts-template-name)
+:PROPERTIES:
+:EMAIL: %(my/org-contacts-template-email)
+:END:")
+	("n" "Daily note" table-line (file+olp "~/personal/organizer.org" "Daily notes")
+	 "| %u | %^{Note} |"
+	 :immediate-finish t)
+	("r" "Notes" entry
+	 (file+datetree "~/personal/organizer.org")
+	 "* %?\n\n%i\n"
+	 )))
+(global-set-key (kbd "C-c c") 'org-capture)
+
 (require 'ox-publish)
 (setq org-publish-project-alist
       '(
         ("blog-notes"
          :base-directory "~/gitest/blog/"
          :base-extension "org"
-         :publishing-directory "~/gitest/blog-out/"
+         :publishing-directory "~/gitest/sagebane.github.com/"
          :recursive t
 	 :exclude "template.org"
          :publishing-function org-html-publish-to-html
@@ -106,20 +211,19 @@
          :auto-sitemap t                ; Generate sitemap.org automagically...
          :sitemap-filename "sitemap.org"  ; ... call it sitemap.org (it's the default)...
          :sitemap-title "Sitemap"         ; ... with title 'Sitemap'.
-         :author "Feynman.Qi"
-         :email "zuijiuru at gmail dot com"
-         :style "<link rel=\"stylesheet\" type=\"text/css\" href=\"css/default.css\"/>"
-         )
+	 :email "zuijiuru at gmail dot com"
+	 )
         ("blog-static"
          :base-directory "~/gitest/blog/"
          :base-extension "css\\|js\\|png\\|jpg\\|gif\\|pdf\\|mp3\\|ogg\\|swf"
-         :publishing-directory "~/gitest/blog-out/"
+         :publishing-directory "~/gitest/sagebane.github.com/"
          :recursive t
          :publishing-function org-publish-attachment
          )
         ("blog" :components ("blog-notes" "blog-static"))
         ;;
         ))
+
 (provide 'setup-org)
 
 

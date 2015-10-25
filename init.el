@@ -38,7 +38,7 @@
 (global-set-key (kbd "C-c C-c M-x") 'execute-extended-command)
 
 (require 'multiple-cursors)
-(global-set-key (kbd "C-c c c") 'mc/edit-lines)
+;(global-set-key (kbd "C-c c c") 'mc/edit-lines)
 (global-set-key (kbd "C->") 'mc/mark-next-like-this)
 (global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
 (global-set-key (kbd "C-c C-<") 'mc/mark-all-like-this)
@@ -169,32 +169,70 @@
 ;;(eval-after-load "whitespace-cleanup-mode" '(diminish 'whitespace-cleanup-mode))
 ;;(eval-after-load "subword" '(diminish 'subword-mode))
 
+
+
+
+(defun my/vsplit-last-buffer (prefix)
+  "Split the window vertically and display the previous buffer."
+  (interactive "p")
+  (split-window-vertically)
+  (other-window 1 nil)
+  (if (= prefix 1)
+      (switch-to-next-buffer)))
+(defun my/hsplit-last-buffer (prefix)
+  "Split the window horizontally and display the previous buffer."
+  (interactive "p")
+  (split-window-horizontally)
+  (other-window 1 nil)
+  (if (= prefix 1) (switch-to-next-buffer)))
+
+
+(global-set-key (kbd "C-x 2") 'my/vsplit-last-buffer)
+(global-set-key (kbd "C-x 3") 'my/hsplit-last-buffer)
+
+
+(defun my/smarter-move-beginning-of-line (arg)
+  "Move point back to indentation of beginning of line.
+
+Move point to the first non-whitespace character on this line.
+If point is already there, move to the beginning of the line.
+Effectively toggle between the first non-whitespace character and
+the beginning of the line.
+
+If ARG is not nil or 1, move forward ARG - 1 lines first.  If
+point reaches the beginning or end of the buffer, stop there."
+  (interactive "^p")
+  (setq arg (or arg 1))
+
+  ;; Move lines first
+  (when (/= arg 1)
+    (let ((line-move-visual nil))
+      (forward-line (1- arg))))
+
+  (let ((orig-point (point)))
+    (back-to-indentation)
+    (when (= orig-point (point))
+      (move-beginning-of-line 1))))
+
+;; remap C-a to `smarter-move-beginning-of-line'
+(global-set-key [remap move-beginning-of-line]
+                'my/smarter-move-beginning-of-line)
+
+(require 'expand-region)
+(global-set-key (kbd "C-=") 'er/expand-region)
+
+
+;; Load elfeed-org
+(require 'elfeed-org)
+
+;; Initialize elfeed-org
+;; This hooks up elfeed-org to read the configuration when elfeed
+;; is started with =M-x elfeed=
+(elfeed-org)
+
+;; Optionally specify a number of files containing elfeed
+;; configuration. If not set then the location below is used.
+;; Note: The customize interface is also supported.
+(setq rmh-elfeed-org-files (list "~/.emacs.d/elfeed.org"))
+
 (global-set-key (kbd "C-x w") 'elfeed)
-
-(setq elfeed-feeds
-      '("http://nullprogram.com/feed/"
-        "http://www.terminally-incoherent.com/blog/feed/"))
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(cfs--current-profile-name "profile3" t)
- '(custom-safe-themes
-   (quote
-    ("c74e83f8aa4c78a121b52146eadb792c9facc5b1f02c917e3dbb454fca931223" "a27c00821ccfd5a78b01e4f35dc056706dd9ede09a8b90c6955ae6a390eb1c1e" "3c83b3676d796422704082049fc38b6966bcad960f896669dfc21a7a37a748fa" default)))
- '(elfeed-feeds
-   (quote
-    ("http://feeds.feedburner.com/ruanyifeng" "http://feeds.feedburner.com/yizhe" "http://feed.mifengtd.cn/" "http://feed.feedsky.com/tektalk" "http://www.geekonomics10000.com/feed " "http://feeds2.feedburner.com/xumathena" "http://coolshell.cn/feed " "http://nullprogram.com/feed/" "http://www.terminally-incoherent.com/blog/feed/")) t))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
-
-
-(register-input-method
- "chinese-wbim" "euc-cn" 'chinese-wbim-use-package
- "五笔" "汉字五笔输入法" "wb.txt")
-
