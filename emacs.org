@@ -12,6 +12,51 @@
       (global-set-key (kbd "<f8>") 'eshell)
       (global-set-key (kbd "<f5>") 'revert-buffer)
       (add-to-list 'auto-mode-alist '("[Mm]akefile*" . makefile-gmake-mode))
+
+      (setq ediff-window-setup-function 'ediff-setup-windows-plain
+            ediff-split-window-function 'split-window-horizontally)
+
+      (defun find-file-as-root ()
+        "Like `ido-find-file, but automatically edit the file with
+      root-(point)rivileges (using tramp/sudo), if the file is not writable by
+      user."
+        (interactive)
+        (let ((file (ido-read-file-name "Edit as root: ")))
+          (unless (file-writable-p file)
+            (setq file (concat "/sudo:root@localhost:" file)))
+          (find-file file)))
+
+      (global-set-key (kbd "C-x F") 'find-file-as-root)
+
+      (defun narrow-or-widen-dwim (p)
+        "If the buffer is narrowed, it widens. Otherwise, it narrows
+      intelligently.  Intelligently means: region, org-src-block,
+      org-subtree, or defun, whichever applies first.  Narrowing to
+      org-src-block actually calls `org-edit-src-code'.
+
+      With prefix P, don't widen, just narrow even if buffer is already
+      narrowed."
+        (interactive "P")
+        (declare (interactive-only))
+        (cond ((and (buffer-narrowed-p) (not p)) (widen))
+              ((and (boundp 'org-src-mode) org-src-mode (not p))
+               (org-edit-src-exit))
+              ((region-active-p)
+               (narrow-to-region (region-beginning) (region-end)))
+              ((derived-mode-p 'org-mode)
+               (cond ((ignore-errors (org-edit-src-code))
+                      (delete-other-windows))
+                     ((org-at-block-p)
+                      (org-narrow-to-block))
+                     (t (org-narrow-to-subtree))))
+              ((derived-mode-p 'prog-mode) (narrow-to-defun))
+              (t (error "Please select a region to narrow to"))))
+
+      (global-set-key (kbd "C-x n") 'narrow-or-widen-dwim)
+
+      (eval-after-load 'org-src
+        '(define-key org-src-mode-map
+           "\C-x\C-s" #'org-edit-src-exit))
     #+END_SRC
 *** emacs UI
     #+BEGIN_SRC emacs-lisp
@@ -24,6 +69,7 @@
 
     #+END_SRC
 *** highlight parenthesis
+
     #+BEGIN_SRC emacs-lisp
 
       (show-paren-mode t) ;; 匹配括号高亮
@@ -601,22 +647,25 @@
 
 * elfeed
   #+BEGIN_SRC emacs-lisp
-    ;; Load elfeed-org
-
-    (require 'elfeed-org)
-
-    ;; Initialize elfeed-org
-    ;; This hooks up elfeed-org to read the configuration when elfeed
-    ;; is started with =M-x elfeed=
-    (elfeed-org)
-
-    ;; Optionally specify a number of files containing elfeed
-    ;; configuration. If not set then the location below is used.
-    ;; Note: The customize interface is also supported.
-    (setq rmh-elfeed-org-files (list "~/.emacs.d/elfeed.org"))
-
     (global-set-key (kbd "C-x w") 'elfeed)
 
+    (setq elfeed-feeds
+          '("http://www.howardism.org/index.xml"     ;; My Blog
+            "http://endlessparentheses.com/atom.xml" ;; Emacs Blog
+            "http://www.masteringemacs.org/feed/"    ;; Emacs Blog
+            "http://emacs-fu.blogspot.com/feeds/posts/default"
+            "http://emacsredux.com/atom.xml"         ;; Emacs Blog
+            "http://www.lunaryorn.com/feed.atom"     ;; Emacs Blog
+            "http://swannodette.github.com/atom.xml" ;; David Nolen, duh.
+            "http://batsov.com/atom.xml"             ;; Bozhidar Batsov
+            "http://twogreenleaves.org/index.php?feed=rss"
+
+            "https://medium.com/feed/@hlship/"       ;; Programming
+            "http://gigasquidsoftware.com/atom.xml"  ;; Clojure
+            "http://blog.fogus.me/feed/"      ;; Programming
+            "http://steve-yegge.blogspot.com/atom.xml"
+            "http://dlessparentheses.com/atom.xml" ;emacs
+            "http://www.rkn.io/feed.xml"))    ;; Programming
   #+END_SRC
 
 * visual regexp
