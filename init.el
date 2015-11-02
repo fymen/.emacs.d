@@ -7,8 +7,8 @@
   (add-to-list 'package-archives '("gnu" . "http://elpa.gnu.org/packages/")))
 (package-initialize) ;; You might already have this line
 
-(setq settings-dir
-      (expand-file-name "settings" user-emacs-directory))
-(add-to-list 'load-path settings-dir)
+;; (setq url-proxy-services '(("no_proxy" . "work\\.com")
+;;                            ("https" . "127.0.0.1:1080")))
 
 (org-babel-load-file "~/.emacs.d/emacs.org")
+

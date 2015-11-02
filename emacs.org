@@ -1,7 +1,36 @@
 #+TITLE: Emacs init configuration
 #+OPTIONS: toc:4 h:4
 
+* use-package
+  #+BEGIN_SRC emacs-lisp
+    (unless (package-installed-p 'use-package)
+      (package-refresh-contents)
+      (package-install 'use-package))
+
+    (require 'use-package)
+  #+END_SRC
+* diminish minor-mode 
+  #+BEGIN_SRC emacs-lisp 
+    (require 'diminish)
+    (diminish 'abbrev-mode "Abv")
+;    (diminish 'hs-org/minor-mode)
+
+
+    (eval-after-load "yasnippet" '(diminish 'yas-minor-mode))
+    (eval-after-load "eldoc" '(diminish 'eldoc-mode))
+    (eval-after-load "paredit" '(diminish 'paredit-mode))
+    (eval-after-load "tagedit" '(diminish 'tagedit-mode))
+    (eval-after-load "elisp-slime-nav" '(diminish 'elisp-slime-nav-mode))
+    (eval-after-load "skewer-mode" '(diminish 'skewer-mode))
+    (eval-after-load "skewer-css" '(diminish 'skewer-css-mode))
+    (eval-after-load "skewer-html" '(diminish 'skewer-html-mode))
+    (eval-after-load "smartparens" '(diminish 'smartparens-mode))
+    (eval-after-load "guide-key" '(diminish 'guide-key-mode))
+    (eval-after-load "whitespace-cleanup-mode" '(diminish 'whitespace-cleanup-mode))
+    (eval-after-load "subword" '(diminish 'subword-mode))
+  #+END_SRC
 * general configuration
+
 ** basic settings
 *** global keystrokes
     #+BEGIN_SRC emacs-lisp
@@ -59,6 +88,8 @@
            "\C-x\C-s" #'org-edit-src-exit))
     #+END_SRC
 *** emacs UI
+    Disable some no used menu bar to enlarge our main frame.
+
     #+BEGIN_SRC emacs-lisp
 
       (menu-bar-mode 0)
@@ -145,9 +176,10 @@
      #+END_SRC
 **** high light
      #+BEGIN_SRC emacs-lisp
-     ;; Highlight current line
-     (global-hl-line-mode 1)
+       ;; Highlight current line
+       (global-hl-line-mode 1)
 
+       (global-anzu-mode +1)
 
        ;; 最短时间显示指令序列
        (setq echo-keystrokes 0.1)
@@ -172,7 +204,7 @@
      #+END_SRC
 ** misc configuration
    #+BEGIN_SRC emacs-lisp
-   (desktop-save-mode 1)
+;   (desktop-save-mode 1)
    #+END_SRC
    #+BEGIN_SRC emacs-lisp
      (global-set-key (kbd "C-x o") 'ace-window)
@@ -286,15 +318,54 @@
                 (line-beginning-position 2)))))
    
    #+END_SRC
+** beacon-mode
+   #+BEGIN_SRC emacs-lisp
+     (use-package beacon
+       :ensure t
+       :diminish beacon-mode
+       :init
+       (beacon-mode 1)
+       (setq beacon-push-mark 35)
+       (setq beacon-color "#666600"))
+   #+END_SRC
 ** rainbow delimiters
    #+BEGIN_SRC emacs-lisp
      (add-hook 'emacs-lisp-mode-hook 'rainbow-delimiters-mode)
      (add-hook 'c-mode-hook 'rainbow-delimiters-mode)
    #+END_SRC
+** Golden Ratio
+   #+BEGIN_SRC emacs-lisp
+     (use-package golden-ratio
+       :ensure t
+       :diminish golden-ratio-mode
+       :init
+       (golden-ratio-mode 1)
+       (setq golden-ratio-auto-scale t))
+   #+END_SRC
+** paradox
+   #+BEGIN_SRC emacs-lisp
+     (use-package async
+                  :ensure t)
+     (use-package paradox
+                  :ensure t
+                  :config
+                  (setq paradox-execute-asynchronously t))
+   #+END_SRC
+** browse-kill-ring
+   #+BEGIN_SRC emacs-lisp
+     (use-package browse-kill-ring
+       :ensure t
+       :bind ("C-x C-y" . browse-kill-ring)
+       :config
+       (setq browse-kill-ring-quit-action 'kill-and-delete-window))
+
+     (setq save-interprogram-paste-before-kill t)
+
+   #+END_SRC
 * org-mode
 
   #+BEGIN_SRC emacs-lisp
-      ;;
+    ;;
     ;; org-mode setup
     ;;
     (add-to-list 'auto-mode-alist '("\\.txt\\'" . org-mode))
@@ -315,6 +386,13 @@
                                   "xelatex -shell-escape  %f"))
     (setq org-latex-packages-alist
           '("
+            \\hypersetup{ colorlinks,% 
+                    linkcolor=blue,% 
+                    citecolor=black,%
+                    urlcolor=black,%
+                    filecolor=black
+                   }
+
             \\usepackage{fontspec}
             \\usepackage{array}
             \\usepackage{xcolor}
@@ -346,7 +424,7 @@
                     \\makeatletter
                     \\def\\verbatim@font{\\rmfamily\\small} %verbatim中使用roman字体族
                     \\makeatother"
-              
+
                   ("\\section{%s}" . "\\section*{%s}")
                   ("\\subsection{%s}" . "\\subsection*{%s}")
                   ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
@@ -601,6 +679,7 @@
     (add-hook 'markdown-mode-hook 'turn-on-smartparens-strict-mode)
 
   #+END_SRC
+
 * ido-mode
   #+BEGIN_SRC emacs-lisp
     ;; Interactively Do Things
@@ -646,6 +725,12 @@
   #+END_SRC
 
 * elfeed
+  Simple cheatsheet:
+  | key | function       |
+  |-----+----------------|
+  | =r= | mark as read   |
+  | =u= | mark as unread |
+
   #+BEGIN_SRC emacs-lisp
     (global-set-key (kbd "C-x w") 'elfeed)
 
@@ -665,6 +750,13 @@
             "http://blog.fogus.me/feed/"      ;; Programming
             "http://steve-yegge.blogspot.com/atom.xml"
             "http://dlessparentheses.com/atom.xml" ;emacs
+	    "http://feeds.feedburner.com/ruanyifeng"
+	    "http://feeds.feedburner.com/yizhe" 
+	    "http://feed.mifengtd.cn/" 
+	    "http://feed.feedsky.com/tektalk" 
+	    "http://www.geekonomics10000.com/feed " 
+	    "http://feeds2.feedburner.com/xumathena" 
+	    "http://coolshell.cn/feed " 
             "http://www.rkn.io/feed.xml"))    ;; Programming
   #+END_SRC
 
@@ -733,14 +825,51 @@
      (add-hook 'c-mode-hook 'cscope-minor-mode)
    #+END_SRC
 
-** hideshow-org
+** DONE hideshow-org
    #+BEGIN_SRC emacs-lisp
      (require 'hideshow-org)
      (add-hook 'c-mode-hook 'hs-org/minor-mode)
    #+END_SRC
 
+* Automatic Saving
+  #+BEGIN_SRC emacs-lisp :tangle no
+    (defun auto-save-command ()
+      (let* ((basic (and buffer-file-name
+                         (buffer-modified-p (current-buffer))
+                         (file-writable-p buffer-file-name)
+                         (not org-src-mode)))
+             (proj (and (projectile-project-p)
+                        basic)))
+        (if proj 
+            (projectile-save-project-buffers)
+          (when basic
+            (save-buffer)))))
+
+    (defmacro advise-commands (advice-name commands class &rest body)
+      "Apply advice named ADVICE-NAME to multiple COMMANDS.
+    The body of the advice is in BODY."
+      `(progn
+         ,@(mapcar (lambda (command)
+                     `(defadvice ,command (,class ,(intern (concat (symbol-name command) "-" advice-name)) activate)
+                        ,@body))
+                   commands)))
+
+    (advise-commands "auto-save"
+                     (ido-switch-buffer ace-window magit-status windmove-up windmove-down windmove-left windmove-right mode-line-other-buffer)
+                     before
+                     (auto-save-command))
+
+    (add-hook 'mouse-leave-buffer-hook 'auto-save-command)
+    (add-hook 'focus-out-hook 'auto-save-command)
+  #+END_SRC
+
+* smartscan
+  =M-n= to next symbol, and =M-p= to previous symbol.
+
+  #+BEGIN_SRC emacs-lisp 
+     (global-smartscan-mode t)
+  #+END_SRC
 * auto complete
-  
 ** yasnippet
    #+BEGIN_SRC emacs-lisp
      ;; yasnippet
@@ -779,16 +908,15 @@
 * stardict
   #+BEGIN_SRC emacs-lisp
     ;; dictionary in emacs
-
-    (global-set-key (kbd "C-c b") 'kid-sdcv-to-buffer)
+    (global-set-key (kbd "C-c d") 'kid-sdcv-to-buffer)
 
     (defun kid-sdcv-to-buffer ()
       (interactive)
       (let ((word (if mark-active
                       (buffer-substring-no-properties (region-beginning) (region-end))
                     (current-word nil t))))
-        (setq word (read-string (format "Search the dictionary for (default %s): " word)
-                                nil nil word))
+        (setq word (read-string
+                    (format "Search the dictionary for (default %s): " word) nil nil word))
         (set-buffer (get-buffer-create "*sdcv*"))
         (buffer-disable-undo)
         (erase-buffer)
@@ -798,8 +926,6 @@
            (lambda (process signal)
              (when (memq (process-status process) '(exit signal))
                (unless (string= (buffer-name) "*sdcv*")
-                                            ;(setq kid-sdcv-window-configuration (current-window-configuration))
-                                            ;(split-window-below)
                  (switch-to-buffer-other-window "*sdcv*")
                  (local-set-key (kbd "d") 'kid-sdcv-to-buffer)
                  (local-set-key (kbd "q") (lambda ()
@@ -807,7 +933,6 @@
                                             (bury-buffer)
                                             (unless (null (cdr (window-list))) ; only one window
                                               (delete-window)))))))))))
-
   #+END_SRC
 
 * Not use currently
@@ -817,29 +942,25 @@
      (flyspell-lazy-mode 1)
      (flyspell-mode 1)
    #+END_SRC
-** minor-mode diminish
-   #+BEGIN_SRC emacs-lisp :tangle no
-     (require 'diminish)
-     (diminish 'abbrev-mode "Abv")
-     (diminish 'hs-org/minor-mode)
 
-
-     (eval-after-load "yasnippet" '(diminish 'yas-minor-mode))
-     (eval-after-load "eldoc" '(diminish 'eldoc-mode))
-     (eval-after-load "paredit" '(diminish 'paredit-mode))
-     (eval-after-load "tagedit" '(diminish 'tagedit-mode))
-     (eval-after-load "elisp-slime-nav" '(diminish 'elisp-slime-nav-mode))
-     (eval-after-load "skewer-mode" '(diminish 'skewer-mode))
-     (eval-after-load "skewer-css" '(diminish 'skewer-css-mode))
-     (eval-after-load "skewer-html" '(diminish 'skewer-html-mode))
-     (eval-after-load "smartparens" '(diminish 'smartparens-mode))
-     (eval-after-load "guide-key" '(diminish 'guide-key-mode))
-     (eval-after-load "whitespace-cleanup-mode" '(diminish 'whitespace-cleanup-mode))
-     (eval-after-load "subword" '(diminish 'subword-mode))
-   #+END_SRC
 ** fill column indicator
   #+BEGIN_SRC emacs-lisp 
     ;; Fill column indicator
     (require 'fill-column-indicator)
     (setq fci-rule-color "#111122")
   #+END_SRC
+** Ivy and Swiper
+   #+BEGIN_SRC emacs-lisp :tangle no
+     (use-package swiper
+     :ensure t
+     :diminish ivy-mode
+     :bind (("C-s" . swiper)
+            ("C-r" . swiper)
+            ("C-c C-r" . ivy-resume))
+     :init
+     (ivy-mode 1)
+     (setq ivy-display-style 'fancy
+           ivy-height 4
+           ivy-use-virtual-buffers t))
+
+   #+END_SRC
