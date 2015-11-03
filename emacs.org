@@ -1,264 +1,141 @@
 #+TITLE: Emacs init configuration
 #+OPTIONS: toc:4 h:4
 
-* use-package
-  #+BEGIN_SRC emacs-lisp
-    (unless (package-installed-p 'use-package)
-      (package-refresh-contents)
-      (package-install 'use-package))
-
-    (require 'use-package)
-  #+END_SRC
-* diminish minor-mode 
-  #+BEGIN_SRC emacs-lisp 
-    (require 'diminish)
-    (diminish 'abbrev-mode "Abv")
-;    (diminish 'hs-org/minor-mode)
-
-
-    (eval-after-load "yasnippet" '(diminish 'yas-minor-mode))
-    (eval-after-load "eldoc" '(diminish 'eldoc-mode))
-    (eval-after-load "paredit" '(diminish 'paredit-mode))
-    (eval-after-load "tagedit" '(diminish 'tagedit-mode))
-    (eval-after-load "elisp-slime-nav" '(diminish 'elisp-slime-nav-mode))
-    (eval-after-load "skewer-mode" '(diminish 'skewer-mode))
-    (eval-after-load "skewer-css" '(diminish 'skewer-css-mode))
-    (eval-after-load "skewer-html" '(diminish 'skewer-html-mode))
-    (eval-after-load "smartparens" '(diminish 'smartparens-mode))
-    (eval-after-load "guide-key" '(diminish 'guide-key-mode))
-    (eval-after-load "whitespace-cleanup-mode" '(diminish 'whitespace-cleanup-mode))
-    (eval-after-load "subword" '(diminish 'subword-mode))
-  #+END_SRC
-* general configuration
-
-** basic settings
-*** global keystrokes
-    #+BEGIN_SRC emacs-lisp
-      (global-set-key "\C-w" 'backward-kill-word)
-      (global-set-key "\C-x\C-k" 'kill-region)
-      (global-set-key "\C-x\C-b" 'ibuffer-list-buffers)
-
-      (global-set-key (kbd "<f8>") 'eshell)
-      (global-set-key (kbd "<f5>") 'revert-buffer)
-      (add-to-list 'auto-mode-alist '("[Mm]akefile*" . makefile-gmake-mode))
-
-      (setq ediff-window-setup-function 'ediff-setup-windows-plain
-            ediff-split-window-function 'split-window-horizontally)
-
-      (defun find-file-as-root ()
-        "Like `ido-find-file, but automatically edit the file with
-      root-(point)rivileges (using tramp/sudo), if the file is not writable by
-      user."
-        (interactive)
-        (let ((file (ido-read-file-name "Edit as root: ")))
-          (unless (file-writable-p file)
-            (setq file (concat "/sudo:root@localhost:" file)))
-          (find-file file)))
-
-      (global-set-key (kbd "C-x F") 'find-file-as-root)
-
-      (defun narrow-or-widen-dwim (p)
-        "If the buffer is narrowed, it widens. Otherwise, it narrows
-      intelligently.  Intelligently means: region, org-src-block,
-      org-subtree, or defun, whichever applies first.  Narrowing to
-      org-src-block actually calls `org-edit-src-code'.
-
-      With prefix P, don't widen, just narrow even if buffer is already
-      narrowed."
-        (interactive "P")
-        (declare (interactive-only))
-        (cond ((and (buffer-narrowed-p) (not p)) (widen))
-              ((and (boundp 'org-src-mode) org-src-mode (not p))
-               (org-edit-src-exit))
-              ((region-active-p)
-               (narrow-to-region (region-beginning) (region-end)))
-              ((derived-mode-p 'org-mode)
-               (cond ((ignore-errors (org-edit-src-code))
-                      (delete-other-windows))
-                     ((org-at-block-p)
-                      (org-narrow-to-block))
-                     (t (org-narrow-to-subtree))))
-              ((derived-mode-p 'prog-mode) (narrow-to-defun))
-              (t (error "Please select a region to narrow to"))))
-
-      (global-set-key (kbd "C-x n") 'narrow-or-widen-dwim)
-
-      (eval-after-load 'org-src
-        '(define-key org-src-mode-map
-           "\C-x\C-s" #'org-edit-src-exit))
-    #+END_SRC
-*** emacs UI
-    Disable some no used menu bar to enlarge our main frame.
-
-    #+BEGIN_SRC emacs-lisp
-
-      (menu-bar-mode 0)
-      (tool-bar-mode 0)
-      (scroll-bar-mode 0)
-      (blink-cursor-mode 0)
-      (column-number-mode 1)
-
-    #+END_SRC
-*** highlight parenthesis
-
-    #+BEGIN_SRC emacs-lisp
-
-      (show-paren-mode t) ;; 匹配括号高亮
-      ;;; Also highlight parens  
-      (setq show-paren-delay 0  
-            show-paren-style 'parenthesis)
-
-    #+END_SRC
-*** fonts
-    #+BEGIN_SRC emacs-lisp
-
-      ;; Setting English Font
-      (set-face-attribute 'default nil :font "Droid Sans Mono 10") 
-
-      ;; Chinese Font
-      (dolist (charset '(kana han symbol cjk-misc bopomofo))
-        (set-fontset-font (frame-parameter nil 'font)
-                          charset (font-spec :family "WenQuanYi Micro Hei Mono"
-                                             :size 16)))
-
-					     
-    #+END_SRC
-**** Chinese relative
-     #+BEGIN_SRC emacs-lisp
-       (setq sentence-end
-             "\\([。！？]\\|……\\|[.?!][]\"')}]*\\($\\|[ \t]\\)\\)[ \t\n]*") 
-       (setq sentence-end-double-space nil)
-
-
-
-     #+END_SRC
-*** color theme
-    #+BEGIN_SRC emacs-lisp
-      (load-theme 'hc-zenburn t)
-      ;(load-theme 'monokai t)
-      ;(load-theme 'plan9 t)
-      ;(load-theme 'phoenix-dark-pink t)
-    #+END_SRC
-*** other
-**** auto ident after yank
-     #+BEGIN_SRC emacs-lisp
-       (dolist (command '(yank yank-pop))
-       (eval
-        `(defadvice, command (after indent-region activate)
-           (and (not current-prefix-arg)
-                (member major-mode
-                        '(emacs-lisp-mode lisp-mode clojure-mode scheme-mode
-                                          haskell-mode ruby-mode rspec-mode
-                                          python-mode c-mode c++-mode objc-mode
-                                          latex-mode js-mode plain-tex-mode))
-                (let ((mark-even-if-inactive transient-mark-mode))
-                  (indent-region (region-beginning) (region-end) nil))))))
-
-     #+END_SRC
-**** smarter comment
-     #+BEGIN_SRC emacs-lisp
-       (defun qiang-comment-dwim-line (&optional arg)
-         "Replacement for the comment-dwim command.
-       If no region is selected and current line is not blank and
-       we are not at the end of the line, then comment current line.
-       Replaces default behaviour of comment-dwim,
-       when it inserts comment at the end of the line. "
-
-         (interactive "*P")
-         (comment-normalize-vars)
-
-         (if (and (not (region-active-p)) (not (looking-at "[ \t]*$")))
-             (comment-or-uncomment-region (line-beginning-position) (line-end-position))
-           (comment-dwim arg)))
-
-
-       (global-set-key "\M-;" 'qiang-comment-dwim-line) 
-     #+END_SRC
-**** high light
-     #+BEGIN_SRC emacs-lisp
-       ;; Highlight current line
-       (global-hl-line-mode 1)
-
-       (global-anzu-mode +1)
-
-       ;; 最短时间显示指令序列
-       (setq echo-keystrokes 0.1)
-       (setq inhibit-startup-message t)
-       (fset 'yes-or-no-p 'y-or-n-p)
-       ;; 防止页面滚动时跳动,scroll-margin 3可以在靠近屏幕边沿3行时就开始滚动,可
-       ;; 以很好的看到上下文
-       (setq scroll-margin 3
-             scroll-conservatively 10000)
-       (setq ring-bell-function 'ignore)
-       (mouse-avoidance-mode 'animate)
-
-       ;; share clipboard with X, 
-       (setq x-select-enable-clipboard t)
-       ;; share clipboard with app, suite for "C-c"
-       (setq x-select-enable-primary t)
-
-       ;; (setq frame-title-format
-       ;;       '("emacs:%S" (buffer-file-name "%f"
-       ;;                             (dired-directory dired-directory "%b"))))
-       (setq frame-title-format "%f %4 %b %Z %* %10 %I")
-     #+END_SRC
-** misc configuration
+* packages
+** use-package
    #+BEGIN_SRC emacs-lisp
-;   (desktop-save-mode 1)
+     (unless (package-installed-p 'use-package)
+       (package-refresh-contents)
+       (package-install 'use-package))
+     (require 'use-package)
    #+END_SRC
+
+** paradox
+    #+BEGIN_SRC emacs-lisp
+      (use-package async
+                   :ensure t)
+      (use-package paradox
+                   :ensure t
+                   :config
+                   (setq paradox-execute-asynchronously t))
+    #+END_SRC
+* Costume
+** emacs UI
+   Disable some no used menu bar to enlarge our main frame.
+
    #+BEGIN_SRC emacs-lisp
+
+     (menu-bar-mode 0)
+     (tool-bar-mode 0)
+     (scroll-bar-mode 0)
+     (blink-cursor-mode 0)
+     (column-number-mode 1)
+
+   #+END_SRC
+** highlight parenthesis
+
+   #+BEGIN_SRC emacs-lisp
+
+     (show-paren-mode t) ;; 匹配括号高亮
+     ;;; Also highlight parens  
+     (setq show-paren-delay 0  
+           show-paren-style 'parenthesis)
+
+   #+END_SRC
+** fonts
+   #+BEGIN_SRC emacs-lisp
+     ;; Setting English Font
+     (set-face-attribute 'default nil :font "Droid Sans Mono 10") 
+
+     ;; Chinese Font
+     (dolist (charset '(kana han symbol cjk-misc bopomofo))
+       (set-fontset-font (frame-parameter nil 'font)
+                         charset (font-spec :family "WenQuanYi Micro Hei Mono"
+                                            :size 16)))
+   #+END_SRC
+*** Chinese relative
+    #+BEGIN_SRC emacs-lisp
+      (setq sentence-end
+            "\\([。！？]\\|……\\|[.?!][]\"')}]*\\($\\|[ \t]\\)\\)[ \t\n]*") 
+      (setq sentence-end-double-space nil)
+    #+END_SRC
+** color theme
+   #+BEGIN_SRC emacs-lisp
+     (load-theme 'hc-zenburn t)
+     ;(load-theme 'monokai t)
+     ;(load-theme 'plan9 t)
+     ;(load-theme 'phoenix-dark-pink t)
+   #+END_SRC
+  
+** high light
+   #+BEGIN_SRC emacs-lisp
+     ;; Highlight current line
+     (global-hl-line-mode 1)
+
+     (global-anzu-mode +1)
+
+     ;; 最短时间显示指令序列
+     (setq echo-keystrokes 0.1)
+     (setq inhibit-startup-message t)
+     (fset 'yes-or-no-p 'y-or-n-p)
+     ;; 防止页面滚动时跳动,scroll-margin 3可以在靠近屏幕边沿3行时就开始滚动,可
+     ;; 以很好的看到上下文
+     (setq scroll-margin 3
+           scroll-conservatively 10000)
+     (setq ring-bell-function 'ignore)
+     (mouse-avoidance-mode 'animate)
+
+     ;; share clipboard with X, 
+     (setq x-select-enable-clipboard t)
+     ;; share clipboard with app, suite for "C-c"
+     (setq x-select-enable-primary t)
+
+     ;; (setq frame-title-format
+     ;;       '("emacs:%S" (buffer-file-name "%f"
+     ;;                             (dired-directory dired-directory "%b"))))
+     (setq frame-title-format "%f %4 %b %Z %* %10 %I")
+   #+END_SRC
+** diminish minor-mode 
+   #+BEGIN_SRC emacs-lisp 
+     (require 'diminish)
+     (diminish 'abbrev-mode "Abv")
+ ;    (diminish 'hs-org/minor-mode)
+
+     (eval-after-load "yasnippet" '(diminish 'yas-minor-mode))
+     (eval-after-load "eldoc" '(diminish 'eldoc-mode))
+     (eval-after-load "paredit" '(diminish 'paredit-mode))
+     (eval-after-load "tagedit" '(diminish 'tagedit-mode))
+     (eval-after-load "elisp-slime-nav" '(diminish 'elisp-slime-nav-mode))
+     (eval-after-load "skewer-mode" '(diminish 'skewer-mode))
+     (eval-after-load "skewer-css" '(diminish 'skewer-css-mode))
+     (eval-after-load "skewer-html" '(diminish 'skewer-html-mode))
+     (eval-after-load "smartparens" '(diminish 'smartparens-mode))
+     (eval-after-load "guide-key" '(diminish 'guide-key-mode))
+     (eval-after-load "whitespace-cleanup-mode" '(diminish 'whitespace-cleanup-mode))
+     (eval-after-load "subword" '(diminish 'subword-mode))
+   #+END_SRC
+* general
+** keystrokes
+   #+BEGIN_SRC emacs-lisp
+     (global-set-key "\C-w" 'backward-kill-word)
+     (global-set-key "\C-x\C-k" 'kill-region)
+     (global-set-key "\C-x\C-b" 'ibuffer-list-buffers)
+
+     (global-set-key (kbd "<f8>") 'eshell)
+     (global-set-key (kbd "<f5>") 'revert-buffer)
+     (add-to-list 'auto-mode-alist '("[Mm]akefile*" . makefile-gmake-mode))
+
      (global-set-key (kbd "C-x o") 'ace-window)
    #+END_SRC
-*** start v/hsplit & smart move beginning of line
-    #+BEGIN_SRC emacs-lisp
-          (defun my/vsplit-last-buffer (prefix)
-        "Split the window vertically and display the previous buffer."
-        (interactive "p")
-        (split-window-vertically)
-        (other-window 1 nil)
-        (if (= prefix 1)
-            (switch-to-next-buffer)))
-      (defun my/hsplit-last-buffer (prefix)
-        "Split the window horizontally and display the previous buffer."
-        (interactive "p")
-        (split-window-horizontally)
-        (other-window 1 nil)
-        (if (= prefix 1) (switch-to-next-buffer)))
-
-
-      (global-set-key (kbd "C-x 2") 'my/vsplit-last-buffer)
-      (global-set-key (kbd "C-x 3") 'my/hsplit-last-buffer)
-
-
-      (defun my/smarter-move-beginning-of-line (arg)
-        "Move point back to indentation of beginning of line.
-
-      Move point to the first non-whitespace character on this line.
-      If point is already there, move to the beginning of the line.
-      Effectively toggle between the first non-whitespace character and
-      the beginning of the line.
-
-      If ARG is not nil or 1, move forward ARG - 1 lines first.  If
-      point reaches the beginning or end of the buffer, stop there."
-        (interactive "^p")
-        (setq arg (or arg 1))
-
-        ;; Move lines first
-        (when (/= arg 1)
-          (let ((line-move-visual nil))
-            (forward-line (1- arg))))
-
-        (let ((orig-point (point)))
-          (back-to-indentation)
-          (when (= orig-point (point))
-            (move-beginning-of-line 1))))
-
-      ;; remap C-a to `smarter-move-beginning-of-line'
-      (global-set-key [remap move-beginning-of-line]
-                      'my/smarter-move-beginning-of-line)
-
-
-    #+END_SRC
+** ediff
+   #+BEGIN_SRC emacs-lisp
+     (setq ediff-window-setup-function 'ediff-setup-windows-plain
+           ediff-split-window-function 'split-window-horizontally)
+   #+END_SRC
+** Desktop save
+   #+BEGIN_SRC emacs-lisp
+     (desktop-save-mode 1)
+   #+END_SRC
 ** uniquify
    #+BEGIN_SRC emacs-lisp
      ;; every buffer should have a unique name 
@@ -283,12 +160,154 @@
                                               try-complete-lisp-symbol))
      (global-set-key (kbd "M-/") 'hippie-expand)
    #+END_SRC
-** fast jump around
+** avy(fast jump around)
    #+BEGIN_SRC emacs-lisp
      (global-set-key (kbd "C-;") 'avy-goto-char-2)
      (global-set-key (kbd "M-g f") 'avy-goto-line)
      (global-set-key (kbd "C-'") 'avy-isearch)
      (global-set-key (kbd "M-g f") 'avy-goto-line)
+   #+END_SRC
+** smartscan
+   =M-n= to next symbol, and =M-p= to previous symbol.
+
+   #+BEGIN_SRC emacs-lisp 
+      (global-smartscan-mode t)
+   #+END_SRC
+* emacs extension
+** ido-mode
+   #+BEGIN_SRC emacs-lisp
+     ;; Interactively Do Things
+
+     (require 'ido)
+     (ido-mode t)
+     (ido-everywhere 1)
+
+     (setq ido-enable-prefix nil
+           ido-enable-flex-matching t
+           ido-case-fold nil
+           ido-auto-merge-work-directories-length -1
+           ido-create-new-buffer 'always
+           ido-use-filename-at-point nil
+           ido-max-prospects 10)
+
+     ;; Use ido everywhere
+     (require 'ido-ubiquitous)
+     (ido-ubiquitous-mode 1)
+
+     (require 'flx-ido)
+     (flx-ido-mode 1)
+     ;; disable ido faces to see flx highlights.
+     (setq ido-use-faces nil)
+
+   #+END_SRC
+** smart M-x
+   #+BEGIN_SRC emacs-lisp
+     ;; Smart M-x is smart
+     (require 'smex)
+     (smex-initialize)
+
+     ;; Smart M-x
+     (global-set-key (kbd "M-x") 'smex)
+     (global-set-key (kbd "M-X") 'smex-major-mode-commands)
+     (global-set-key (kbd "C-c C-c M-x") 'execute-extended-command)
+
+   #+END_SRC
+
+** find file as root
+   #+BEGIN_SRC emacs-lisp
+     (defun find-file-as-root ()
+       "Like `ido-find-file, but automatically edit the file with
+          root-(point)rivileges (using tramp/sudo), if the file is not writable by
+          user."
+       (interactive)
+       (let ((file (ido-read-file-name "Edit as root: ")))
+         (unless (file-writable-p file)
+           (setq file (concat "/sudo:root@localhost:" file)))
+         (find-file file)))
+
+     (global-set-key (kbd "C-x F") 'find-file-as-root)
+   #+END_SRC
+** beacon-mode
+   #+BEGIN_SRC emacs-lisp
+     (use-package beacon
+       :ensure t
+       :diminish beacon-mode
+       :init
+       (beacon-mode 1)
+       (setq beacon-push-mark 35)
+       (setq beacon-color "#666600"))
+   #+END_SRC
+** rainbow delimiters
+   #+BEGIN_SRC emacs-lisp
+     (add-hook 'emacs-lisp-mode-hook 'rainbow-delimiters-mode)
+     (add-hook 'c-mode-hook 'rainbow-delimiters-mode)
+   #+END_SRC
+
+** browse-kill-ring
+   #+BEGIN_SRC emacs-lisp
+     (use-package browse-kill-ring
+       :ensure t
+       :bind ("C-x C-y" . browse-kill-ring)
+       :config
+       (setq browse-kill-ring-quit-action 'kill-and-delete-window))
+
+     (setq save-interprogram-paste-before-kill t)
+
+   #+END_SRC
+** expand-region
+   #+BEGIN_SRC emacs-lisp
+     (require 'expand-region)
+     (global-set-key (kbd "C-=") 'er/expand-region)
+   #+END_SRC
+   
+** smart move to beginning of line
+   #+BEGIN_SRC emacs-lisp
+     (defun my/smarter-move-beginning-of-line (arg)
+       "Move point back to indentation of beginning of line.
+
+     Move point to the first non-whitespace character on this line.
+     If point is already there, move to the beginning of the line.
+     Effectively toggle between the first non-whitespace character and
+     the beginning of the line.
+
+     If ARG is not nil or 1, move forward ARG - 1 lines first.  If
+     point reaches the beginning or end of the buffer, stop there."
+       (interactive "^p")
+       (setq arg (or arg 1))
+
+       ;; Move lines first
+       (when (/= arg 1)
+         (let ((line-move-visual nil))
+           (forward-line (1- arg))))
+
+       (let ((orig-point (point)))
+         (back-to-indentation)
+         (when (= orig-point (point))
+           (move-beginning-of-line 1))))
+
+     ;; remap C-a to `smarter-move-beginning-of-line'
+     (global-set-key [remap move-beginning-of-line]
+                     'my/smarter-move-beginning-of-line)
+   #+END_SRC
+
+** smart v/h split
+   #+BEGIN_SRC emacs-lisp
+     (defun my/vsplit-last-buffer (prefix)
+       "Split the window vertically and display the previous buffer."
+       (interactive "p")
+       (split-window-vertically)
+       (other-window 1 nil)
+       (if (= prefix 1)
+           (switch-to-next-buffer)))
+     (defun my/hsplit-last-buffer (prefix)
+       "Split the window horizontally and display the previous buffer."
+       (interactive "p")
+       (split-window-horizontally)
+       (other-window 1 nil)
+       (if (= prefix 1) (switch-to-next-buffer)))
+
+     (global-set-key (kbd "C-x 2") 'my/vsplit-last-buffer)
+     (global-set-key (kbd "C-x 3") 'my/hsplit-last-buffer)
    #+END_SRC
 ** smart copy-line kill-line
    #+BEGIN_SRC emacs-lisp
@@ -318,412 +337,294 @@
                 (line-beginning-position 2)))))
    
    #+END_SRC
-** beacon-mode
+** wgrep
    #+BEGIN_SRC emacs-lisp
-     (use-package beacon
+     (use-package ag
        :ensure t
-       :diminish beacon-mode
        :init
-       (beacon-mode 1)
-       (setq beacon-push-mark 35)
-       (setq beacon-color "#666600"))
-   #+END_SRC
-** rainbow delimiters
-   #+BEGIN_SRC emacs-lisp
-     (add-hook 'emacs-lisp-mode-hook 'rainbow-delimiters-mode)
-     (add-hook 'c-mode-hook 'rainbow-delimiters-mode)
-   #+END_SRC
-** Golden Ratio
-   #+BEGIN_SRC emacs-lisp
-     (use-package golden-ratio
-       :ensure t
-       :diminish golden-ratio-mode
-       :init
-       (golden-ratio-mode 1)
-       (setq golden-ratio-auto-scale t))
-   #+END_SRC
-** paradox
-   #+BEGIN_SRC emacs-lisp
-     (use-package async
-                  :ensure t)
-     (use-package paradox
-                  :ensure t
-                  :config
-                  (setq paradox-execute-asynchronously t))
-   #+END_SRC
-** browse-kill-ring
-   #+BEGIN_SRC emacs-lisp
-     (use-package browse-kill-ring
-       :ensure t
-       :bind ("C-x C-y" . browse-kill-ring)
+       (use-package wgrep
+         :ensure t)
+       (use-package wgrep-ag
+         :ensure t)
        :config
-       (setq browse-kill-ring-quit-action 'kill-and-delete-window))
+       (bind-keys :map ag-mode-map
+                  ("q" . kill-this-buffer))
+       (setq ag-highlight-search t))
+   #+END_SRC
 
-     (setq save-interprogram-paste-before-kill t)
+* text manipulate
+** narrow-or-widen-dwim
+   #+BEGIN_SRC emacs-lisp
+     (defun narrow-or-widen-dwim (p)
+       "If the buffer is narrowed, it widens. Otherwise, it narrows
+     intelligently.  Intelligently means: region, org-src-block,
+     org-subtree, or defun, whichever applies first.  Narrowing to
+     org-src-block actually calls `org-edit-src-code'.
+
+     With prefix P, don't widen, just narrow even if buffer is already
+     narrowed."
+       (interactive "P")
+       (declare (interactive-only))
+       (cond ((and (buffer-narrowed-p) (not p)) (widen))
+             ((and (boundp 'org-src-mode) org-src-mode (not p))
+              (org-edit-src-exit))
+             ((region-active-p)
+              (narrow-to-region (region-beginning) (region-end)))
+             ((derived-mode-p 'org-mode)
+              (cond ((ignore-errors (org-edit-src-code))
+                     (delete-other-windows))
+                    ((org-at-block-p)
+                     (org-narrow-to-block))
+                    (t (org-narrow-to-subtree))))
+             ((derived-mode-p 'prog-mode) (narrow-to-defun))
+             (t (error "Please select a region to narrow to"))))
+
+     (global-set-key (kbd "C-x n") 'narrow-or-widen-dwim)
+
+     (eval-after-load 'org-src
+       '(define-key org-src-mode-map
+          "\C-x\C-s" #'org-edit-src-exit))
 
    #+END_SRC
-* org-mode
+** org-mode
 
-  #+BEGIN_SRC emacs-lisp
-    ;;
-    ;; org-mode setup
-    ;;
-    (add-to-list 'auto-mode-alist '("\\.txt\\'" . org-mode))
+   #+BEGIN_SRC emacs-lisp
+     ;;
+     ;; org-mode setup
+     ;;
+     (add-to-list 'auto-mode-alist '("\\.txt\\'" . org-mode))
 
-    (require 'org-bullets)
-    (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
+     ;; (setq org-ellipsis "⤵")
 
-    (require 'ox-latex)
-    (require 'ox-beamer)
-    (setq org-latex-coding-system 'utf-8)
+     (require 'org-bullets)
+     (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
 
-    (setf org-latex-default-packages-alist
-          (remove '("AUTO" "inputenc" t) org-latex-default-packages-alist))
-    (setf org-latex-default-packages-alist
-          (remove '("T1" "fontenc" t) org-latex-default-packages-alist))
+     (require 'ox-latex)
+     (require 'ox-beamer)
+     (setq org-latex-coding-system 'utf-8)
 
-    (setq org-latex-pdf-process '("xelatex -shell-escape  %f"
-                                  "xelatex -shell-escape  %f"))
-    (setq org-latex-packages-alist
-          '("
-            \\hypersetup{ colorlinks,% 
-                    linkcolor=blue,% 
-                    citecolor=black,%
-                    urlcolor=black,%
-                    filecolor=black
-                   }
+     (setf org-latex-default-packages-alist
+           (remove '("AUTO" "inputenc" t) org-latex-default-packages-alist))
+     (setf org-latex-default-packages-alist
+           (remove '("T1" "fontenc" t) org-latex-default-packages-alist))
 
-            \\usepackage{fontspec}
-            \\usepackage{array}
-            \\usepackage{xcolor}
-            \\definecolor{bg}{rgb}{0.95,0.95,0.95}"))
+     (setq org-latex-pdf-process '("xelatex -shell-escape  %f"
+                                   "xelatex -shell-escape  %f"))
+     (setq org-latex-packages-alist
+           '("
+             \\hypersetup{ colorlinks,% 
+                     linkcolor=blue,% 
+                     citecolor=black,%
+                     urlcolor=black,%
+                     filecolor=black
+                    }
 
-    (add-to-list 'org-latex-packages-alist '("" "minted"))
-    (setq org-latex-listings 'minted)
-    (setq org-latex-minted-options
-          '(
-            ("bgcolor" "bg")
-            ("frame" "single")))
+             \\usepackage{fontspec}
+             \\usepackage{array}
+             \\usepackage{xcolor}
+             \\definecolor{bg}{rgb}{0.95,0.95,0.95}"))
 
-    (add-to-list 'org-latex-classes
-                 '("article-cn"
-                  "\\documentclass[11pt]{article}
-                    [DEFAULT-PACKAGES]
-                    [PACKAGES]
-                    \\XeTeXlinebreaklocale ``zh''
-                    \\XeTeXlinebreakskip = 0pt plus 1pt minus 0.1pt
-                    \\newcommand\\fontnamehei{WenQuanYi Zen Hei}
-                    \\newcommand\\fontnamesong{AR PL UMing CN}
-                    \\newcommand\\fontnamekai{AR PL KaitiM GB}
-                    \\newcommand\\fontnamemono{FreeMono}
-                    \\newcommand\\fontnameroman{FreeSans}
-                    \\setmainfont[BoldFont=\\fontnamehei]{\\fontnamesong}
-                    \\setsansfont[BoldFont=\\fontnamehei]{\\fontnamekai}
-                    \\setmonofont{\\fontnamemono}
-                    \\setromanfont[BoldFont=\\fontnamehei]{\\fontnamesong}
-                    \\makeatletter
-                    \\def\\verbatim@font{\\rmfamily\\small} %verbatim中使用roman字体族
-                    \\makeatother"
+     (add-to-list 'org-latex-packages-alist '("" "minted"))
+     (setq org-latex-listings 'minted)
+     (setq org-latex-minted-options
+           '(
+             ("bgcolor" "bg")
+             ("frame" "single")))
 
-                  ("\\section{%s}" . "\\section*{%s}")
-                  ("\\subsection{%s}" . "\\subsection*{%s}")
-                  ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
-                  ("\\paragraph{%s}" . "\\paragraph*{%s}")
-                  ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
+     (add-to-list 'org-latex-classes
+                  '("article-cn"
+                   "\\documentclass[11pt]{article}
+                     [DEFAULT-PACKAGES]
+                     [PACKAGES]
+                     \\XeTeXlinebreaklocale ``zh''
+                     \\XeTeXlinebreakskip = 0pt plus 1pt minus 0.1pt
+                     \\newcommand\\fontnamehei{WenQuanYi Zen Hei}
+                     \\newcommand\\fontnamesong{AR PL UMing CN}
+                     \\newcommand\\fontnamekai{AR PL KaitiM GB}
+                     \\newcommand\\fontnamemono{FreeMono}
+                     \\newcommand\\fontnameroman{FreeSans}
+                     \\setmainfont[BoldFont=\\fontnamehei]{\\fontnamesong}
+                     \\setsansfont[BoldFont=\\fontnamehei]{\\fontnamekai}
+                     \\setmonofont{\\fontnamemono}
+                     \\setromanfont[BoldFont=\\fontnamehei]{\\fontnamesong}
+                     \\makeatletter
+                     \\def\\verbatim@font{\\rmfamily\\small} %verbatim中使用roman字体族
+                     \\makeatother"
 
-    (add-to-list 'org-latex-classes
-                 '("article-img"
-                  "\\documentclass[11pt]{article}
-                    [DEFAULT-PACKAGES]
-                    [PACKAGES]
-                    \\usepackage{geometry}
-                    \\geometry{left=1.5cm,right=1.5cm,top=1.5cm,bottom=1.5cm}"
-                  ("\\section{%s}" . "\\section*{%s}")
-                  ("\\subsection{%s}" . "\\subsection*{%s}")
-                  ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
-                  ("\\paragraph{%s}" . "\\paragraph*{%s}")
-                  ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
+                   ("\\section{%s}" . "\\section*{%s}")
+                   ("\\subsection{%s}" . "\\subsection*{%s}")
+                   ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+                   ("\\paragraph{%s}" . "\\paragraph*{%s}")
+                   ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
 
-    ;; Make Org use ido-completing-read for most of its completing prompts.
-    (setq org-completion-use-ido t)
+     (add-to-list 'org-latex-classes
+                  '("article-img"
+                   "\\documentclass[11pt]{article}
+                     [DEFAULT-PACKAGES]
+                     [PACKAGES]
+                     \\usepackage{geometry}
+                     \\geometry{left=1.5cm,right=1.5cm,top=1.5cm,bottom=1.5cm}"
+                   ("\\section{%s}" . "\\section*{%s}")
+                   ("\\subsection{%s}" . "\\subsection*{%s}")
+                   ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+                   ("\\paragraph{%s}" . "\\paragraph*{%s}")
+                   ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
 
-    (setq org-use-sub-superscripts (quote {})
-          org-export-with-sub-superscripts (quote {})) 
-    (global-set-key (kbd "C-c s e") 'org-edit-src-code)
+     ;; Make Org use ido-completing-read for most of its completing prompts.
+     (setq org-completion-use-ido t)
 
-    (setq org-plantuml-jar-path "/home/oscar/.emacs.d/elpa/contrib/scripts/plantuml.jar")
-    (setq puml-plantuml-jar-path "/home/oscar/.emacs.d/elpa/contrib/scripts/plantuml.jar")
-    (add-to-list 'org-src-lang-modes '("plantuml" . puml))
+     (setq org-use-sub-superscripts (quote {})
+           org-export-with-sub-superscripts (quote {})) 
+     (global-set-key (kbd "C-c s e") 'org-edit-src-code)
 
-    ;; active Babel languages
-    (org-babel-do-load-languages
-     'org-babel-load-languages
-     '((R . t)
-       (sh . t)
-       (dot . t)
-       (ditaa . t)
-       (python . t)
-       (gnuplot . t)
-       (plantuml . t)
-       (emacs-lisp . nil)
-       ))
+     (setq org-plantuml-jar-path "/home/oscar/.emacs.d/elpa/contrib/scripts/plantuml.jar")
+     (setq puml-plantuml-jar-path "/home/oscar/.emacs.d/elpa/contrib/scripts/plantuml.jar")
+     (add-to-list 'org-src-lang-modes '("plantuml" . puml))
 
-    (require 'org-screenshot)
+     ;; active Babel languages
+     (org-babel-do-load-languages
+      'org-babel-load-languages
+      '((R . t)
+	(sh . t)
+	(dot . t)
+	(ditaa . t)
+	(python . t)
+	(gnuplot . t)
+	(plantuml . t)
+	(emacs-lisp . nil)
+	))
 
-
-    (defvar my/org-basic-task-template "* TODO %^{Task}
-    SCHEDULED: %^t
-    %<%Y-%m-%d %H:%M>
-    :PROPERTIES:
-    :Effort: %^{effort|1:00|0:05|0:15|0:30|2:00|4:00}
-    :END:
-    %?
-    " "Basic task data")
-    (setq org-capture-templates
-          `(("t" "Tasks" entry
-             (file+headline "~/personal/organizer.org" "Tasks")
-             ,my/org-basic-task-template)
-            ("T" "Quick task" entry
-             (file+headline "~/personal/organizer.org" "Tasks")
-             "* TODO %^{Task}"
-             :immediate-finish t)
-            ("i" "Interrupting task" entry
-             (file+headline "~/personal/organizer.org" "Tasks")
-             "* STARTED %^{Task}"
-             :clock-in :clock-resume)
-            ("e" "Emacs idea" entry
-             (file+headline "~/code/dev/emacs-notes/tasks.org" "Emacs")
-             "* TODO %^{Task}"
-             :immediate-finish t)
-            ("b" "Business task" entry
-             (file+headline "~/personal/business.org" "Tasks")
-             ,my/org-basic-task-template)
-            ("p" "People task" entry
-             (file+headline "~/personal/people.org" "Tasks")
-             ,my/org-basic-task-template)
-            ("j" "Journal entry" plain
-             (file+datetree "~/personal/journal.org")
-             "%K - %a\n%i\n%?\n"
-             :unnarrowed t)
-            ("J" "Journal entry with date" plain
-             (file+datetree+prompt "~/personal/journal.org")
-             "%K - %a\n%i\n%?\n"
-             :unnarrowed t)
-            ("s" "Journal entry with date, scheduled" entry
-             (file+datetree+prompt "~/personal/journal.org")
-             "* \n%K - %a\n%t\t%i\n%?\n"
-             :unnarrowed t)
-            ("db" "Done - Business" entry
-             (file+headline "~/personal/business.org" "Tasks")
-             "* DONE %^{Task}\nSCHEDULED: %^t\n%?")
-            ("dp" "Done - People" entry
-             (file+headline "~/personal/people.org" "Tasks")
-             "* DONE %^{Task}\nSCHEDULED: %^t\n%?")
-            ("dt" "Done - Task" entry
-             (file+headline "~/personal/organizer.org" "Tasks")
-             "* DONE %^{Task}\nSCHEDULED: %^t\n%?")
-            ("q" "Quick note" item
-             (file+headline "~/personal/organizer.org" "Quick notes"))
-            ("l" "Ledger entries")
-            ("lm" "MBNA" plain
-             (file "~/personal/ledger")
-             "%(org-read-date) %^{Payee}
-      Liabilities:MBNA
-      Expenses:%^{Account}  $%^{Amount}
-    " :immediate-finish t)
-            ("ln" "No Frills" plain
-             (file "~/personal/ledger")
-             "%(let ((org-read-date-prefer-future nil)) (org-read-date)) * No Frills
-      Liabilities:MBNA
-      Assets:Wayne:Groceries  $%^{Amount}
-    " :immediate-finish t)
-            ("lc" "Cash" plain
-             (file "~/personal/ledger")
-             "%(org-read-date) * %^{Payee}
-      Expenses:Cash
-      Expenses:%^{Account}  %^{Amount}
-    ")
-            ("B" "Book" entry
-             (file+datetree "~/personal/books.org" "Inbox")
-             "* %^{Title}  %^g
-    %i
-    ,*Author(s):* %^{Author} \\\\
-    ,*ISBN:* %^{ISBN}
-
-    %?
-
-    ,*Review on:* %^t \\
-    %a
-    %U"
-             :clock-in :clock-resume)
-            ("c" "Contact" entry (file "~/personal/contacts.org")
-             "* %(org-contacts-template-name)
-    :PROPERTIES:
-    :EMAIL: %(my/org-contacts-template-email)
-    :END:")
-            ("n" "Daily note" table-line (file+olp "~/personal/organizer.org" "Daily notes")
-             "| %u | %^{Note} |"
-             :immediate-finish t)
-            ("r" "Notes" entry
-             (file+datetree "~/personal/organizer.org")
-             "* %?\n\n%i\n"
-             )))
-    (global-set-key (kbd "C-c c") 'org-capture)
-
-    (require 'ox-publish)
-    (setq org-publish-project-alist
-          '(
-            ("blog-notes"
-             :base-directory "~/gitest/blog/"
-             :base-extension "org"
-             :publishing-directory "~/gitest/sagebane.github.com/"
-             :recursive t
-             :exclude "template.org"
-             :publishing-function org-html-publish-to-html
-             :headline-levels 4
-             :section-numbers nil
-             :auto-preamble t
-             :auto-sitemap t                ; Generate sitemap.org automagically...
-             :sitemap-filename "sitemap.org"  ; ... call it sitemap.org (it's the default)...
-             :sitemap-title "Sitemap"         ; ... with title 'Sitemap'.
-             :email "zuijiuru at gmail dot com"
-             )
-            ("blog-static"
-             :base-directory "~/gitest/blog/"
-             :base-extension "css\\|js\\|png\\|jpg\\|gif\\|pdf\\|mp3\\|ogg\\|swf"
-             :publishing-directory "~/gitest/sagebane.github.com/"
-             :recursive t
-             :publishing-function org-publish-attachment
-             )
-            ("blog" :components ("blog-notes" "blog-static"))
-            ;;
-            ))
-  #+END_SRC
-* smartparens 
-  #+BEGIN_SRC emacs-lisp 
-    ;; Default setup of smartparens
-    (require 'smartparens-config)
-    (setq sp-autoescape-string-quote nil)
-
-    (defmacro def-pairs (pairs)
-      `(progn
-      ,@(cl-loop for (key . val) in pairs
-              collect
-                `(defun ,(read (concat
-                                "wrap-with-"
-                                (prin1-to-string key)
-                                "s"))
-                     (&optional arg)
-                   (interactive "p")
-                   (sp-wrap-with-pair ,val)))))
-
-    (def-pairs ((paren        . "(")
-                (bracket      . "[")
-                (brace        . "{")
-                (underscores  . "_")
-                (single-quote . "'")
-                (double-quote . "\"")
-                (back-quote   . "`")))
-
-    (define-key smartparens-mode-map (kbd "C-M-a") 'sp-beginning-of-sexp)
-
-    (define-key smartparens-mode-map (kbd "C-M-a") 'sp-beginning-of-sexp)
-    (define-key smartparens-mode-map (kbd "C-M-e") 'sp-end-of-sexp)
-
-    (define-key smartparens-mode-map (kbd "C-<down>") 'sp-down-sexp)
-    (define-key smartparens-mode-map (kbd "C-<up>")   'sp-up-sexp)
-    (define-key smartparens-mode-map (kbd "M-<down>") 'sp-backward-down-sexp)
-    (define-key smartparens-mode-map (kbd "M-<up>")   'sp-backward-up-sexp)
-
-    (define-key smartparens-mode-map (kbd "C-M-f") 'sp-forward-sexp)
-    (define-key smartparens-mode-map (kbd "C-M-b") 'sp-backward-sexp)
-
-    (define-key smartparens-mode-map (kbd "C-M-n") 'sp-next-sexp)
-    (define-key smartparens-mode-map (kbd "C-M-p") 'sp-previous-sexp)
-
-    (define-key smartparens-mode-map (kbd "C-S-f") 'sp-forward-symbol)
-    (define-key smartparens-mode-map (kbd "C-S-b") 'sp-backward-symbol)
-
-    (define-key smartparens-mode-map (kbd "C-<right>") 'sp-forward-slurp-sexp)
-    (define-key smartparens-mode-map (kbd "M-<right>") 'sp-forward-barf-sexp)
-    (define-key smartparens-mode-map (kbd "C-<left>")  'sp-backward-slurp-sexp)
-    (define-key smartparens-mode-map (kbd "M-<left>")  'sp-backward-barf-sexp)
-
-    (define-key smartparens-mode-map (kbd "C-M-t") 'sp-transpose-sexp)
-    (define-key smartparens-mode-map (kbd "C-M-k") 'sp-kill-sexp)
-    (define-key smartparens-mode-map (kbd "C-k")   'sp-kill-hybrid-sexp)
-    (define-key smartparens-mode-map (kbd "M-k")   'sp-backward-kill-sexp)
-    (define-key smartparens-mode-map (kbd "C-M-w") 'sp-copy-sexp)
-
-    (define-key smartparens-mode-map (kbd "C-M-d") 'delete-sexp)
-
-    (define-key smartparens-mode-map (kbd "M-<backspace>") 'backward-kill-word)
-    (define-key smartparens-mode-map (kbd "C-<backspace>") 'sp-backward-kill-word)
-    ;([remap sp-backward-kill-word] 'backward-kill-word)
+     (require 'org-screenshot)
 
 
-    (define-key smartparens-mode-map (kbd "M-[") 'sp-backward-unwrap-sexp)
-    (define-key smartparens-mode-map (kbd "M-]") 'sp-unwrap-sexp)
+     (defvar my/org-basic-task-template "* TODO %^{Task}
+     SCHEDULED: %^t
+     %<%Y-%m-%d %H:%M>
+     :PROPERTIES:
+     :Effort: %^{effort|1:00|0:05|0:15|0:30|2:00|4:00}
+     :END:
+     %?
+     " "Basic task data")
+     (setq org-capture-templates
+           `(("t" "Tasks" entry
+              (file+headline "~/personal/organizer.org" "Tasks")
+              ,my/org-basic-task-template)
+             ("T" "Quick task" entry
+              (file+headline "~/personal/organizer.org" "Tasks")
+              "* TODO %^{Task}"
+              :immediate-finish t)
+             ("i" "Interrupting task" entry
+              (file+headline "~/personal/organizer.org" "Tasks")
+              "* STARTED %^{Task}"
+              :clock-in :clock-resume)
+             ("e" "Emacs idea" entry
+              (file+headline "~/code/dev/emacs-notes/tasks.org" "Emacs")
+              "* TODO %^{Task}"
+              :immediate-finish t)
+             ("b" "Business task" entry
+              (file+headline "~/personal/business.org" "Tasks")
+              ,my/org-basic-task-template)
+             ("p" "People task" entry
+              (file+headline "~/personal/people.org" "Tasks")
+              ,my/org-basic-task-template)
+             ("j" "Journal entry" plain
+              (file+datetree "~/personal/journal.org")
+              "%K - %a\n%i\n%?\n"
+              :unnarrowed t)
+             ("J" "Journal entry with date" plain
+              (file+datetree+prompt "~/personal/journal.org")
+              "%K - %a\n%i\n%?\n"
+              :unnarrowed t)
+             ("s" "Journal entry with date, scheduled" entry
+              (file+datetree+prompt "~/personal/journal.org")
+              "* \n%K - %a\n%t\t%i\n%?\n"
+              :unnarrowed t)
+             ("db" "Done - Business" entry
+              (file+headline "~/personal/business.org" "Tasks")
+              "* DONE %^{Task}\nSCHEDULED: %^t\n%?")
+             ("dp" "Done - People" entry
+              (file+headline "~/personal/people.org" "Tasks")
+              "* DONE %^{Task}\nSCHEDULED: %^t\n%?")
+             ("dt" "Done - Task" entry
+              (file+headline "~/personal/organizer.org" "Tasks")
+              "* DONE %^{Task}\nSCHEDULED: %^t\n%?")
+             ("q" "Quick note" item
+              (file+headline "~/personal/organizer.org" "Quick notes"))
+             ("l" "Ledger entries")
+             ("lm" "MBNA" plain
+              (file "~/personal/ledger")
+              "%(org-read-date) %^{Payee}
+       Liabilities:MBNA
+       Expenses:%^{Account}  $%^{Amount}
+     " :immediate-finish t)
+             ("ln" "No Frills" plain
+              (file "~/personal/ledger")
+              "%(let ((org-read-date-prefer-future nil)) (org-read-date)) * No Frills
+       Liabilities:MBNA
+       Assets:Wayne:Groceries  $%^{Amount}
+     " :immediate-finish t)
+             ("lc" "Cash" plain
+              (file "~/personal/ledger")
+              "%(org-read-date) * %^{Payee}
+       Expenses:Cash
+       Expenses:%^{Account}  %^{Amount}
+     ")
+             ("B" "Book" entry
+              (file+datetree "~/personal/books.org" "Inbox")
+              "* %^{Title}  %^g
+     %i
+     ,*Author(s):* %^{Author} \\\\
+     ,*ISBN:* %^{ISBN}
 
-    (define-key smartparens-mode-map (kbd "C-x C-t") 'sp-transpose-hybrid-sexp)
+     %?
 
-    (define-key smartparens-mode-map (kbd "C-c (")  'wrap-with-parens)
-    (define-key smartparens-mode-map (kbd "C-c [")  'wrap-with-brackets)
-    (define-key smartparens-mode-map (kbd "C-c {")  'wrap-with-braces)
-    (define-key smartparens-mode-map (kbd "C-c '")  'wrap-with-single-quotes)
-    (define-key smartparens-mode-map (kbd"C-c \"") 'wrap-with-double-quotes)
-    (define-key smartparens-mode-map (kbd"C-c _")  'wrap-with-underscores)
-    (define-key smartparens-mode-map (kbd"C-c `")  'wrap-with-back-quotes)
+     ,*Review on:* %^t \\
+     %a
+     %U"
+              :clock-in :clock-resume)
+             ("c" "Contact" entry (file "~/personal/contacts.org")
+              "* %(org-contacts-template-name)
+     :PROPERTIES:
+     :EMAIL: %(my/org-contacts-template-email)
+     :END:")
+             ("n" "Daily note" table-line (file+olp "~/personal/organizer.org" "Daily notes")
+              "| %u | %^{Note} |"
+              :immediate-finish t)
+             ("r" "Notes" entry
+              (file+datetree "~/personal/organizer.org")
+              "* %?\n\n%i\n"
+              )))
+     (global-set-key (kbd "C-c c") 'org-capture)
 
-    (add-hook 'emacs-lisp-mode-hook 'turn-on-smartparens-strict-mode)
-    (add-hook 'markdown-mode-hook 'turn-on-smartparens-strict-mode)
-
-  #+END_SRC
-
-* ido-mode
-  #+BEGIN_SRC emacs-lisp
-    ;; Interactively Do Things
-
-    (require 'ido)
-    (ido-mode t)
-    (ido-everywhere 1)
-
-    (setq ido-enable-prefix nil
-          ido-enable-flex-matching t
-          ido-case-fold nil
-          ido-auto-merge-work-directories-length -1
-          ido-create-new-buffer 'always
-          ido-use-filename-at-point nil
-          ido-max-prospects 10)
-
-    ;; Use ido everywhere
-    (require 'ido-ubiquitous)
-    (ido-ubiquitous-mode 1)
-
-    (require 'flx-ido)
-    (flx-ido-mode 1)
-    ;; disable ido faces to see flx highlights.
-    (setq ido-use-faces nil)
-
-  #+END_SRC
-* expand-region
-  #+BEGIN_SRC emacs-lisp
-    (require 'expand-region)
-    (global-set-key (kbd "C-=") 'er/expand-region)
-  #+END_SRC
-* smart M-x
-  #+BEGIN_SRC emacs-lisp
-    ;; Smart M-x is smart
-    (require 'smex)
-    (smex-initialize)
-
-    ;; Smart M-x
-    (global-set-key (kbd "M-x") 'smex)
-    (global-set-key (kbd "M-X") 'smex-major-mode-commands)
-    (global-set-key (kbd "C-c C-c M-x") 'execute-extended-command)
-
-  #+END_SRC
-
+     (require 'ox-publish)
+     (setq org-publish-project-alist
+           '(
+             ("blog-notes"
+              :base-directory "~/gitest/blog/"
+              :base-extension "org"
+              :publishing-directory "~/gitest/sagebane.github.com/"
+              :recursive t
+              :exclude "template.org"
+              :publishing-function org-html-publish-to-html
+              :headline-levels 4
+              :section-numbers nil
+              :auto-preamble t
+              :auto-sitemap t                ; Generate sitemap.org automagically...
+              :sitemap-filename "sitemap.org"  ; ... call it sitemap.org (it's the default)...
+              :sitemap-title "Sitemap"         ; ... with title 'Sitemap'.
+              :email "zuijiuru at gmail dot com"
+              )
+             ("blog-static"
+              :base-directory "~/gitest/blog/"
+              :base-extension "css\\|js\\|png\\|jpg\\|gif\\|pdf\\|mp3\\|ogg\\|swf"
+              :publishing-directory "~/gitest/sagebane.github.com/"
+              :recursive t
+              :publishing-function org-publish-attachment
+              )
+             ("blog" :components ("blog-notes" "blog-static"))
+             ;;
+             ))
+   #+END_SRC
 * elfeed
   Simple cheatsheet:
   | key | function       |
@@ -760,151 +661,204 @@
             "http://www.rkn.io/feed.xml"))    ;; Programming
   #+END_SRC
 
-* visual regexp
+* program
+** scheme
+   #+BEGIN_SRC emacs-lisp
+     ;; This is the binary name of my scheme implementation  
+     (setq scheme-program-name "scm")
+   #+END_SRC
+
+** smartparens 
+   #+BEGIN_SRC emacs-lisp 
+     ;; Default setup of smartparens
+     (require 'smartparens-config)
+     (setq sp-autoescape-string-quote nil)
+
+     (defmacro def-pairs (pairs)
+       `(progn
+       ,@(cl-loop for (key . val) in pairs
+               collect
+                 `(defun ,(read (concat
+                                 "wrap-with-"
+                                 (prin1-to-string key)
+                                 "s"))
+                      (&optional arg)
+                    (interactive "p")
+                    (sp-wrap-with-pair ,val)))))
+
+     (def-pairs ((paren        . "(")
+                 (bracket      . "[")
+                 (brace        . "{")
+                 (underscores  . "_")
+                 (single-quote . "'")
+                 (double-quote . "\"")
+                 (back-quote   . "`")))
+
+     (define-key smartparens-mode-map (kbd "C-M-a") 'sp-beginning-of-sexp)
+
+     (define-key smartparens-mode-map (kbd "C-M-a") 'sp-beginning-of-sexp)
+     (define-key smartparens-mode-map (kbd "C-M-e") 'sp-end-of-sexp)
+
+     (define-key smartparens-mode-map (kbd "C-<down>") 'sp-down-sexp)
+     (define-key smartparens-mode-map (kbd "C-<up>")   'sp-up-sexp)
+     (define-key smartparens-mode-map (kbd "M-<down>") 'sp-backward-down-sexp)
+     (define-key smartparens-mode-map (kbd "M-<up>")   'sp-backward-up-sexp)
+
+     (define-key smartparens-mode-map (kbd "C-M-f") 'sp-forward-sexp)
+     (define-key smartparens-mode-map (kbd "C-M-b") 'sp-backward-sexp)
+
+     (define-key smartparens-mode-map (kbd "C-M-n") 'sp-next-sexp)
+     (define-key smartparens-mode-map (kbd "C-M-p") 'sp-previous-sexp)
+
+     (define-key smartparens-mode-map (kbd "C-S-f") 'sp-forward-symbol)
+     (define-key smartparens-mode-map (kbd "C-S-b") 'sp-backward-symbol)
+
+     (define-key smartparens-mode-map (kbd "C-<right>") 'sp-forward-slurp-sexp)
+     (define-key smartparens-mode-map (kbd "M-<right>") 'sp-forward-barf-sexp)
+     (define-key smartparens-mode-map (kbd "C-<left>")  'sp-backward-slurp-sexp)
+     (define-key smartparens-mode-map (kbd "M-<left>")  'sp-backward-barf-sexp)
+
+     (define-key smartparens-mode-map (kbd "C-M-t") 'sp-transpose-sexp)
+     (define-key smartparens-mode-map (kbd "C-M-k") 'sp-kill-sexp)
+     (define-key smartparens-mode-map (kbd "C-k")   'sp-kill-hybrid-sexp)
+     (define-key smartparens-mode-map (kbd "M-k")   'sp-backward-kill-sexp)
+     (define-key smartparens-mode-map (kbd "C-M-w") 'sp-copy-sexp)
+
+     (define-key smartparens-mode-map (kbd "C-M-d") 'delete-sexp)
+
+     (define-key smartparens-mode-map (kbd "M-<backspace>") 'backward-kill-word)
+     (define-key smartparens-mode-map (kbd "C-<backspace>") 'sp-backward-kill-word)
+     ;([remap sp-backward-kill-word] 'backward-kill-word)
+
+
+     (define-key smartparens-mode-map (kbd "M-[") 'sp-backward-unwrap-sexp)
+     (define-key smartparens-mode-map (kbd "M-]") 'sp-unwrap-sexp)
+
+     (define-key smartparens-mode-map (kbd "C-x C-t") 'sp-transpose-hybrid-sexp)
+
+     (define-key smartparens-mode-map (kbd "C-c (")  'wrap-with-parens)
+     (define-key smartparens-mode-map (kbd "C-c [")  'wrap-with-brackets)
+     (define-key smartparens-mode-map (kbd "C-c {")  'wrap-with-braces)
+     (define-key smartparens-mode-map (kbd "C-c '")  'wrap-with-single-quotes)
+     (define-key smartparens-mode-map (kbd"C-c \"") 'wrap-with-double-quotes)
+     (define-key smartparens-mode-map (kbd"C-c _")  'wrap-with-underscores)
+     (define-key smartparens-mode-map (kbd"C-c `")  'wrap-with-back-quotes)
+
+     (add-hook 'emacs-lisp-mode-hook 'turn-on-smartparens-strict-mode)
+     (add-hook 'markdown-mode-hook 'turn-on-smartparens-strict-mode)
+
+   #+END_SRC
+
+** cc-mode
+*** c-mode
+    #+BEGIN_SRC emacs-lisp
+	(defun linux-c-mode()
+	;; 将回车代替C-j的功能，换行的同时对齐
+	(define-key c-mode-map [return] 'newline-and-indent)
+	(interactive)
+	;; 设置C程序的对齐风格
+	(c-set-style "K&R")
+	;; 自动模式，在此种模式下当你键入{时，会自动根据你设置的对齐风格对齐
+	(c-toggle-auto-state)
+	;; TAB键的宽度
+	(setq c-basic-offset 4)
+	;; 此模式下，当按Backspace时会删除最多的空格
+	(c-toggle-hungry-state)
+	;; 在菜单中加入当前Buffer的函数索引
+	(imenu-add-menubar-index)
+	;; 在状态条上显示当前光标在哪个函数体内部
+	(which-function-mode)
+	(c-toggle-auto-newline 0)
+	(c-set-offset 'inextern-lang 0);;在extern c{} 中正常对齐
+	)
+
+      (defun linux-cpp-mode()
+	(define-key c++-mode-map [return] 'newline-and-indent)
+	(define-key c++-mode-map [(control c) (c)] 'compile)
+	(interactive)
+	(c-set-style "K&R")
+	(c-toggle-auto-state)
+	(c-toggle-hungry-state)
+	(setq c-basic-offset 4)
+	(imenu-add-menubar-index)
+	(which-function-mode)
+	(c-set-offset 'inextern-lang 0);;在extern c{} 中正常对齐
+	)
+
+      ;;c程序风格
+      (add-hook 'c-mode-common-hook 'linux-c-mode)
+
+
+    #+END_SRC
+
+*** cscope
+    #+BEGIN_SRC emacs-lisp
+       (require 'xcscope)
+       ;(cscope-setup)
+      (add-hook 'c-mode-hook 'cscope-minor-mode)
+    #+END_SRC
+
+*** DONE hideshow-org
+    #+BEGIN_SRC emacs-lisp
+      (require 'hideshow-org)
+      (add-hook 'c-mode-hook 'hs-org/minor-mode)
+    #+END_SRC
+
+** auto complete
+*** yasnippet
+    #+BEGIN_SRC emacs-lisp
+      ;; yasnippet
+      ;; should be loaded before auto complete so that they can work together
+      (require 'yasnippet)
+      (yas-global-mode 1)
+    #+END_SRC
+*** auto complete mode
+    #+BEGIN_SRC emacs-lisp
+      ;; auto complete mode
+      ;; should be loaded after yasnippet so that they can work together
+      ;(require 'auto-complete-clang)
+      ;(define-key c-mode-map (kbd "C-S-<return>") 'ac-complete-clang)
+
+      (require 'auto-complete-config)
+      (add-to-list 'ac-dictionary-directories "~/.emacs.d/ac-dict")
+      (ac-config-default)
+      ;; set the trigger key so that it can work together with yasnippet on tab key,
+      ;; if the word exists in yasnippet, pressing tab will cause yasnippet to
+      ;; activate, otherwise, auto-complete will
+      (ac-set-trigger-key "TAB")
+      (ac-set-trigger-key "<tab>")
+    #+END_SRC
+** magit
+   #+BEGIN_SRC emacs-lisp
+     (global-set-key (kbd "C-x g") 'magit-status)
+   #+END_SRC
+
+** comment-dwim-2
+ #+BEGIN_SRC emacs-lisp 
+   (use-package comment-dwim-2
+     :ensure t
+     :bind ("M-;" . comment-dwim-2))
+ #+END_SRC
+** aggressive-indent
+ #+BEGIN_SRC emacs-lisp
+   (use-package aggressive-indent
+     :ensure t
+     :diminish aggressive-indent-mode
+     :init
+     (global-aggressive-indent-mode 1)
+     (add-to-list 'aggressive-indent-excluded-modes 'html-mode)
+     (unbind-key "C-c C-q" aggressive-indent-mode-map))
+ #+END_SRC
+
+* Browsing
   #+BEGIN_SRC emacs-lisp
-    ;; Visual regexp
-    (require 'visual-regexp)
-    (define-key global-map (kbd "C-c q") 'vr/query-replace)
-    (define-key global-map (kbd "C-c r") 'vr/replace)
+    (setq browse-url-browser-function 'browse-url-generic
+          browse-url-generic-program (cond ((eq system-type 'darwin) "open") 
+                                           ((eq system-type 'gnu/linux) "firefox")))
 
-    (define-key global-map (kbd "C-c m") 'vr/mc-mark)
+    (bind-key "C-c B" 'browse-url-at-point)
   #+END_SRC
 
-* scheme
-  #+BEGIN_SRC emacs-lisp
-    ;; This is the binary name of my scheme implementation  
-    (setq scheme-program-name "scm")
-  #+END_SRC
-
-* cc-mode
-** c-mode
-   #+BEGIN_SRC emacs-lisp
-       (defun linux-c-mode()
-       ;; 将回车代替C-j的功能，换行的同时对齐
-       (define-key c-mode-map [return] 'newline-and-indent)
-       (interactive)
-       ;; 设置C程序的对齐风格
-       (c-set-style "K&R")
-       ;; 自动模式，在此种模式下当你键入{时，会自动根据你设置的对齐风格对齐
-       (c-toggle-auto-state)
-       ;; TAB键的宽度
-       (setq c-basic-offset 4)
-       ;; 此模式下，当按Backspace时会删除最多的空格
-       (c-toggle-hungry-state)
-       ;; 在菜单中加入当前Buffer的函数索引
-       (imenu-add-menubar-index)
-       ;; 在状态条上显示当前光标在哪个函数体内部
-       (which-function-mode)
-       (c-toggle-auto-newline 0)
-       (c-set-offset 'inextern-lang 0);;在extern c{} 中正常对齐
-       )
-
-     (defun linux-cpp-mode()
-       (define-key c++-mode-map [return] 'newline-and-indent)
-       (define-key c++-mode-map [(control c) (c)] 'compile)
-       (interactive)
-       (c-set-style "K&R")
-       (c-toggle-auto-state)
-       (c-toggle-hungry-state)
-       (setq c-basic-offset 4)
-       (imenu-add-menubar-index)
-       (which-function-mode)
-       (c-set-offset 'inextern-lang 0);;在extern c{} 中正常对齐
-       )
-
-     ;;c程序风格
-     (add-hook 'c-mode-common-hook 'linux-c-mode)
-
-
-   #+END_SRC
-
-** cscope
-   #+BEGIN_SRC emacs-lisp
-      (require 'xcscope)
-      ;(cscope-setup)
-     (add-hook 'c-mode-hook 'cscope-minor-mode)
-   #+END_SRC
-
-** DONE hideshow-org
-   #+BEGIN_SRC emacs-lisp
-     (require 'hideshow-org)
-     (add-hook 'c-mode-hook 'hs-org/minor-mode)
-   #+END_SRC
-
-* Automatic Saving
-  #+BEGIN_SRC emacs-lisp :tangle no
-    (defun auto-save-command ()
-      (let* ((basic (and buffer-file-name
-                         (buffer-modified-p (current-buffer))
-                         (file-writable-p buffer-file-name)
-                         (not org-src-mode)))
-             (proj (and (projectile-project-p)
-                        basic)))
-        (if proj 
-            (projectile-save-project-buffers)
-          (when basic
-            (save-buffer)))))
-
-    (defmacro advise-commands (advice-name commands class &rest body)
-      "Apply advice named ADVICE-NAME to multiple COMMANDS.
-    The body of the advice is in BODY."
-      `(progn
-         ,@(mapcar (lambda (command)
-                     `(defadvice ,command (,class ,(intern (concat (symbol-name command) "-" advice-name)) activate)
-                        ,@body))
-                   commands)))
-
-    (advise-commands "auto-save"
-                     (ido-switch-buffer ace-window magit-status windmove-up windmove-down windmove-left windmove-right mode-line-other-buffer)
-                     before
-                     (auto-save-command))
-
-    (add-hook 'mouse-leave-buffer-hook 'auto-save-command)
-    (add-hook 'focus-out-hook 'auto-save-command)
-  #+END_SRC
-
-* smartscan
-  =M-n= to next symbol, and =M-p= to previous symbol.
-
-  #+BEGIN_SRC emacs-lisp 
-     (global-smartscan-mode t)
-  #+END_SRC
-* auto complete
-** yasnippet
-   #+BEGIN_SRC emacs-lisp
-     ;; yasnippet
-     ;; should be loaded before auto complete so that they can work together
-     (require 'yasnippet)
-     (yas-global-mode 1)
-   #+END_SRC
-** auto complete mode
-   #+BEGIN_SRC emacs-lisp
-     ;; auto complete mode
-     ;; should be loaded after yasnippet so that they can work together
-     ;(require 'auto-complete-clang)
-     ;(define-key c-mode-map (kbd "C-S-<return>") 'ac-complete-clang)
-
-     (require 'auto-complete-config)
-     (add-to-list 'ac-dictionary-directories "~/.emacs.d/ac-dict")
-     (ac-config-default)
-     ;; set the trigger key so that it can work together with yasnippet on tab key,
-     ;; if the word exists in yasnippet, pressing tab will cause yasnippet to
-     ;; activate, otherwise, auto-complete will
-     (ac-set-trigger-key "TAB")
-     (ac-set-trigger-key "<tab>")
-   #+END_SRC
-* magit
-  #+BEGIN_SRC emacs-lisp
-    (global-set-key (kbd "C-x g") 'magit-status)
-  #+END_SRC
-* multiple cursors
-  #+BEGIN_SRC emacs-lisp :tangle no
-    (require 'multiple-cursors)
-    ;(global-set-key (kbd "C-c c c") 'mc/edit-lines)
-    (global-set-key (kbd "C->") 'mc/mark-next-like-this)
-    (global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
-    (global-set-key (kbd "C-c C-<") 'mc/mark-all-like-this)
-  #+END_SRC
 * stardict
   #+BEGIN_SRC emacs-lisp
     ;; dictionary in emacs
@@ -963,4 +917,98 @@
            ivy-height 4
            ivy-use-virtual-buffers t))
 
+   #+END_SRC
+
+** auto ident after yank
+   #+BEGIN_SRC emacs-lisp :tangle no
+     (dolist (command '(yank yank-pop))
+     (eval
+      `(defadvice, command (after indent-region activate)
+         (and (not current-prefix-arg)
+              (member major-mode
+                      '(emacs-lisp-mode lisp-mode clojure-mode scheme-mode
+                                        haskell-mode ruby-mode rspec-mode
+                                        python-mode c-mode c++-mode objc-mode
+                                        latex-mode js-mode plain-tex-mode))
+              (let ((mark-even-if-inactive transient-mark-mode))
+                (indent-region (region-beginning) (region-end) nil))))))
+
+   #+END_SRC
+** smarter comment
+   #+BEGIN_SRC emacs-lisp :tangle no
+     (defun qiang-comment-dwim-line (&optional arg)
+       "Replacement for the comment-dwim command.
+     If no region is selected and current line is not blank and
+     we are not at the end of the line, then comment current line.
+     Replaces default behaviour of comment-dwim,
+     when it inserts comment at the end of the line. "
+
+       (interactive "*P")
+       (comment-normalize-vars)
+
+       (if (and (not (region-active-p)) (not (looking-at "[ \t]*$")))
+           (comment-or-uncomment-region (line-beginning-position) (line-end-position))
+         (comment-dwim arg)))
+
+
+     (global-set-key "\M-;" 'qiang-comment-dwim-line) 
+   #+END_SRC
+
+** Automatic Saving
+   #+BEGIN_SRC emacs-lisp :tangle no
+     (defun auto-save-command ()
+       (let* ((basic (and buffer-file-name
+                          (buffer-modified-p (current-buffer))
+                          (file-writable-p buffer-file-name)
+                          (not org-src-mode)))
+              (proj (and (projectile-project-p)
+                         basic)))
+         (if proj 
+             (projectile-save-project-buffers)
+           (when basic
+             (save-buffer)))))
+
+     (defmacro advise-commands (advice-name commands class &rest body)
+       "Apply advice named ADVICE-NAME to multiple COMMANDS.
+     The body of the advice is in BODY."
+       `(progn
+          ,@(mapcar (lambda (command)
+                      `(defadvice ,command (,class ,(intern (concat (symbol-name command) "-" advice-name)) activate)
+                         ,@body))
+                    commands)))
+
+     (advise-commands "auto-save"
+                      (ido-switch-buffer ace-window magit-status windmove-up windmove-down windmove-left windmove-right mode-line-other-buffer)
+                      before
+                      (auto-save-command))
+
+     (add-hook 'mouse-leave-buffer-hook 'auto-save-command)
+     (add-hook 'focus-out-hook 'auto-save-command)
+   #+END_SRC
+
+** multiple cursors
+   #+BEGIN_SRC emacs-lisp :tangle no
+     (require 'multiple-cursors)
+     ;(global-set-key (kbd "C-c c c") 'mc/edit-lines)
+     (global-set-key (kbd "C->") 'mc/mark-next-like-this)
+     (global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
+     (global-set-key (kbd "C-c C-<") 'mc/mark-all-like-this)
+   #+END_SRC
+** visual regexp
+   #+BEGIN_SRC emacs-lisp
+     ;; Visual regexp
+     (require 'visual-regexp)
+     (define-key global-map (kbd "C-c q") 'vr/query-replace)
+     (define-key global-map (kbd "C-c r") 'vr/replace)
+
+     (define-key global-map (kbd "C-c m") 'vr/mc-mark)
+   #+END_SRC
+** Golden Ratio
+   #+BEGIN_SRC emacs-lisp :tangle no
+     (use-package golden-ratio
+       :ensure t
+       :diminish golden-ratio-mode
+       :init
+       (golden-ratio-mode 1)
+       (setq golden-ratio-auto-scale t))
    #+END_SRC

@@ -8,7 +8,19 @@
 (package-initialize) ;; You might already have this line
 
 ;; (setq url-proxy-services '(("no_proxy" . "work\\.com")
-;;                            ("https" . "127.0.0.1:1080")))
+;;                            ("http" . "127.0.0.1:1080")))
 
 (org-babel-load-file "~/.emacs.d/emacs.org")
 
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(paradox-github-token t))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
