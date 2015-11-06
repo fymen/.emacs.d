@@ -190,7 +190,37 @@
    #+BEGIN_SRC emacs-lisp 
       (global-smartscan-mode t)
    #+END_SRC
+** isearch delete something
+   #+BEGIN_SRC emacs-lisp
+     ;; An attempt at this Emacs SX question:
+     ;; https://emacs.stackexchange.com/questions/10359/delete-portion-of-isearch-string-that-does-not-match-or-last-char-if-complete-m
 
+     (defun isearch-delete-something ()
+       "Delete non-matching text or the last character."
+       ;; Mostly copied from `isearch-del-char' and Drew's answer on the page above
+       (interactive)
+       (if (= 0 (length isearch-string))
+           (ding)
+         (setq isearch-string
+               (substring isearch-string
+                          0
+                          (or (isearch-fail-pos) (1- (length isearch-string)))))
+         (setq isearch-message
+               (mapconcat #'isearch-text-char-description isearch-string "")))
+       (if isearch-other-end (goto-char isearch-other-end))
+       (isearch-search)
+       (isearch-push-state)
+       (isearch-update))
+
+     (define-key isearch-mode-map (kbd "<backspace>") 
+       #'isearch-delete-something)
+
+   #+END_SRC
+** hungry delete
+   #+BEGIN_SRC emacs-lisp
+     (require 'hungry-delete)
+     (global-hungry-delete-mode)    
+   #+END_SRC
 * emacs extension
 ** ido-mode
    #+BEGIN_SRC emacs-lisp
@@ -877,14 +907,18 @@
  #+END_SRC
 
 * Browsing
-  #+BEGIN_SRC emacs-lisp
-    (setq browse-url-browser-function 'browse-url-generic
-          browse-url-generic-program (cond ((eq system-type 'darwin) "open") 
-                                           ((eq system-type 'gnu/linux) "firefox")))
+** browse url at point
+   #+BEGIN_SRC emacs-lisp
+     (setq browse-url-browser-function 'browse-url-generic
+           browse-url-generic-program (cond ((eq system-type 'darwin) "open") 
+                                            ((eq system-type 'gnu/linux) "firefox")))
 
-    (bind-key "C-c B" 'browse-url-at-point)
-  #+END_SRC
-
+     (bind-key "C-c B" 'browse-url-at-point)
+   #+END_SRC
+** COMMENT search engine
+   #+BEGIN_SRC emacs-lisp
+   
+   #+END_SRC
 * stardict
   #+BEGIN_SRC emacs-lisp
     ;; dictionary in emacs
@@ -916,6 +950,18 @@
                  (goto-char (point-min))
                  (other-window 1)
                  )))))))
+  #+END_SRC
+
+* wubi input method
+  #+BEGIN_SRC emacs-lisp
+    (add-to-list 'load-path "~/.emacs.d/lisp/emacs-eim/")
+    (autoload 'eim-use-package "eim" "Another emacs input method")
+    ;; Tooltip 暂时还不好用
+    ;; (setq eim-use-tooltip nil)
+
+    (register-input-method
+     "eim-wb" "euc-cn" 'eim-use-package
+     "五笔" "汉字五笔输入法" "wb.txt")
   #+END_SRC
 
 * COMMENT Not use currently
@@ -1041,5 +1087,11 @@
        (golden-ratio-mode 1)
        (setq golden-ratio-auto-scale t))
    #+END_SRC
+** 
 
+** proxy
+   #+BEGIN_SRC emacs-lisp
+     (setq url-proxy-services '(("no_proxy" . "work\\.com")
+                                ("http" . "127.0.0.1:1080")))
+   #+END_SRC   
 
