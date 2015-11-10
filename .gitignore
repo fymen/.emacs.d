@@ -9,3 +9,9 @@ url/
 /.org-id-locations
 /ede-projects.el
 /smex-items
+/bookmarks
+/emacs.el
+/lisp/emacs-eim/
+projectile*
+/recentf
+/tramp
