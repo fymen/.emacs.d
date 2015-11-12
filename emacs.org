@@ -1,5 +1,5 @@
-#+TITLE: Emacs init configuration
 #+OPTIONS: toc:4 h:4
+#+TITLE: Emacs init configuration
 
 * packages
 ** use-package
@@ -192,9 +192,11 @@
    #+END_SRC
 ** smartscan
    =M-n= to next symbol, and =M-p= to previous symbol.
+   Only in elisp and c mode.
 
    #+BEGIN_SRC emacs-lisp 
-      (global-smartscan-mode t)
+     (add-hook 'emacs-lisp-mode-hook 'smartscan-mode)
+     (add-hook 'c-mode-hook 'smartscan-mode)
    #+END_SRC
 ** isearch delete not matched string
    #+BEGIN_SRC emacs-lisp
@@ -927,7 +929,7 @@
 
       (setq op/site-domain "http://fymen.github.io/")
       (setq op/site-main-title "A peacefull heart")
-      (setq op/site-sub-title "free is not free! ----dont know by who")
+      (setq op/site-sub-title "Free is not free! ----don't know by whom")
       (setq op/personal-github-link "https://github.com/fymen/")
       (setq op/theme 'oscar)
       ;; (setq op/personal-disqus-shortname "kelvinh")
@@ -990,8 +992,8 @@
   #+BEGIN_SRC emacs-lisp
     (defun eshell/x ()
       "Closes the EShell session and gets rid of the EShell window."
-      (kill-buffer)
-      (delete-window))
+      (delete-window)
+      (eshell/exit))
   #+END_SRC
 
   Start eshell in current directory:
@@ -1336,3 +1338,4 @@
      (eval-after-load "whitespace-cleanup-mode" '(diminish 'whitespace-cleanup-mode))
      (eval-after-load "subword" '(diminish 'subword-mode))
    #+END_SRC
+ 
