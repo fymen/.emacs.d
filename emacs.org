@@ -113,11 +113,21 @@
                                  "Fill"
                                  "ColorIds"
                                  "FIC"
-				 "Projectile"
-				 "Helm"
-				 "Anzu"
+                                 "Projectile"
+                                 "Helm"
+                                 "yas"
+                                 "Anzu"
                                  "FlyC.*"))
      (setq sml/hidden-modes (mapconcat 'identity useless-minor-modes "\\| *"))
+   #+END_SRC
+** dired
+   #+BEGIN_SRC emacs-lisp
+     (setq
+      dired-dwim-target t            ; if another Dired buffer is visibpple in another window, use that directory as target for Rename/Copy
+      dired-recursive-copies 'always         ; "always" means no asking
+      dired-recursive-deletes 'top           ; "top" means ask once for top level directory
+      dired-listing-switches "-lha"          ; human-readable listing
+      )
    #+END_SRC
 * general
 ** keystrokes
@@ -128,7 +138,7 @@
 
      (global-set-key (kbd "<f8>") 'eshell)
      (global-set-key (kbd "<f5>") 'revert-buffer)
-     (add-to-list 'auto-mode-alist '("[Mm]akefile*" . makefile-gmake-mode))
+
 
      (global-set-key (kbd "C-x o") 'ace-window)
    #+END_SRC
@@ -228,6 +238,10 @@
    #+BEGIN_SRC emacs-lisp
      (require 'hungry-delete)
      (global-hungry-delete-mode)    
+   #+END_SRC
+** winner-mode
+   #+BEGIN_SRC emacs-lisp
+     (winner-mode 1)
    #+END_SRC
 * emacs extension
 ** find file as root
@@ -361,6 +375,29 @@
 		("C-x C-+" . hydra-zoom/body))
      (setq hydra-lv nil))
  #+END_SRC
+** ibuffer-vc
+   #+BEGIN_SRC emacs-lisp
+     (add-hook 'ibuffer-hook
+               (lambda ()
+                 (ibuffer-vc-set-filter-groups-by-vc-root)
+                 (unless (eq ibuffer-sorting-mode 'alphabetic)
+                   (ibuffer-do-sort-by-alphabetic))))
+     (setq ibuffer-formats
+           '((mark modified read-only vc-status-mini " "
+                   (name 18 18 :left :elide)
+                   " "
+                   (size 9 -1 :right)
+                   " "
+                   (mode 16 16 :left :elide)
+                   " "
+                   (vc-status 16 16 :left)
+                   " "
+                   filename-and-process)))
+   #+END_SRC
+** nyan-mode
+   #+BEGIN_SRC emacs-lisp
+     (nyan-mode)
+   #+END_SRC
 * program
 ** scheme
    #+BEGIN_SRC emacs-lisp
@@ -506,6 +543,7 @@
     :init
     (global-company-mode 1)
     (add-to-list 'company-backends 'company-c-headers)
+    (setq company-backends (delete 'company-semantic company-backends))
     (with-eval-after-load 'company
       (company-flx-mode +1))
 
@@ -546,25 +584,6 @@
      (add-to-list 'aggressive-indent-excluded-modes 'html-mode)
      (unbind-key "C-c C-q" aggressive-indent-mode-map))
  #+END_SRC
-** helm-gtags
-   #+BEGIN_SRC emacs-lisp
-     ;; Enable helm-gtags-mode
-     (add-hook 'c-mode-hook 'helm-gtags-mode)
-     (add-hook 'c++-mode-hook 'helm-gtags-mode)
-     (add-hook 'asm-mode-hook 'helm-gtags-mode)
-
-     ;; Set key bindings
-     (eval-after-load "helm-gtags"
-       '(progn
-          (define-key helm-gtags-mode-map (kbd "M-t") 'helm-gtags-find-tag)
-          (define-key helm-gtags-mode-map (kbd "M-r") 'helm-gtags-find-rtag)
-          (define-key helm-gtags-mode-map (kbd "M-s") 'helm-gtags-find-symbol)
-          (define-key helm-gtags-mode-map (kbd "M-g M-p") 'helm-gtags-parse-file)
-          (define-key helm-gtags-mode-map (kbd "C-c <") 'helm-gtags-previous-history)
-          (define-key helm-gtags-mode-map (kbd "C-c >") 'helm-gtags-next-history)
-          (define-key helm-gtags-mode-map (kbd "M-,") 'helm-gtags-pop-stack)))
-
-   #+END_SRC
 ** COMMENT flycheck
    #+BEGIN_SRC emacs-lisp
      (use-package flycheck
@@ -586,8 +605,55 @@
        ;; enable static analysis
        (setq flycheck-clangcheck-analyze t))
    #+END_SRC
+** compilation
+   #+BEGIN_SRC emacs-lisp
+     (defun prelude-colorize-compilation-buffer ()
+       "Colorize a compilation mode buffer."
+       (interactive)
+       ;; we don't want to mess with child modes such as grep-mode, ack, ag, etc
+       (when (eq major-mode 'compilation-mode)
+         (let ((inhibit-read-only t))
+           (ansi-color-apply-on-region (point-min) (point-max)))))
 
+     ;; setup compilation-mode used by `compile' command
+     (require 'compile)
+     (setq compilation-ask-about-save nil          ; Just save before compiling
+           compilation-always-kill t               ; Just kill old compile processes before starting the new one
+           compilation-scroll-output 'first-error) ; Automatically scroll to first
+     (global-set-key (kbd "<f5>") 'compile)
+
+   #+END_SRC
+** Makefile
+   #+BEGIN_SRC emacs-lisp
+     (add-to-list 'auto-mode-alist '("[Mm]akefile*" . makefile-gmake-mode))
+     (defun prelude-makefile-mode-defaults ()
+       (whitespace-toggle-options '(tabs))
+       (setq indent-tabs-mode t ))
+
+     (setq prelude-makefile-mode-hook 'prelude-makefile-mode-defaults)
+
+     (add-hook 'makefile-mode-hook (lambda ()
+                                     (run-hooks 'prelude-makefile-mode-hook)))
+   #+END_SRC
 * helm
+** helm-gtags
+   #+BEGIN_SRC emacs-lisp
+     ;; Enable helm-gtags-mode
+     (add-hook 'c-mode-hook 'helm-gtags-mode)
+     (add-hook 'c++-mode-hook 'helm-gtags-mode)
+     (add-hook 'asm-mode-hook 'helm-gtags-mode)
+
+     ;; Set key bindings
+     (eval-after-load "helm-gtags"
+       '(progn
+          (define-key helm-gtags-mode-map (kbd "M-t") 'helm-gtags-find-tag)
+          (define-key helm-gtags-mode-map (kbd "M-r") 'helm-gtags-find-rtag)
+          (define-key helm-gtags-mode-map (kbd "M-s") 'helm-gtags-find-symbol)
+          (define-key helm-gtags-mode-map (kbd "M-g M-p") 'helm-gtags-parse-file)
+          (define-key helm-gtags-mode-map (kbd "C-c <") 'helm-gtags-previous-history)
+          (define-key helm-gtags-mode-map (kbd "C-c >") 'helm-gtags-next-history)
+          (define-key helm-gtags-mode-map (kbd "M-,") 'helm-gtags-pop-stack)))
+   #+END_SRC
 ** swoop
    #+BEGIN_SRC emacs-lisp
      (require 'helm-swoop)
@@ -644,6 +710,10 @@
      (global-set-key (kbd "C-h SPC") 'helm-all-mark-rings)
    #+END_SRC
 
+   #+BEGIN_SRC emacs-lisp
+   
+   #+END_SRC
+
    List eshell history:
    #+BEGIN_SRC emacs-lisp
      (add-hook 'eshell-mode-hook
@@ -698,7 +768,8 @@
 
       (require 'org-bullets)
       (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
-      
+
+      (add-hook 'org-mode-hook 'auto-fill-mode)
       ;; Make Org use ido-completing-read for most of its completing prompts.
       (setq org-completion-use-ido t)
 
@@ -968,7 +1039,7 @@
 
 
     #+END_SRC
-* eshell  
+* eshell
   Press any key to jump back to the prompt:
   #+BEGIN_SRC emacs-lisp
   (setq eshell-scroll-to-bottom-on-input t)
@@ -979,8 +1050,10 @@
     (defalias 'e 'find-file)
     (defalias 'ff 'find-file)
     (defalias 'emacs 'find-file)
-    
+
     (defalias 'ee 'find-file-other-window)
+
+    (defalias 'ls "ls --color -h --group-directories-first $*")
   #+END_SRC
   
   I will prefer the Unix implementations, like the =find= and =chomd=:
@@ -1317,8 +1390,6 @@
        (setq ag-highlight-search t))
    #+END_SRC
 
-
-
 ** diminish minor-mode 
    #+BEGIN_SRC emacs-lisp 
      (require 'diminish)
@@ -1338,4 +1409,7 @@
      (eval-after-load "whitespace-cleanup-mode" '(diminish 'whitespace-cleanup-mode))
      (eval-after-load "subword" '(diminish 'subword-mode))
    #+END_SRC
- 
+
+
+master
+mastermastermastermastermaster
