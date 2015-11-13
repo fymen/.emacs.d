@@ -139,7 +139,6 @@
      (global-set-key (kbd "<f8>") 'eshell)
      (global-set-key (kbd "<f5>") 'revert-buffer)
 
-
      (global-set-key (kbd "C-x o") 'ace-window)
    #+END_SRC
 ** launch map
@@ -396,8 +395,42 @@
    #+END_SRC
 ** nyan-mode
    #+BEGIN_SRC emacs-lisp
-     (nyan-mode)
+     (nyan-mode 1)
    #+END_SRC
+** Golden Ratio
+   #+BEGIN_SRC emacs-lisp
+     ;; (setq 'golden-ratio-inhibit-functions 'pl/helm-alive-p)
+     ;; (defun pl/helm-alive-p ()
+     ;;   (if (boundp 'helm-alive-p)
+     ;;       (symbol-value 'helm-alive-p)))
+
+     ;; do not enable golden-raio in thses modes
+     (setq golden-ratio-exclude-modes '("ediff-mode"
+                                        "helm-mode"
+                                        "dired-mode"
+                                        "gud-mode"
+                                        "gdb-locals-mode"
+                                        "gdb-registers-mode"
+                                        "gdb-breakpoints-mode"
+                                        "gdb-threads-mode"
+                                        "gdb-frames-mode"
+                                        "gdb-inferior-io-mode"
+                                        "gud-mode"
+                                        "gdb-inferior-io-mode"
+                                        "gdb-disassembly-mode"
+                                        "gdb-memory-mode"
+                                        "magit-log-mode"
+                                        "magit-reflog-mode"
+                                        "magit-status-mode"
+                                        "IELM"
+                                        "eshell-mode" 
+                                        "dired-mode"))
+
+     (golden-ratio-mode 1)
+     (setq golden-ratio-auto-scale t)
+     (add-to-list 'golden-ratio-extra-commands 'ace-window)
+   #+END_SRC
+
 * program
 ** scheme
    #+BEGIN_SRC emacs-lisp
@@ -1052,7 +1085,6 @@
     (defalias 'emacs 'find-file)
 
     (defalias 'ee 'find-file-other-window)
-
     (defalias 'ls "ls --color -h --group-directories-first $*")
   #+END_SRC
   
@@ -1166,8 +1198,8 @@
                                             (bury-buffer)
                                             (unless (null (cdr (window-list))) ; only one window
                                               (delete-window))))
-                 (goto-char (point-min))
-                 (other-window 1)
+                 ;; (goto-char (point-min))
+                 ;; (other-window 1)
                  )))))))
   #+END_SRC
 
@@ -1296,15 +1328,6 @@
      (define-key global-map (kbd "C-c r") 'vr/replace)
 
      (define-key global-map (kbd "C-c m") 'vr/mc-mark)
-   #+END_SRC
-** Golden Ratio
-   #+BEGIN_SRC emacs-lisp :tangle no
-     (use-package golden-ratio
-       :ensure t
-       :diminish golden-ratio-mode
-       :init
-       (golden-ratio-mode 1)
-       (setq golden-ratio-auto-scale t))
    #+END_SRC
 
 ** auto complete mode
