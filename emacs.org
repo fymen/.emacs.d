@@ -116,6 +116,9 @@
                                  "Projectile"
                                  "Helm"
                                  "yas"
+                                 "Golden"
+                                 "ivy"
+                                 "hs+"
                                  "Anzu"
                                  "FlyC.*"))
      (setq sml/hidden-modes (mapconcat 'identity useless-minor-modes "\\| *"))
@@ -140,24 +143,6 @@
      (global-set-key (kbd "<f5>") 'revert-buffer)
 
      (global-set-key (kbd "C-x o") 'ace-window)
-   #+END_SRC
-** launch map
-   #+BEGIN_SRC emacs-lisp
-     (define-prefix-command 'launcher-map)
-     ;; `C-x l' is `count-lines-page' by default. If you
-     ;; use that, you can try s-l or <C-return>.
-     (global-set-key (kbd "C-l") 'launcher-map)
-     (define-key launcher-map "p" #'paradox-list-packages)
-     (define-key launcher-map "c" #'helm-calcul-expression)
-     (define-key launcher-map "d" #'ediff-buffers)
-     (define-key launcher-map "f" #'find-dired)
-     (define-key launcher-map "g" #'lgrep)
-     (define-key launcher-map "G" #'rgrep)
-     (define-key launcher-map "h" #'man) ; Help
-     (define-key launcher-map "i" #'package-install-from-buffer)
-     (define-key launcher-map "n" #'nethack)
-     (define-key launcher-map "s" #'shell)
-     (define-key launcher-map "e" #'eval-buffer)
    #+END_SRC
 ** ediff
    #+BEGIN_SRC emacs-lisp
@@ -369,9 +354,25 @@
        ("g" text-scale-increase "in")
        ("l" text-scale-decrease "out"))
      (bind-keys ("C-x C-0" . hydra-zoom/body)
-		("C-x C-=" . hydra-zoom/body)
-		("C-x C--" . hydra-zoom/body)
-		("C-x C-+" . hydra-zoom/body))
+                ("C-x C-=" . hydra-zoom/body)
+                ("C-x C--" . hydra-zoom/body)
+                ("C-x C-+" . hydra-zoom/body))
+
+     (defhydra hydra-launcher (:color blue)
+       "launcher"
+       ("p" paradox-list-packages "lisp packages")
+       ("c" helm-calcul-expression "calculator")
+       ("d" ediff-buffers "ediff buffers")
+       ("f" find-dired "dired")
+       ("g" lgrep "lgrep")
+       ("G" rgrep "recursive grep")
+       ("h" man "man")
+       ("n" nethack "net hack")
+       ("s" shell "shell")
+       ("e" eval-buffer "eval-buffer")
+       )
+     (global-set-key (kbd "C-l") 'hydra-launcher/body)
+
      (setq hydra-lv nil))
  #+END_SRC
 ** ibuffer-vc
@@ -431,6 +432,14 @@
      (add-to-list 'golden-ratio-extra-commands 'ace-window)
    #+END_SRC
 
+** multiple cursors
+   #+BEGIN_SRC emacs-lisp 
+     (require 'multiple-cursors)
+     (global-set-key (kbd "C-c m") 'mc/edit-lines)
+     (global-set-key (kbd "C->") 'mc/mark-next-like-this)
+     (global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
+     (global-set-key (kbd "C-c C-<") 'mc/mark-all-like-this)
+   #+END_SRC
 * program
 ** scheme
    #+BEGIN_SRC emacs-lisp
@@ -1229,21 +1238,6 @@
     (require 'fill-column-indicator)
     (setq fci-rule-color "#111122")
   #+END_SRC
-** Ivy and Swiper
-   #+BEGIN_SRC emacs-lisp :tangle no
-     (use-package swiper
-     :ensure t
-     :diminish ivy-mode
-     :bind (("C-s" . swiper)
-            ("C-r" . swiper)
-            ("C-c C-r" . ivy-resume))
-     :init
-     (ivy-mode 1)
-     (setq ivy-display-style 'fancy
-           ivy-height 4
-           ivy-use-virtual-buffers t))
-
-   #+END_SRC
 
 ** auto ident after yank
    #+BEGIN_SRC emacs-lisp :tangle no
@@ -1312,14 +1306,6 @@
      (add-hook 'focus-out-hook 'auto-save-command)
    #+END_SRC
 
-** multiple cursors
-   #+BEGIN_SRC emacs-lisp :tangle no
-     (require 'multiple-cursors)
-     ;(global-set-key (kbd "C-c c c") 'mc/edit-lines)
-     (global-set-key (kbd "C->") 'mc/mark-next-like-this)
-     (global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
-     (global-set-key (kbd "C-c C-<") 'mc/mark-all-like-this)
-   #+END_SRC
 ** visual regexp
    #+BEGIN_SRC emacs-lisp
      ;; Visual regexp
@@ -1362,7 +1348,6 @@
 ** ido-mode
    #+BEGIN_SRC emacs-lisp
      ;; Interactively Do Things
-
      (require 'ido)
      (ido-mode t)
      (ido-everywhere 1)
@@ -1436,3 +1421,36 @@
 
 master
 mastermastermastermastermaster
+** Ivy and Swiper
+   #+BEGIN_SRC emacs-lisp
+     (use-package swiper
+     :ensure t
+     :diminish ivy-mode
+     :bind (("C-s" . swiper)
+            ("C-r" . swiper)
+            ("C-c C-r" . ivy-resume))
+     :init
+     (ivy-mode 1)
+
+     (setq ivy-display-style 'fancy
+           ivy-use-virtual-buffers t))
+
+   #+END_SRC
+** launch map
+   #+BEGIN_SRC emacs-lisp 
+     (define-prefix-command 'launcher-map)
+     ;; `C-x l' is `count-lines-page' by default. If you
+     ;; use that, you can try s-l or <C-return>.
+     (global-set-key (kbd "C-l") 'launcher-map)
+     (define-key launcher-map "p" #'paradox-list-packages)
+     (define-key launcher-map "c" #'helm-calcul-expression)
+     (define-key launcher-map "d" #'ediff-buffers)
+     (define-key launcher-map "f" #'find-dired)
+     (define-key launcher-map "g" #'lgrep)
+     (define-key launcher-map "G" #'rgrep)
+     (define-key launcher-map "h" #'man) ; Help
+     (define-key launcher-map "i" #'package-install-from-buffer)
+     (define-key launcher-map "n" #'nethack)
+     (define-key launcher-map "s" #'shell)
+     (define-key launcher-map "e" #'eval-buffer)
+   #+END_SRC
