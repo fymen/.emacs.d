@@ -19,18 +19,42 @@
                    :config
                    (setq paradox-execute-asynchronously t))
     #+END_SRC
+* personal information
+  #+BEGIN_SRC emacs-lisp
+    (setq user-full-name "Oscar Qi")
+    (setq user-mail-address "oscar.qi@honeywell.com")
+  #+END_SRC
 * Costume
 ** emacs UI
    Disable some no used menu bar to enlarge our main frame.
 
    #+BEGIN_SRC emacs-lisp
+     (when (functionp 'menu-bar-mode)
+       (menu-bar-mode -1))
+     (when (functionp 'set-scroll-bar-mode)
+       (set-scroll-bar-mode 'nil))
+     (when (functionp 'mouse-wheel-mode)
+       (mouse-wheel-mode -1))
+     (when (functionp 'tooltip-mode)
+       (tooltip-mode -1))
+     (when (functionp 'tool-bar-mode)
+       (tool-bar-mode -1))
+     (when (functionp 'blink-cursor-mode)
+       (blink-cursor-mode -1))
 
-     (menu-bar-mode 0)
-     (tool-bar-mode 0)
-     (scroll-bar-mode 0)
-     (blink-cursor-mode 0)
      (column-number-mode 1)
-
+     (line-number-mode 1)
+   #+END_SRC
+** prettify symbols
+   #+BEGIN_SRC emacs-lisp
+     (when (boundp 'global-prettify-symbols-mode)
+       (add-hook 'emacs-lisp-mode-hook
+                 (lambda ()
+                   (push '("lambda" . ?λ) prettify-symbols-alist)))
+       (add-hook 'clojure-mode-hook
+                 (lambda ()
+                   (push '("fn" . ?ƒ) prettify-symbols-alist)))
+       (global-prettify-symbols-mode +1))
    #+END_SRC
 ** highlight parenthesis
 
@@ -61,10 +85,11 @@
     #+END_SRC
 ** color theme
    #+BEGIN_SRC emacs-lisp
+     ;; (load-theme 'dracula t)
      (load-theme 'hc-zenburn t)
-     ;(load-theme 'monokai t)
-     ;(load-theme 'plan9 t)
-     ;(load-theme 'phoenix-dark-pink t)
+     ;; (load-theme 'monokai t)
+     ;; (load-theme 'plan9 t)
+     ;; (load-theme 'phoenix-dark-pink t)
    #+END_SRC
   
 ** high light
@@ -82,7 +107,9 @@
      ;; 以很好的看到上下文
      (setq scroll-margin 3
            scroll-conservatively 10000)
+
      (setq ring-bell-function 'ignore)
+
      (mouse-avoidance-mode 'animate)
 
      ;; share clipboard with X, 
@@ -94,6 +121,9 @@
      ;;       '("emacs:%S" (buffer-file-name "%f"
      ;;                             (dired-directory dired-directory "%b"))))
      (setq frame-title-format "%f %4 %b %Z %* %10 %I")
+
+
+
    #+END_SRC
 ** smart-modeline
    #+BEGIN_SRC emacs-lisp
@@ -130,6 +160,7 @@
       dired-recursive-copies 'always         ; "always" means no asking
       dired-recursive-deletes 'top           ; "top" means ask once for top level directory
       dired-listing-switches "-lha"          ; human-readable listing
+      ls-lisp-dirs-first t
       )
    #+END_SRC
 * general
@@ -142,7 +173,7 @@
      (global-set-key (kbd "<f8>") 'eshell)
      (global-set-key (kbd "<f5>") 'revert-buffer)
 
-     (global-set-key (kbd "C-x o") 'ace-window)
+     ;; (global-set-key (kbd "C-x o") 'ace-window)
    #+END_SRC
 ** ediff
    #+BEGIN_SRC emacs-lisp
@@ -221,7 +252,7 @@
 ** hungry delete
    #+BEGIN_SRC emacs-lisp
      (require 'hungry-delete)
-     (global-hungry-delete-mode)    
+     (global-hungry-delete-mode)
    #+END_SRC
 ** winner-mode
    #+BEGIN_SRC emacs-lisp
@@ -359,18 +390,28 @@
                 ("C-x C-+" . hydra-zoom/body))
 
      (defhydra hydra-launcher (:color blue)
-       "launcher"
-       ("p" paradox-list-packages "lisp packages")
-       ("c" helm-calcul-expression "calculator")
-       ("d" ediff-buffers "ediff buffers")
-       ("f" find-dired "dired")
-       ("g" lgrep "lgrep")
-       ("G" rgrep "recursive grep")
-       ("h" man "man")
-       ("n" nethack "net hack")
-       ("s" shell "shell")
-       ("e" eval-buffer "eval-buffer")
-       )
+       "
+   launcher
+   -------------------------------------
+   _p_: paradox-list-packages
+   _c_: helm-calcul-expression
+   _d_: ediff-buffers
+   _f_: find-dired
+   _g_: lgrep
+   _G_: rgrep
+   _e_: eval-buffer
+   "
+       ("p" paradox-list-packages :exit t)
+       ("c" helm-calcul-expression :exit t)
+       ("d" ediff-buffers :exit t)
+       ("f" find-dired :exit t)
+       ("g" lgrep :exit t)
+       ("G" rgrep :exit t)
+       ;; ("h" man :exit t)
+       ;; ("n" nethack :exit t)
+       ;; ("s" shell :exit t)
+       ("e" eval-buffer :exit t))
+
      (global-set-key (kbd "C-l") 'hydra-launcher/body)
 
      (setq hydra-lv nil))
@@ -424,7 +465,8 @@
                                         "magit-reflog-mode"
                                         "magit-status-mode"
                                         "IELM"
-                                        "eshell-mode" 
+                                        ;; "eshell-mode"
+                                        "fundamental-mode"
                                         "dired-mode"))
 
      (golden-ratio-mode 1)
@@ -525,49 +567,49 @@
 
      (add-hook 'emacs-lisp-mode-hook 'turn-on-smartparens-strict-mode)
      (add-hook 'markdown-mode-hook 'turn-on-smartparens-strict-mode)
-
+     (add-hook 'c-mode-hook 'turn-on-smartparens-strict-mode)
    #+END_SRC
 
 ** cc-mode
 *** c-mode
-    #+BEGIN_SRC emacs-lisp
-	(defun linux-c-mode()
-	;; 将回车代替C-j的功能，换行的同时对齐
-	(define-key c-mode-map [return] 'newline-and-indent)
-	(interactive)
-	;; 设置C程序的对齐风格
-	(c-set-style "K&R")
-	;; 自动模式，在此种模式下当你键入{时，会自动根据你设置的对齐风格对齐
-	(c-toggle-auto-state)
-	;; TAB键的宽度
-	(setq c-basic-offset 4)
-	;; 此模式下，当按Backspace时会删除最多的空格
-	(c-toggle-hungry-state)
-	;; 在菜单中加入当前Buffer的函数索引
-	(imenu-add-menubar-index)
-	;; 在状态条上显示当前光标在哪个函数体内部
-	(which-function-mode)
-	(c-toggle-auto-newline 0)
-	(c-set-offset 'inextern-lang 0);;在extern c{} 中正常对齐
-	)
+    #+BEGIN_SRC emacs-lisp 
+        (defun linux-c-mode()
+        ;; 将回车代替C-j的功能，换行的同时对齐
+        (define-key c-mode-map [return] 'newline-and-indent)
+        (interactive)
+        ;; 设置C程序的对齐风格
+        (c-set-style "K&R")
+        ;; 自动模式，在此种模式下当你键入{时，会自动根据你设置的对齐风格对齐
+        (c-toggle-auto-state)
+        ;; TAB键的宽度
+        (setq c-basic-offset 4)
+        ;; 此模式下，当按Backspace时会删除最多的空格
+        (c-toggle-hungry-state)
+        ;; 在菜单中加入当前Buffer的函数索引
+        (imenu-add-menubar-index)
+        ;; 在状态条上显示当前光标在哪个函数体内部
+        (which-function-mode)
+        (c-toggle-auto-newline 1)
+        (c-set-offset 'inextern-lang 0);;在extern c{} 中正常对齐
+        )
 
       (defun linux-cpp-mode()
-	(define-key c++-mode-map [return] 'newline-and-indent)
-	(define-key c++-mode-map [(control c) (c)] 'compile)
-	(interactive)
-	(c-set-style "K&R")
-	(c-toggle-auto-state)
-	(c-toggle-hungry-state)
-	(setq c-basic-offset 4)
-	(imenu-add-menubar-index)
-	(which-function-mode)
-	(c-set-offset 'inextern-lang 0);;在extern c{} 中正常对齐
-	)
+        (define-key c++-mode-map [return] 'newline-and-indent)
+        (define-key c++-mode-map [(control c) (c)] 'compile)
+        (interactive)
+        (c-set-style "K&R")
+        (c-toggle-auto-state)
+        (c-toggle-hungry-state)
+        (setq c-basic-offset 4)
+        (imenu-add-menubar-index)
+        (which-function-mode)
+        (c-set-offset 'inextern-lang 0);;在extern c{} 中正常对齐
+        )
 
       ;;c程序风格
-      (add-hook 'c-mode-common-hook 'linux-c-mode)
+      (add-hook 'c-mode-hook 'linux-c-mode)
 
-
+      (add-hook 'c-mode-hook 'color-identifiers-mode)
     #+END_SRC
 
 *** hideshow-org
@@ -616,13 +658,28 @@
      :ensure t
      :bind ("M-;" . comment-dwim-2))
  #+END_SRC
+** dtrt-indent
+   #+BEGIN_SRC emacs-lisp
+     (add-hook 'c-mode-common-hook 
+       (lambda()
+         (require 'dtrt-indent)
+         ;; (setq dtrt-indent-verbosity 0)
+         (dtrt-indent-mode t)))
+   #+END_SRC
 ** aggressive-indent
- #+BEGIN_SRC emacs-lisp
+ #+BEGIN_SRC emacs-lisp 
    (use-package aggressive-indent
      :ensure t
      :diminish aggressive-indent-mode
      :init
      (global-aggressive-indent-mode 1)
+
+     ;; (add-to-list
+     ;;  'aggressive-indent-dont-indent-if
+     ;;  '(and (derived-mode-p 'c-mode)
+     ;;        (null (string-match "\\([;{}]\\|\\b\\(if\\|for\\|while\\)\\b\\)"
+     ;;                            (thing-at-point 'line)))))
+
      (add-to-list 'aggressive-indent-excluded-modes 'html-mode)
      (unbind-key "C-c C-q" aggressive-indent-mode-map))
  #+END_SRC
@@ -641,8 +698,7 @@
                                           "/path/to/clang-check")
          (flycheck-select-checker 'c/c++-clangcheck))
 
-       (add-hook 'c-mode-hook #'my-select-clangcheck-for-checker)
-       (add-hook 'c++-mode-hook #'my-select-clangcheck-for-checker)
+       (add-hook 'c-mode-common-hook #'my-select-clangcheck-for-checker)
 
        ;; enable static analysis
        (setq flycheck-clangcheck-analyze t))
@@ -669,7 +725,6 @@
    #+BEGIN_SRC emacs-lisp
      (add-to-list 'auto-mode-alist '("[Mm]akefile*" . makefile-gmake-mode))
      (defun prelude-makefile-mode-defaults ()
-       (whitespace-toggle-options '(tabs))
        (setq indent-tabs-mode t ))
 
      (setq prelude-makefile-mode-hook 'prelude-makefile-mode-defaults)
@@ -1153,11 +1208,13 @@
   #+BEGIN_SRC emacs-lisp
     (global-set-key (kbd "C-x w") 'elfeed)
 
+    (setf url-queue-timeout 30)
+
     (setq elfeed-feeds
           '("http://www.howardism.org/index.xml"     ;; My Blog
             "http://endlessparentheses.com/atom.xml" ;; Emacs Blog
             "http://www.masteringemacs.org/feed/"    ;; Emacs Blog
-            "http://emacs-fu.blogspot.com/feeds/posts/default"
+            ;; "http://emacs-fu.blogspot.com/feeds/posts/default"
             "http://emacsredux.com/atom.xml"         ;; Emacs Blog
             "http://www.lunaryorn.com/feed.atom"     ;; Emacs Blog
             "http://swannodette.github.com/atom.xml" ;; David Nolen, duh.
@@ -1167,7 +1224,6 @@
             "https://medium.com/feed/@hlship/"       ;; Programming
             "http://gigasquidsoftware.com/atom.xml"  ;; Clojure
             "http://blog.fogus.me/feed/"      ;; Programming
-            "http://steve-yegge.blogspot.com/atom.xml"
             "http://dlessparentheses.com/atom.xml" ;emacs
             "http://feeds.feedburner.com/ruanyifeng"
             "http://feeds.feedburner.com/yizhe" 
