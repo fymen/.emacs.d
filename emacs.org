@@ -122,8 +122,6 @@
      ;;                             (dired-directory dired-directory "%b"))))
      (setq frame-title-format "%f %4 %b %Z %* %10 %I")
 
-
-
    #+END_SRC
 ** smart-modeline
    #+BEGIN_SRC emacs-lisp
@@ -149,6 +147,7 @@
                                  "Golden"
                                  "ivy"
                                  "hs+"
+                                 "SP/s"
                                  "Anzu"
                                  "FlyC.*"))
      (setq sml/hidden-modes (mapconcat 'identity useless-minor-modes "\\| *"))
@@ -169,6 +168,7 @@
      (global-set-key (kbd "C-w") 'backward-kill-word)
      (global-set-key (kbd "C-x C-k") 'kill-region)
      (global-set-key (kbd "C-x C-b") 'ibuffer-list-buffers)
+     (global-set-key (kbd "C--") 'mark-sexp)
 
      (global-set-key (kbd "<f8>") 'eshell)
      (global-set-key (kbd "<f5>") 'revert-buffer)
@@ -399,6 +399,7 @@
    _f_: find-dired
    _g_: lgrep
    _G_: rgrep
+   _n_: nethack
    _e_: eval-buffer
    "
        ("p" paradox-list-packages :exit t)
@@ -408,7 +409,7 @@
        ("g" lgrep :exit t)
        ("G" rgrep :exit t)
        ;; ("h" man :exit t)
-       ;; ("n" nethack :exit t)
+       ("n" nethack :exit t)
        ;; ("s" shell :exit t)
        ("e" eval-buffer :exit t))
 
@@ -608,8 +609,11 @@
 
       ;;c程序风格
       (add-hook 'c-mode-hook 'linux-c-mode)
+      (add-hook 'c++-mode-hook 'linux-cpp-mode)
 
       (add-hook 'c-mode-hook 'color-identifiers-mode)
+      (add-hook 'c++-mode-hook 'color-identifiers-mode)
+
     #+END_SRC
 
 *** hideshow-org
@@ -877,6 +881,11 @@
       (require 'org-screenshot)
 
       ;; (setq org-ellipsis "⤵")
+
+      (global-set-key (kbd "C-c l") 'org-store-link)
+      (global-set-key (kbd "C-c a") 'org-agenda)
+      (global-set-key (kbd "C-c b") 'org-iswitchb)
+
     #+END_SRC
 *** babel
     #+BEGIN_SRC emacs-lisp
@@ -899,7 +908,7 @@
     #+END_SRC
 *** capture
     #+BEGIN_SRC emacs-lisp
-          (defvar my/org-basic-task-template "* TODO %^{Task}
+      (defvar my/org-basic-task-template "* TODO %^{Task}
       SCHEDULED: %^t
       %<%Y-%m-%d %H:%M>
       :PROPERTIES:
@@ -909,15 +918,9 @@
       " "Basic task data")
       (setq org-capture-templates
             `(("e" "Emacs idea" entry
-               (file+headline "~/code/dev/emacs-notes/tasks.org" "Emacs")
+               (file+headline "~/personal/emacs-notes/tasks.org" "Emacs")
                "* TODO %^{Task}"
                :immediate-finish t)
-              ("b" "Business task" entry
-               (file+headline "~/personal/business.org" "Tasks")
-               ,my/org-basic-task-template)
-              ("p" "People task" entry
-               (file+headline "~/personal/people.org" "Tasks")
-               ,my/org-basic-task-template)
               ("j" "Journal entry" plain
                (file+datetree "~/personal/journal.org")
                "%K - %a\n%i\n%?\n"
@@ -926,34 +929,10 @@
                (file+datetree+prompt "~/personal/journal.org")
                "%K - %a\n%i\n%?\n"
                :unnarrowed t)
-              ("s" "Journal entry with date, scheduled" entry
-               (file+datetree+prompt "~/personal/journal.org")
-               "* \n%K - %a\n%t\t%i\n%?\n"
-               :unnarrowed t)
-              ("dp" "Done - People" entry
-               (file+headline "~/personal/people.org" "Tasks")
-               "* DONE %^{Task}\nSCHEDULED: %^t\n%?")
               ("q" "Quick note" item
                (file+headline "~/personal/organizer.org" "Quick notes"))
-              ("l" "Ledger entries")
-              ("lm" "MBNA" plain
-               (file "~/personal/ledger")
-               "%(org-read-date) %^{Payee}
-        Liabilities:MBNA
-        Expenses:%^{Account}  $%^{Amount}
-      " :immediate-finish t)
-              ("ln" "No Frills" plain
-               (file "~/personal/ledger")
-               "%(let ((org-read-date-prefer-future nil)) (org-read-date)) * No Frills
-        Liabilities:MBNA
-        Assets:Wayne:Groceries  $%^{Amount}
-      " :immediate-finish t)
-              ("lc" "Cash" plain
-               (file "~/personal/ledger")
-               "%(org-read-date) * %^{Payee}
-        Expenses:Cash
-        Expenses:%^{Account}  %^{Amount}
-      ")
+              ("n" "note" entry (file "~/personal/refile.org")
+               "* %? :NOTE:\n%U\n%a\n" :clock-in t :clock-resume t)
               ("B" "Book" entry
                (file+datetree "~/personal/books.org" "Inbox")
                "* %^{Title}  %^g
@@ -971,14 +950,7 @@
                "* %(org-contacts-template-name)
       :PROPERTIES:
       :EMAIL: %(my/org-contacts-template-email)
-      :END:")
-              ("n" "Daily note" table-line (file+olp "~/personal/organizer.org" "Daily notes")
-               "| %u | %^{Note} |"
-               :immediate-finish t)
-              ("r" "Notes" entry
-               (file+datetree "~/personal/organizer.org")
-               "* %?\n\n%i\n"
-               )))
+      :END:")))
       (global-set-key (kbd "C-c c") 'org-capture)
     #+END_SRC
 *** latex
@@ -1280,6 +1252,21 @@
      "五笔" "汉字五笔输入法" "wb.txt")
   #+END_SRC
 
+* circe 
+  #+BEGIN_SRC emacs-lisp
+  (require 'circe)
+  (add-to-list 'circe-network-options
+        '("Freenode"
+          :nick "fymen"
+          :channels ("#emacs" "#clojure-pdx")
+          :nickserv-password , zuijiu)
+          )
+
+  (defun circe-connect-all ()
+    "Connects to my favorite IRC servers and channels."
+    (interactive)
+    (circe "Freenode"))
+  #+END_SRC
 * COMMENT Not use currently
 ** fly spell
    #+BEGIN_SRC emacs-lisp :tangle no
