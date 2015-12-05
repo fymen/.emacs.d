@@ -2,6 +2,37 @@
 #+TITLE: Emacs init configuration
 
 * packages
+  #+BEGIN_SRC emacs-lisp
+    ;;; On-demand installation of packages
+
+    (defun require-package (package &optional min-version no-refresh)
+      "Install given PACKAGE, optionally requiring MIN-VERSION.
+    If NO-REFRESH is non-nil, the available package lists will not be
+    re-downloaded in order to locate PACKAGE."
+      (if (package-installed-p package min-version)
+          t
+        (if (or (assoc package package-archive-contents) no-refresh)
+            (if (boundp 'package-selected-packages)
+                ;; Record this as a package the user installed explicitly
+                (package-install package nil)
+              (package-install package))
+          (progn
+            (package-refresh-contents)
+            (require-package package min-version t)))))
+
+
+    (defun maybe-require-package (package &optional min-version no-refresh)
+      "Try to install PACKAGE, and return non-nil if successful.
+    In the event of failure, return nil and print a warning message.
+    Optionally require MIN-VERSION.  If NO-REFRESH is non-nil, the
+    available package lists will not be re-downloaded in order to
+    locate PACKAGE."
+      (condition-case err
+          (require-package package min-version no-refresh)
+        (error
+         (message "Couldn't install package `%s': %S" package err)
+         nil)))
+  #+END_SRC
 ** use-package
    #+BEGIN_SRC emacs-lisp
      (unless (package-installed-p 'use-package)
@@ -96,7 +127,7 @@
    #+BEGIN_SRC emacs-lisp
      ;; Highlight current line
      (global-hl-line-mode 1)
-
+     (require-package 'anzu)
      (global-anzu-mode +1)
 
      ;; 最短时间显示指令序列
@@ -125,6 +156,8 @@
    #+END_SRC
 ** smart-modeline
    #+BEGIN_SRC emacs-lisp
+     (require-package 'smart-mode-line)
+
      (sml/setup)
      (custom-set-variables '(sml/active-background-color "dark blue"))
      (display-time-mode 1)
@@ -220,6 +253,7 @@
    Only in elisp and c mode.
 
    #+BEGIN_SRC emacs-lisp 
+     (require-package 'smartscan)
      (add-hook 'emacs-lisp-mode-hook 'smartscan-mode)
      (add-hook 'c-mode-hook 'smartscan-mode)
    #+END_SRC
@@ -251,7 +285,7 @@
    #+END_SRC
 ** hungry delete
    #+BEGIN_SRC emacs-lisp
-     (require 'hungry-delete)
+     (require-package 'hungry-delete)
      (global-hungry-delete-mode)
    #+END_SRC
 ** winner-mode
@@ -284,14 +318,16 @@
        (setq beacon-color "#666600"))
    #+END_SRC
 ** rainbow delimiters
-   #+BEGIN_SRC emacs-lisp
+   #+BEGIN_SRC emacs-lisp 
+     (require-package 'rainbow-delimiters)
+
      (add-hook 'emacs-lisp-mode-hook 'rainbow-delimiters-mode)
      (add-hook 'c-mode-hook 'rainbow-delimiters-mode)
    #+END_SRC
 
 ** expand-region
    #+BEGIN_SRC emacs-lisp
-     (require 'expand-region)
+     (require-package 'expand-region)
      (global-set-key (kbd "C-=") 'er/expand-region)
    #+END_SRC
    
@@ -438,10 +474,12 @@
    #+END_SRC
 ** nyan-mode
    #+BEGIN_SRC emacs-lisp
+     (require-package 'nyan-mode)
      (nyan-mode 1)
    #+END_SRC
 ** Golden Ratio
    #+BEGIN_SRC emacs-lisp
+     (require-package 'golden-ratio)
      ;; (setq 'golden-ratio-inhibit-functions 'pl/helm-alive-p)
      ;; (defun pl/helm-alive-p ()
      ;;   (if (boundp 'helm-alive-p)
@@ -477,7 +515,7 @@
 
 ** multiple cursors
    #+BEGIN_SRC emacs-lisp 
-     (require 'multiple-cursors)
+     (require-package 'multiple-cursors)
      (global-set-key (kbd "C-c m") 'mc/edit-lines)
      (global-set-key (kbd "C->") 'mc/mark-next-like-this)
      (global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
@@ -493,20 +531,21 @@
 ** smartparens 
    #+BEGIN_SRC emacs-lisp 
      ;; Default setup of smartparens
+     (require-package 'smartparens)
      (require 'smartparens-config)
      (setq sp-autoescape-string-quote nil)
 
      (defmacro def-pairs (pairs)
        `(progn
-       ,@(cl-loop for (key . val) in pairs
-               collect
-                 `(defun ,(read (concat
-                                 "wrap-with-"
-                                 (prin1-to-string key)
-                                 "s"))
-                      (&optional arg)
-                    (interactive "p")
-                    (sp-wrap-with-pair ,val)))))
+          ,@(cl-loop for (key . val) in pairs
+                     collect
+                     `(defun ,(read (concat
+                                     "wrap-with-"
+                                     (prin1-to-string key)
+                                     "s"))
+                          (&optional arg)
+                        (interactive "p")
+                        (sp-wrap-with-pair ,val)))))
 
      (def-pairs ((paren        . "(")
                  (bracket      . "[")
@@ -550,7 +589,7 @@
 
      (define-key smartparens-mode-map (kbd "M-<backspace>") 'backward-kill-word)
      (define-key smartparens-mode-map (kbd "C-<backspace>") 'sp-backward-kill-word)
-     ;([remap sp-backward-kill-word] 'backward-kill-word)
+                                             ;([remap sp-backward-kill-word] 'backward-kill-word)
 
 
      (define-key smartparens-mode-map (kbd "M-[") 'sp-backward-unwrap-sexp)
@@ -618,12 +657,15 @@
 
 *** hideshow-org
     #+BEGIN_SRC emacs-lisp
-      (require 'hideshow-org)
+      (require-package 'hideshow-org)
       (add-hook 'c-mode-hook 'hs-org/minor-mode)
     #+END_SRC
 
 ** Company Mode
 #+BEGIN_SRC emacs-lisp
+(require-package 'company)
+(require-package 'company-flx)
+
   (use-package company
     :ensure t
     :diminish company-mode
@@ -647,23 +689,26 @@
    #+BEGIN_SRC emacs-lisp
      ;; yasnippet
      ;; should be loaded before auto complete so that they can work together
-     (require 'yasnippet)
+     (require-package 'yasnippet)
      (yas-global-mode 1)
    #+END_SRC
 
 ** magit
    #+BEGIN_SRC emacs-lisp
+(require-package 'magit)
      (global-set-key (kbd "C-x g") 'magit-status)
    #+END_SRC
 
 ** comment-dwim-2
  #+BEGIN_SRC emacs-lisp 
+(require-package 'comment-dwim-2)
    (use-package comment-dwim-2
      :ensure t
      :bind ("M-;" . comment-dwim-2))
  #+END_SRC
 ** dtrt-indent
    #+BEGIN_SRC emacs-lisp
+(require-package 'dtrt-indent)
      (add-hook 'c-mode-common-hook 
        (lambda()
          (require 'dtrt-indent)
@@ -672,6 +717,7 @@
    #+END_SRC
 ** aggressive-indent
  #+BEGIN_SRC emacs-lisp 
+   (require-package 'aggressive-indent)
    (use-package aggressive-indent
      :ensure t
      :diminish aggressive-indent-mode
@@ -687,13 +733,14 @@
      (add-to-list 'aggressive-indent-excluded-modes 'html-mode)
      (unbind-key "C-c C-q" aggressive-indent-mode-map))
  #+END_SRC
-** COMMENT flycheck
+** flycheck
    #+BEGIN_SRC emacs-lisp
+     (require-package 'flycheck)
      (use-package flycheck
        :ensure t
        :diminish flycheck-mode
        :init
-       (global-flycheck-mode)
+       ;; (global-flycheck-mode)
        (setq flycheck-indication-mode 'right-fringe)
   
        (defun my-select-clangcheck-for-checker ()
@@ -708,7 +755,7 @@
        (setq flycheck-clangcheck-analyze t))
    #+END_SRC
 ** compilation
-   #+BEGIN_SRC emacs-lisp
+   #+BEGIN_SRC emacs-lisp :tangle no
      (defun prelude-colorize-compilation-buffer ()
        "Colorize a compilation mode buffer."
        (interactive)
@@ -718,11 +765,12 @@
            (ansi-color-apply-on-region (point-min) (point-max)))))
 
      ;; setup compilation-mode used by `compile' command
-     (require 'compile)
-     (setq compilation-ask-about-save nil          ; Just save before compiling
-           compilation-always-kill t               ; Just kill old compile processes before starting the new one
-           compilation-scroll-output 'first-error) ; Automatically scroll to first
-     (global-set-key (kbd "<f5>") 'compile)
+     (require-package 'compile)
+          (require 'compile)
+          (setq compilation-ask-about-save nil          ; Just save before compiling
+                compilation-always-kill t               ; Just kill old compile processes before starting the new one
+                compilation-scroll-output 'first-error) ; Automatically scroll to first
+          (global-set-key (kbd "<f5>") 'compile)
 
    #+END_SRC
 ** Makefile
@@ -737,38 +785,12 @@
                                      (run-hooks 'prelude-makefile-mode-hook)))
    #+END_SRC
 * helm
-** helm-gtags
-   #+BEGIN_SRC emacs-lisp
-     ;; Enable helm-gtags-mode
-     (add-hook 'c-mode-hook 'helm-gtags-mode)
-     (add-hook 'c++-mode-hook 'helm-gtags-mode)
-     (add-hook 'asm-mode-hook 'helm-gtags-mode)
-
-     ;; Set key bindings
-     (eval-after-load "helm-gtags"
-       '(progn
-          (define-key helm-gtags-mode-map (kbd "M-t") 'helm-gtags-find-tag)
-          (define-key helm-gtags-mode-map (kbd "M-r") 'helm-gtags-find-rtag)
-          (define-key helm-gtags-mode-map (kbd "M-s") 'helm-gtags-find-symbol)
-          (define-key helm-gtags-mode-map (kbd "M-g M-p") 'helm-gtags-parse-file)
-          (define-key helm-gtags-mode-map (kbd "C-c <") 'helm-gtags-previous-history)
-          (define-key helm-gtags-mode-map (kbd "C-c >") 'helm-gtags-next-history)
-          (define-key helm-gtags-mode-map (kbd "M-,") 'helm-gtags-pop-stack)))
-   #+END_SRC
-** swoop
-   #+BEGIN_SRC emacs-lisp
-     (require 'helm-swoop)
-
-     ;; Change keybinds to whatever you like :)
-     (global-set-key (kbd "M-i") 'helm-swoop)
-     (global-set-key (kbd "M-I") 'helm-swoop-back-to-last-point)
-     (global-set-key (kbd "C-c M-i") 'helm-multi-swoop)
-     (global-set-key (kbd "C-x M-i") 'helm-multi-swoop-all)
-
-   #+END_SRC
 ** helm settings
    #+BEGIN_SRC emacs-lisp
+     (require-package 'helm)
+     (require-package 'helm-flx)
      (require 'helm)
+
      (require 'helm-config)
      ;; The default "C-x c" is quite close to "C-x C-c", which quits Emacs.
      ;; Changed to "C-c h". Note: We must set "C-c h" globally, because we
@@ -792,7 +814,7 @@
      (helm-mode 1)
 
      (helm-flx-mode +1)
-     (require 'helm-fuzzier)
+     (require-package 'helm-fuzzier)
      (helm-fuzzier-mode 1)
 
      (setq helm-M-x-fuzzy-match t) ;; optional fuzzy matching for helm-M-x
@@ -821,8 +843,41 @@
                #'(lambda ()
                    (define-key eshell-mode-map (kbd "C-c C-l")  'helm-eshell-history)))
    #+END_SRC
+
+** helm-gtags
+   #+BEGIN_SRC emacs-lisp
+     ;; Enable helm-gtags-mode
+     (add-hook 'c-mode-hook 'helm-gtags-mode)
+     (add-hook 'c++-mode-hook 'helm-gtags-mode)
+     (add-hook 'asm-mode-hook 'helm-gtags-mode)
+
+     ;; Set key bindings
+     (eval-after-load "helm-gtags"
+       '(progn
+          (define-key helm-gtags-mode-map (kbd "M-t") 'helm-gtags-find-tag)
+          (define-key helm-gtags-mode-map (kbd "M-r") 'helm-gtags-find-rtag)
+          (define-key helm-gtags-mode-map (kbd "M-s") 'helm-gtags-find-symbol)
+          (define-key helm-gtags-mode-map (kbd "M-g M-p") 'helm-gtags-parse-file)
+          (define-key helm-gtags-mode-map (kbd "C-c <") 'helm-gtags-previous-history)
+          (define-key helm-gtags-mode-map (kbd "C-c >") 'helm-gtags-next-history)
+          (define-key helm-gtags-mode-map (kbd "M-,") 'helm-gtags-pop-stack)))
+   #+END_SRC
+** swoop
+   #+BEGIN_SRC emacs-lisp
+     (require-package 'helm-swoop)
+
+     ;; Change keybinds to whatever you like :)
+     (global-set-key (kbd "M-i") 'helm-swoop)
+     (global-set-key (kbd "M-I") 'helm-swoop-back-to-last-point)
+     (global-set-key (kbd "C-c M-i") 'helm-multi-swoop)
+     (global-set-key (kbd "C-x M-i") 'helm-multi-swoop-all)
+
+   #+END_SRC
+
 * projectile
   #+BEGIN_SRC emacs-lisp
+    (require-package 'helm-projectile)
+
     (projectile-global-mode)
     (setq projectile-completion-system 'helm)
     (helm-projectile-on)
@@ -865,9 +920,13 @@
 ** org-mode
 *** basic 
     #+BEGIN_SRC emacs-lisp
+      (require-package 'org)
+      (require-package 'org-bullets)
+      (require-package 'org-screenshot)
+
       (add-to-list 'auto-mode-alist '("\\.txt\\'" . org-mode))
 
-      (require 'org-bullets)
+
       (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
 
       (add-hook 'org-mode-hook 'auto-fill-mode)
@@ -878,7 +937,7 @@
       (setq org-use-sub-superscripts (quote {})
             org-export-with-sub-superscripts (quote {})) 
 
-      (require 'org-screenshot)
+
 
       ;; (setq org-ellipsis "⤵")
 
@@ -892,8 +951,7 @@
       ;; active Babel languages
       (org-babel-do-load-languages
        'org-babel-load-languages
-       '((R . t)
-         (sh . t)
+       '((sh . t)
          (dot . t)
          (ditaa . t)
          (python . t)
@@ -1063,7 +1121,7 @@
     #+END_SRC
 *** page
     #+BEGIN_SRC emacs-lisp
-      (require 'org-page)
+      (require-package 'org-page)
 
       (setq op/repository-directory "~/gitest/fymen.github.io/")
 
@@ -1162,7 +1220,7 @@
   
   Stack current command:
   #+BEGIN_SRC emacs-lisp
-    (require 'esh-buf-stack)
+    (require-package 'esh-buf-stack)
     (setup-eshell-buf-stack)
     (add-hook 'eshell-mode-hook
               (lambda ()
@@ -1178,6 +1236,7 @@
   | =u= | mark as unread |
 
   #+BEGIN_SRC emacs-lisp
+    (require-package 'elfeed)
     (global-set-key (kbd "C-x w") 'elfeed)
 
     (setf url-queue-timeout 30)
@@ -1240,32 +1299,22 @@
                  )))))))
   #+END_SRC
 
-* wubi input method
-  #+BEGIN_SRC emacs-lisp
-    (add-to-list 'load-path "~/.emacs.d/lisp/emacs-eim/")
-    (autoload 'eim-use-package "eim" "Another emacs input method")
-    ;; Tooltip 暂时还不好用
-    ;; (setq eim-use-tooltip nil)
-
-    (register-input-method
-     "eim-wb" "euc-cn" 'eim-use-package
-     "五笔" "汉字五笔输入法" "wb.txt")
-  #+END_SRC
-
 * circe 
-  #+BEGIN_SRC emacs-lisp
-  (require 'circe)
-  (add-to-list 'circe-network-options
-        '("Freenode"
-          :nick "fymen"
-          :channels ("#emacs" "#clojure-pdx")
-          :nickserv-password , zuijiu)
-          )
+  #+BEGIN_SRC emacs-lisp 
+    (require-package 'circe)
+    (setq circe-network-options
+          '(("Freenode"
+             :tls t
+             :nick "fymen"
+             :sasl-username "fymen"
+             :sasl-password "zuijiu"
+             :channels ("#emacs-circe")
+             )))
 
-  (defun circe-connect-all ()
-    "Connects to my favorite IRC servers and channels."
-    (interactive)
-    (circe "Freenode"))
+    (defun circe-connect-all ()
+      "Connects to my favorite IRC servers and channels."
+      (interactive)
+      (circe "Freenode"))
   #+END_SRC
 * COMMENT Not use currently
 ** fly spell
@@ -1497,3 +1546,14 @@ mastermastermastermastermaster
      (define-key launcher-map "s" #'shell)
      (define-key launcher-map "e" #'eval-buffer)
    #+END_SRC
+* COMMENT wubi input method
+  #+BEGIN_SRC emacs-lisp
+    (add-to-list 'load-path "~/.emacs.d/lisp/emacs-eim/")
+    (autoload 'eim-use-package "eim" "Another emacs input method")
+    ;; Tooltip 暂时还不好用
+    ;; (setq eim-use-tooltip nil)
+
+    (register-input-method
+     "eim-wb" "euc-cn" 'eim-use-package
+     "五笔" "汉字五笔输入法" "wb.txt")
+  #+END_SRC
