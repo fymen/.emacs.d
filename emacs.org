@@ -521,6 +521,38 @@
      (global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
      (global-set-key (kbd "C-c C-<") 'mc/mark-all-like-this)
    #+END_SRC
+** narrow-or-widen-dwim
+   #+BEGIN_SRC emacs-lisp
+     (defun narrow-or-widen-dwim (p)
+       "If the buffer is narrowed, it widens. Otherwise, it narrows
+     intelligently.  Intelligently means: region, org-src-block,
+     org-subtree, or defun, whichever applies first.  Narrowing to
+     org-src-block actually calls `org-edit-src-code'.
+
+     With prefix P, don't widen, just narrow even if buffer is already
+     narrowed."
+       (interactive "P")
+       (declare (interactive-only))
+       (cond ((and (buffer-narrowed-p) (not p)) (widen))
+             ((and (boundp 'org-src-mode) org-src-mode (not p))
+              (org-edit-src-exit))
+             ((region-active-p)
+              (narrow-to-region (region-beginning) (region-end)))
+             ((derived-mode-p 'org-mode)
+              (cond ((ignore-errors (org-edit-src-code)))
+                    ((org-at-block-p)
+                     (org-narrow-to-block))
+                    (t (org-narrow-to-subtree))))
+             ((derived-mode-p 'prog-mode) (narrow-to-defun))
+             (t (error "Please select a region to narrow to"))))
+
+     (global-set-key (kbd "C-x n") 'narrow-or-widen-dwim)
+
+     ;; (eval-after-load 'org-src
+     ;;   '(define-key org-src-mode-map
+     ;;      "\C-x\C-s" #'org-edit-src-exit))
+
+   #+END_SRC
 * program
 ** scheme
    #+BEGIN_SRC emacs-lisp
@@ -690,7 +722,10 @@
      ;; yasnippet
      ;; should be loaded before auto complete so that they can work together
      (require-package 'yasnippet)
+
      (yas-global-mode 1)
+     (add-hook 'term-mode-hook (lambda()
+                                 (yas-minor-mode -1)))
    #+END_SRC
 
 ** magit
@@ -874,6 +909,255 @@
 
    #+END_SRC
 
+* org-mode
+** basic 
+   #+BEGIN_SRC emacs-lisp
+     (require-package 'org)
+     (require-package 'org-bullets)
+     (require-package 'org-screenshot)
+
+     (add-to-list 'auto-mode-alist '("\\.txt\\'" . org-mode))
+
+
+     (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
+
+     (add-hook 'org-mode-hook 'auto-fill-mode)
+     ;; Make Org use ido-completing-read for most of its completing prompts.
+     (setq org-completion-use-ido t)
+
+     ;; The bottom line issue
+     (setq org-use-sub-superscripts (quote {})
+           org-export-with-sub-superscripts (quote {})) 
+
+
+
+     ;; (setq org-ellipsis "⤵")
+
+     (global-set-key (kbd "C-c l") 'org-store-link)
+     (global-set-key (kbd "C-c a") 'org-agenda)
+     (global-set-key (kbd "C-c b") 'org-iswitchb)
+
+   #+END_SRC
+** babel
+   #+BEGIN_SRC emacs-lisp
+     ;; active Babel languages
+     (org-babel-do-load-languages
+      'org-babel-load-languages
+      '((sh . t)
+        (dot . t)
+        (ditaa . t)
+        (python . t)
+        (gnuplot . t)
+        (plantuml . t)
+        (emacs-lisp . t)
+        ))
+
+     (setq org-plantuml-jar-path "/home/oscar/.emacs.d/elpa/contrib/scripts/plantuml.jar")
+     (setq puml-plantuml-jar-path "/home/oscar/.emacs.d/elpa/contrib/scripts/plantuml.jar")
+     (add-to-list 'org-src-lang-modes '("plantuml" . puml))
+   #+END_SRC
+** capture
+   #+BEGIN_SRC emacs-lisp
+     (defvar my/org-basic-task-template "* TODO %^{Task}
+     SCHEDULED: %^t
+     %<%Y-%m-%d %H:%M>
+     :PROPERTIES:
+     :Effort: %^{effort|1:00|0:05|0:15|0:30|2:00|4:00}
+     :END:
+     %?
+     " "Basic task data")
+     (setq org-capture-templates
+           `(("e" "Emacs idea" entry
+              (file+headline "~/personal/emacs-notes/tasks.org" "Emacs")
+              "* TODO %^{Task}"
+              :immediate-finish t)
+             ("j" "Journal entry" plain
+              (file+datetree "~/personal/journal.org")
+              "%K - %a\n%i\n%?\n"
+              :unnarrowed t)
+             ("J" "Journal entry with date" plain
+              (file+datetree+prompt "~/personal/journal.org")
+              "%K - %a\n%i\n%?\n"
+              :unnarrowed t)
+             ("q" "Quick note" item
+              (file+headline "~/personal/organizer.org" "Quick notes"))
+             ("n" "note" entry (file "~/personal/refile.org")
+              "* %? :NOTE:\n%U\n%a\n" :clock-in t :clock-resume t)
+             ("B" "Book" entry
+              (file+datetree "~/personal/books.org" "Inbox")
+              "* %^{Title}  %^g
+     %i
+     ,*Author(s):* %^{Author} \\\\
+     ,*ISBN:* %^{ISBN}
+
+     %?
+
+     ,*Review on:* %^t \\
+     %a
+     %U"
+              :clock-in :clock-resume)
+             ("c" "Contact" entry (file "~/personal/contacts.org")
+              "* %(org-contacts-template-name)
+     :PROPERTIES:
+     :EMAIL: %(my/org-contacts-template-email)
+     :END:")))
+     (global-set-key (kbd "C-c c") 'org-capture)
+   #+END_SRC
+** latex
+   #+BEGIN_SRC emacs-lisp
+     ;;
+     ;; org-mode setup
+     ;;
+
+     (require 'ox-latex)
+     (require 'ox-beamer)
+     (setq org-latex-coding-system 'utf-8)
+
+     (setf org-latex-default-packages-alist
+           (remove '("AUTO" "inputenc" t) org-latex-default-packages-alist))
+     (setf org-latex-default-packages-alist
+           (remove '("T1" "fontenc" t) org-latex-default-packages-alist))
+
+     (setq org-latex-pdf-process '("xelatex -shell-escape  %f"
+                                   "xelatex -shell-escape  %f"))
+     (setq org-latex-packages-alist
+           '("
+             \\hypersetup{ colorlinks,% 
+                     linkcolor=blue,% 
+                     citecolor=black,%
+                     urlcolor=black,%
+                     filecolor=black
+                    }
+
+             \\usepackage{fontspec}
+             \\usepackage{array}
+             \\usepackage{xcolor}
+             \\definecolor{bg}{rgb}{0.95,0.95,0.95}"))
+
+     (add-to-list 'org-latex-packages-alist '("" "minted"))
+     (setq org-latex-listings 'minted)
+     (setq org-latex-minted-options
+           '(
+             ("bgcolor" "bg")
+             ("frame" "single")))
+
+     (add-to-list 'org-latex-classes
+                  '("article-cn"
+                   "\\documentclass[11pt]{article}
+                     [DEFAULT-PACKAGES]
+                     [PACKAGES]
+                     \\XeTeXlinebreaklocale ``zh''
+                     \\XeTeXlinebreakskip = 0pt plus 1pt minus 0.1pt
+                     \\newcommand\\fontnamehei{WenQuanYi Zen Hei}
+                     \\newcommand\\fontnamesong{AR PL UMing CN}
+                     \\newcommand\\fontnamekai{AR PL KaitiM GB}
+                     \\newcommand\\fontnamemono{FreeMono}
+                     \\newcommand\\fontnameroman{FreeSans}
+                     \\setmainfont[BoldFont=\\fontnamehei]{\\fontnamesong}
+                     \\setsansfont[BoldFont=\\fontnamehei]{\\fontnamekai}
+                     \\setmonofont{\\fontnamemono}
+                     \\setromanfont[BoldFont=\\fontnamehei]{\\fontnamesong}
+                     \\makeatletter
+                     \\def\\verbatim@font{\\rmfamily\\small} %verbatim中使用roman字体族
+                     \\makeatother"
+
+                   ("\\section{%s}" . "\\section*{%s}")
+                   ("\\subsection{%s}" . "\\subsection*{%s}")
+                   ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+                   ("\\paragraph{%s}" . "\\paragraph*{%s}")
+                   ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
+
+     (add-to-list 'org-latex-classes
+                  '("article-img"
+                   "\\documentclass[11pt]{article}
+                     [DEFAULT-PACKAGES]
+                     [PACKAGES]
+                     \\usepackage{geometry}
+                     \\geometry{left=1.5cm,right=1.5cm,top=1.5cm,bottom=1.5cm}"
+                   ("\\section{%s}" . "\\section*{%s}")
+                   ("\\subsection{%s}" . "\\subsection*{%s}")
+                   ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+                   ("\\paragraph{%s}" . "\\paragraph*{%s}")
+                   ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
+   #+END_SRC
+** publish
+   #+BEGIN_SRC emacs-lisp
+     (require 'ox-publish)
+     (setq org-publish-project-alist
+           '(
+             ("blog-notes"
+              :base-directory "~/gitest/blog/"
+              :base-extension "org"
+              :publishing-directory "~/gitest/sagebane.github.com/"
+              :recursive t
+              :exclude "template.org"
+              :publishing-function org-html-publish-to-html
+              :headline-levels 4
+              :auto-preamble t
+              :auto-sitemap t                ; Generate sitemap.org automagically...
+              :sitemap-filename "sitemap.org"  ; ... call it sitemap.org (it's the default)...
+              :sitemap-title "Sitemap"         ; ... with title 'Sitemap'.
+              :email "zuijiuru at gmail dot com"
+              )
+             ("blog-static"
+              :base-directory "~/gitest/blog/"
+              :base-extension "css\\|js\\|png\\|jpg\\|gif\\|pdf\\|mp3\\|ogg\\|swf"
+              :publishing-directory "~/gitest/sagebane.github.com/"
+              :recursive t
+              :publishing-function org-publish-attachment
+              )
+             ("blog" :components ("blog-notes" "blog-static"))
+             ;;
+             ))
+
+   #+END_SRC
+** page
+   #+BEGIN_SRC emacs-lisp
+     (require-package 'org-page)
+
+     (setq op/repository-directory "~/gitest/fymen.github.io/")
+
+     (setq op/site-domain "http://fymen.github.io/")
+     (setq op/site-main-title "A peacefull heart")
+     (setq op/site-sub-title "Free is not free! ----don't know by whom")
+     (setq op/personal-github-link "https://github.com/fymen/")
+     (setq op/theme 'oscar)
+     ;; (setq op/personal-disqus-shortname "kelvinh")
+     ;; (setq op/personal-google-analytics-id "UA-41088132-1")
+      
+
+     (setq op/category-config-alist
+           '(("blog" ;; this is the default configuration
+              :show-meta t
+              :show-comment t
+              :uri-generator op/generate-uri
+              :uri-template "/blog/%y/%m/%d/%t/"
+              :sort-by :date     ;; how to sort the posts
+              :category-index t) ;; generate category index or not
+             ("wiki"
+              :show-meta t
+              :show-comment nil
+              :uri-generator op/generate-uri
+              :uri-template "/wiki/%t/"
+              :sort-by :mod-date
+              :category-index t)
+             ("index"
+              :show-meta nil
+              :show-comment nil
+              :uri-generator op/generate-uri
+              :uri-template "/"
+              :sort-by :date
+              :category-index nil)
+             ("about"
+              :show-meta nil
+              :show-comment nil
+              :uri-generator op/generate-uri
+              :uri-template "/about/"
+              :sort-by :date
+              :category-index nil)))
+
+
+   #+END_SRC
 * projectile
   #+BEGIN_SRC emacs-lisp
     (require-package 'helm-projectile)
@@ -884,288 +1168,6 @@
 
     (setq projectile-enable-caching t)
   #+END_SRC
-* text manipulate
-** narrow-or-widen-dwim
-   #+BEGIN_SRC emacs-lisp
-     (defun narrow-or-widen-dwim (p)
-       "If the buffer is narrowed, it widens. Otherwise, it narrows
-     intelligently.  Intelligently means: region, org-src-block,
-     org-subtree, or defun, whichever applies first.  Narrowing to
-     org-src-block actually calls `org-edit-src-code'.
-
-     With prefix P, don't widen, just narrow even if buffer is already
-     narrowed."
-       (interactive "P")
-       (declare (interactive-only))
-       (cond ((and (buffer-narrowed-p) (not p)) (widen))
-             ((and (boundp 'org-src-mode) org-src-mode (not p))
-              (org-edit-src-exit))
-             ((region-active-p)
-              (narrow-to-region (region-beginning) (region-end)))
-             ((derived-mode-p 'org-mode)
-              (cond ((ignore-errors (org-edit-src-code)))
-                    ((org-at-block-p)
-                     (org-narrow-to-block))
-                    (t (org-narrow-to-subtree))))
-             ((derived-mode-p 'prog-mode) (narrow-to-defun))
-             (t (error "Please select a region to narrow to"))))
-
-     (global-set-key (kbd "C-x n") 'narrow-or-widen-dwim)
-
-     ;; (eval-after-load 'org-src
-     ;;   '(define-key org-src-mode-map
-     ;;      "\C-x\C-s" #'org-edit-src-exit))
-
-   #+END_SRC
-** org-mode
-*** basic 
-    #+BEGIN_SRC emacs-lisp
-      (require-package 'org)
-      (require-package 'org-bullets)
-      (require-package 'org-screenshot)
-
-      (add-to-list 'auto-mode-alist '("\\.txt\\'" . org-mode))
-
-
-      (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
-
-      (add-hook 'org-mode-hook 'auto-fill-mode)
-      ;; Make Org use ido-completing-read for most of its completing prompts.
-      (setq org-completion-use-ido t)
-
-      ;; The bottom line issue
-      (setq org-use-sub-superscripts (quote {})
-            org-export-with-sub-superscripts (quote {})) 
-
-
-
-      ;; (setq org-ellipsis "⤵")
-
-      (global-set-key (kbd "C-c l") 'org-store-link)
-      (global-set-key (kbd "C-c a") 'org-agenda)
-      (global-set-key (kbd "C-c b") 'org-iswitchb)
-
-    #+END_SRC
-*** babel
-    #+BEGIN_SRC emacs-lisp
-      ;; active Babel languages
-      (org-babel-do-load-languages
-       'org-babel-load-languages
-       '((sh . t)
-         (dot . t)
-         (ditaa . t)
-         (python . t)
-         (gnuplot . t)
-         (plantuml . t)
-         (emacs-lisp . t)
-         ))
-
-      (setq org-plantuml-jar-path "/home/oscar/.emacs.d/elpa/contrib/scripts/plantuml.jar")
-      (setq puml-plantuml-jar-path "/home/oscar/.emacs.d/elpa/contrib/scripts/plantuml.jar")
-      (add-to-list 'org-src-lang-modes '("plantuml" . puml))
-    #+END_SRC
-*** capture
-    #+BEGIN_SRC emacs-lisp
-      (defvar my/org-basic-task-template "* TODO %^{Task}
-      SCHEDULED: %^t
-      %<%Y-%m-%d %H:%M>
-      :PROPERTIES:
-      :Effort: %^{effort|1:00|0:05|0:15|0:30|2:00|4:00}
-      :END:
-      %?
-      " "Basic task data")
-      (setq org-capture-templates
-            `(("e" "Emacs idea" entry
-               (file+headline "~/personal/emacs-notes/tasks.org" "Emacs")
-               "* TODO %^{Task}"
-               :immediate-finish t)
-              ("j" "Journal entry" plain
-               (file+datetree "~/personal/journal.org")
-               "%K - %a\n%i\n%?\n"
-               :unnarrowed t)
-              ("J" "Journal entry with date" plain
-               (file+datetree+prompt "~/personal/journal.org")
-               "%K - %a\n%i\n%?\n"
-               :unnarrowed t)
-              ("q" "Quick note" item
-               (file+headline "~/personal/organizer.org" "Quick notes"))
-              ("n" "note" entry (file "~/personal/refile.org")
-               "* %? :NOTE:\n%U\n%a\n" :clock-in t :clock-resume t)
-              ("B" "Book" entry
-               (file+datetree "~/personal/books.org" "Inbox")
-               "* %^{Title}  %^g
-      %i
-      ,*Author(s):* %^{Author} \\\\
-      ,*ISBN:* %^{ISBN}
-
-      %?
-
-      ,*Review on:* %^t \\
-      %a
-      %U"
-               :clock-in :clock-resume)
-              ("c" "Contact" entry (file "~/personal/contacts.org")
-               "* %(org-contacts-template-name)
-      :PROPERTIES:
-      :EMAIL: %(my/org-contacts-template-email)
-      :END:")))
-      (global-set-key (kbd "C-c c") 'org-capture)
-    #+END_SRC
-*** latex
-    #+BEGIN_SRC emacs-lisp
-      ;;
-      ;; org-mode setup
-      ;;
-
-      (require 'ox-latex)
-      (require 'ox-beamer)
-      (setq org-latex-coding-system 'utf-8)
-
-      (setf org-latex-default-packages-alist
-            (remove '("AUTO" "inputenc" t) org-latex-default-packages-alist))
-      (setf org-latex-default-packages-alist
-            (remove '("T1" "fontenc" t) org-latex-default-packages-alist))
-
-      (setq org-latex-pdf-process '("xelatex -shell-escape  %f"
-                                    "xelatex -shell-escape  %f"))
-      (setq org-latex-packages-alist
-            '("
-              \\hypersetup{ colorlinks,% 
-                      linkcolor=blue,% 
-                      citecolor=black,%
-                      urlcolor=black,%
-                      filecolor=black
-                     }
-
-              \\usepackage{fontspec}
-              \\usepackage{array}
-              \\usepackage{xcolor}
-              \\definecolor{bg}{rgb}{0.95,0.95,0.95}"))
-
-      (add-to-list 'org-latex-packages-alist '("" "minted"))
-      (setq org-latex-listings 'minted)
-      (setq org-latex-minted-options
-            '(
-              ("bgcolor" "bg")
-              ("frame" "single")))
-
-      (add-to-list 'org-latex-classes
-                   '("article-cn"
-                    "\\documentclass[11pt]{article}
-                      [DEFAULT-PACKAGES]
-                      [PACKAGES]
-                      \\XeTeXlinebreaklocale ``zh''
-                      \\XeTeXlinebreakskip = 0pt plus 1pt minus 0.1pt
-                      \\newcommand\\fontnamehei{WenQuanYi Zen Hei}
-                      \\newcommand\\fontnamesong{AR PL UMing CN}
-                      \\newcommand\\fontnamekai{AR PL KaitiM GB}
-                      \\newcommand\\fontnamemono{FreeMono}
-                      \\newcommand\\fontnameroman{FreeSans}
-                      \\setmainfont[BoldFont=\\fontnamehei]{\\fontnamesong}
-                      \\setsansfont[BoldFont=\\fontnamehei]{\\fontnamekai}
-                      \\setmonofont{\\fontnamemono}
-                      \\setromanfont[BoldFont=\\fontnamehei]{\\fontnamesong}
-                      \\makeatletter
-                      \\def\\verbatim@font{\\rmfamily\\small} %verbatim中使用roman字体族
-                      \\makeatother"
-
-                    ("\\section{%s}" . "\\section*{%s}")
-                    ("\\subsection{%s}" . "\\subsection*{%s}")
-                    ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
-                    ("\\paragraph{%s}" . "\\paragraph*{%s}")
-                    ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
-
-      (add-to-list 'org-latex-classes
-                   '("article-img"
-                    "\\documentclass[11pt]{article}
-                      [DEFAULT-PACKAGES]
-                      [PACKAGES]
-                      \\usepackage{geometry}
-                      \\geometry{left=1.5cm,right=1.5cm,top=1.5cm,bottom=1.5cm}"
-                    ("\\section{%s}" . "\\section*{%s}")
-                    ("\\subsection{%s}" . "\\subsection*{%s}")
-                    ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
-                    ("\\paragraph{%s}" . "\\paragraph*{%s}")
-                    ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
-    #+END_SRC
-*** publish
-    #+BEGIN_SRC emacs-lisp
-      (require 'ox-publish)
-      (setq org-publish-project-alist
-            '(
-              ("blog-notes"
-               :base-directory "~/gitest/blog/"
-               :base-extension "org"
-               :publishing-directory "~/gitest/sagebane.github.com/"
-               :recursive t
-               :exclude "template.org"
-               :publishing-function org-html-publish-to-html
-               :headline-levels 4
-               :auto-preamble t
-               :auto-sitemap t                ; Generate sitemap.org automagically...
-               :sitemap-filename "sitemap.org"  ; ... call it sitemap.org (it's the default)...
-               :sitemap-title "Sitemap"         ; ... with title 'Sitemap'.
-               :email "zuijiuru at gmail dot com"
-               )
-              ("blog-static"
-               :base-directory "~/gitest/blog/"
-               :base-extension "css\\|js\\|png\\|jpg\\|gif\\|pdf\\|mp3\\|ogg\\|swf"
-               :publishing-directory "~/gitest/sagebane.github.com/"
-               :recursive t
-               :publishing-function org-publish-attachment
-               )
-              ("blog" :components ("blog-notes" "blog-static"))
-              ;;
-              ))
-
-    #+END_SRC
-*** page
-    #+BEGIN_SRC emacs-lisp
-      (require-package 'org-page)
-
-      (setq op/repository-directory "~/gitest/fymen.github.io/")
-
-      (setq op/site-domain "http://fymen.github.io/")
-      (setq op/site-main-title "A peacefull heart")
-      (setq op/site-sub-title "Free is not free! ----don't know by whom")
-      (setq op/personal-github-link "https://github.com/fymen/")
-      (setq op/theme 'oscar)
-      ;; (setq op/personal-disqus-shortname "kelvinh")
-      ;; (setq op/personal-google-analytics-id "UA-41088132-1")
-      
-
-      (setq op/category-config-alist
-            '(("blog" ;; this is the default configuration
-               :show-meta t
-               :show-comment t
-               :uri-generator op/generate-uri
-               :uri-template "/blog/%y/%m/%d/%t/"
-               :sort-by :date     ;; how to sort the posts
-               :category-index t) ;; generate category index or not
-              ("wiki"
-               :show-meta t
-               :show-comment nil
-               :uri-generator op/generate-uri
-               :uri-template "/wiki/%t/"
-               :sort-by :mod-date
-               :category-index t)
-              ("index"
-               :show-meta nil
-               :show-comment nil
-               :uri-generator op/generate-uri
-               :uri-template "/"
-               :sort-by :date
-               :category-index nil)
-              ("about"
-               :show-meta nil
-               :show-comment nil
-               :uri-generator op/generate-uri
-               :uri-template "/about/"
-               :sort-by :date
-               :category-index nil)))
-
-
-    #+END_SRC
 * eshell
   Press any key to jump back to the prompt:
   #+BEGIN_SRC emacs-lisp
