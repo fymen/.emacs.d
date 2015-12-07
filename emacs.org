@@ -58,7 +58,6 @@
 * Costume
 ** emacs UI
    Disable some no used menu bar to enlarge our main frame.
-
    #+BEGIN_SRC emacs-lisp
      (when (functionp 'menu-bar-mode)
        (menu-bar-mode -1))
@@ -207,6 +206,51 @@
      (global-set-key (kbd "<f5>") 'revert-buffer)
 
      ;; (global-set-key (kbd "C-x o") 'ace-window)
+   #+END_SRC
+** from purcell
+   #+BEGIN_SRC emacs-lisp
+     (global-set-key (kbd "RET") 'newline-and-indent)
+
+     ;; Vimmy alternatives to M-^ and C-u M-^
+     (global-set-key (kbd "C-c j") 'join-line)
+     (global-set-key (kbd "C-c J") (lambda () (interactive) (join-line 1)))
+
+     (global-set-key (kbd "C-.") 'set-mark-command)
+     (global-set-key (kbd "C-x C-.") 'pop-global-mark)
+
+     ;;----------------------------------------------------------------------------
+     ;; Rectangle selections, and overwrite text when the selection is active
+     ;;----------------------------------------------------------------------------
+     (cua-selection-mode t)                  ; for rectangles, CUA is nice
+
+     (maybe-require-package 'undo-tree)
+     (global-undo-tree-mode)
+
+     (maybe-require-package 'highlight-symbol)
+     (dolist (hook '(prog-mode-hook html-mode-hook css-mode-hook))
+       (add-hook hook 'highlight-symbol-mode)
+       (add-hook hook 'highlight-symbol-nav-mode))
+     (add-hook 'org-mode-hook 'highlight-symbol-nav-mode)
+
+     ;;----------------------------------------------------------------------------
+     ;; Zap *up* to char is a handy pair for zap-to-char
+     ;;----------------------------------------------------------------------------
+     (autoload 'zap-up-to-char "misc" "Kill up to, but not including ARGth occurrence of CHAR.")
+     (global-set-key (kbd "M-Z") 'zap-up-to-char)
+
+     ;;----------------------------------------------------------------------------
+     ;; Cut/copy the current line if no region is active
+     ;;----------------------------------------------------------------------------
+     (maybe-require-package 'whole-line-or-region)
+     (whole-line-or-region-mode t)
+     (make-variable-buffer-local 'whole-line-or-region-mode)
+
+     ;;----------------------------------------------------------------------------
+     ;; Page break lines
+     ;;----------------------------------------------------------------------------
+     (maybe-require-package 'page-break-lines)
+     (global-page-break-lines-mode)
+
    #+END_SRC
 ** ediff
    #+BEGIN_SRC emacs-lisp
@@ -481,6 +525,7 @@
                    filename-and-process)))
    #+END_SRC
 ** nyan-mode
+   The nyan cat show where the cursor is in the current buffer.
    #+BEGIN_SRC emacs-lisp
      (require-package 'nyan-mode)
      (nyan-mode 1)
@@ -559,6 +604,25 @@
      ;; (eval-after-load 'org-src
      ;;   '(define-key org-src-mode-map
      ;;      "\C-x\C-s" #'org-edit-src-exit))
+
+   #+END_SRC
+** god-mode
+   #+BEGIN_SRC emacs-lisp
+     (use-package god-mode
+       :ensure t
+       :init
+       (defun update-cursor ()
+         (setq cursor-type (if (or god-local-mode buffer-read-only)
+                               'bar
+                             'box)))
+       (add-hook 'god-mode-enabled-hook 'update-cursor)
+       (add-hook 'god-mode-disabled-hook 'update-cursor)
+       :config
+       (bind-keys :map god-local-mode-map
+                  ("z" . repeat)
+                  ("." . repeat)
+                  ("i" . god-local-mode))
+       (add-to-list 'god-exempt-major-modes 'org-agenda-mode))
 
    #+END_SRC
 * program
@@ -709,7 +773,6 @@
   (use-package company
     :ensure t
     :diminish company-mode
-    :bind ("C-." . company-complete)
     :init
     (global-company-mode 1)
     (add-to-list 'company-backends 'company-c-headers)
@@ -941,16 +1004,11 @@
            org-export-kill-product-buffer-when-displayed t
            org-tags-column 80)
 
-
      (add-hook 'org-mode-hook 'auto-fill-mode)
-     ;; Make Org use ido-completing-read for most of its completing prompts.
-     (setq org-completion-use-ido t)
 
      ;; The bottom line issue
      (setq org-use-sub-superscripts (quote {})
            org-export-with-sub-superscripts (quote {})) 
-
-
 
      ;; (setq org-ellipsis "⤵")
 
@@ -1262,8 +1320,11 @@
     (require-package 'elfeed)
     (global-set-key (kbd "C-x w") 'elfeed)
 
-    (setf url-queue-timeout 30)
+    (setf url-queue-timeout 60)
+    (require 'elfeed)
+    (require 'elfeed-goodies)
 
+    (elfeed-goodies/setup)
     (setq elfeed-feeds
           '("http://www.howardism.org/index.xml"     ;; My Blog
             "http://endlessparentheses.com/atom.xml" ;; Emacs Blog
@@ -1316,7 +1377,7 @@
                                             (interactive)
                                             (bury-buffer)
                                             (unless (null (cdr (window-list))) ; only one window
-                                              (delete-window))))
+                                              )))
                  ;; (goto-char (point-min))
                  ;; (other-window 1)
                  )))))))
