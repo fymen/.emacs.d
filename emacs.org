@@ -453,6 +453,14 @@
 
      (setq hydra-lv nil))
  #+END_SRC
+** guide-key
+   #+BEGIN_SRC emacs-lisp
+     (require-package 'guide-key)
+     (setq guide-key/guide-key-sequence '("C-x" "C-c" "C-x 4" "C-x 5" "C-c ;" "C-c ; f" "C-c ' f" "C-x n" "C-x C-r" "C-x r" "C-l"))
+
+     (guide-key-mode 1)
+
+   #+END_SRC
 ** ibuffer-vc
    #+BEGIN_SRC emacs-lisp
      (add-hook 'ibuffer-hook
@@ -920,6 +928,19 @@
 
 
      (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
+
+     ;; Various preferences
+     (setq org-log-done t
+           org-completion-use-ido t
+           org-edit-timestamp-down-means-later t
+           org-archive-mark-done nil
+           org-catch-invisible-edits 'show
+           org-export-coding-system 'utf-8
+           org-fast-tag-selection-single-key 'expert
+           org-html-validation-link nil
+           org-export-kill-product-buffer-when-displayed t
+           org-tags-column 80)
+
 
      (add-hook 'org-mode-hook 'auto-fill-mode)
      ;; Make Org use ido-completing-read for most of its completing prompts.
