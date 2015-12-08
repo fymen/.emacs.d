@@ -1,7 +1,7 @@
 #+OPTIONS: toc:4 h:4
 #+TITLE: Emacs init configuration
 
-* packages
+* Packages
   #+BEGIN_SRC emacs-lisp
     ;;; On-demand installation of packages
 
@@ -50,7 +50,7 @@
                    :config
                    (setq paradox-execute-asynchronously t))
     #+END_SRC
-* personal information
+* Personal information
   #+BEGIN_SRC emacs-lisp
     (setq user-full-name "Oscar Qi")
     (setq user-mail-address "oscar.qi@honeywell.com")
@@ -127,8 +127,11 @@
    #+BEGIN_SRC emacs-lisp
      ;; Highlight current line
      (global-hl-line-mode 1)
+
      (require-package 'anzu)
      (global-anzu-mode +1)
+     (global-set-key [remap query-replace-regexp] 'anzu-query-replace-regexp)
+     (global-set-key [remap query-replace] 'anzu-query-replace)
 
      ;; 最短时间显示指令序列
      (setq echo-keystrokes 0.1)
@@ -167,7 +170,6 @@
    #+BEGIN_SRC emacs-lisp
      (setq useless-minor-modes '(" AC"   ;; First must have a space. :-(
                                  "GitGutter"
-                                 "Undo-Tree"
                                  "Fly"
                                  "ARev"
                                  "Abbrev"
@@ -180,6 +182,10 @@
                                  "Golden"
                                  "ivy"
                                  "hs+"
+                                 "Guide"
+                                 "WLR"
+                                 "PgLn"
+                                 "hl-s"
                                  "SP/s"
                                  "Anzu"
                                  "FlyC.*"))
@@ -195,7 +201,7 @@
       ls-lisp-dirs-first t
       )
    #+END_SRC
-* general
+* Beneral
 ** keystrokes
    #+BEGIN_SRC emacs-lisp
      (global-set-key (kbd "C-w") 'backward-kill-word)
@@ -205,6 +211,7 @@
 
      (global-set-key (kbd "<f8>") 'eshell)
      (global-set-key (kbd "<f5>") 'revert-buffer)
+
 
      ;; (global-set-key (kbd "C-x o") 'ace-window)
    #+END_SRC
@@ -223,9 +230,6 @@
      ;; Rectangle selections, and overwrite text when the selection is active
      ;;----------------------------------------------------------------------------
      (cua-selection-mode t)                  ; for rectangles, CUA is nice
-
-     (maybe-require-package 'undo-tree)
-     (global-undo-tree-mode)
 
      (maybe-require-package 'highlight-symbol)
      (dolist (hook '(prog-mode-hook html-mode-hook css-mode-hook))
@@ -288,6 +292,7 @@
    #+END_SRC
 ** avy(fast jump around)
    #+BEGIN_SRC emacs-lisp
+     (require-package 'avy)
      (global-set-key (kbd "C-;") 'avy-goto-char-2)
      (global-set-key (kbd "M-g f") 'avy-goto-line)
      (global-set-key (kbd "C-'") 'avy-isearch)
@@ -302,7 +307,17 @@
      (add-hook 'emacs-lisp-mode-hook 'smartscan-mode)
      (add-hook 'c-mode-hook 'smartscan-mode)
    #+END_SRC
-** isearch delete not matched string
+** hungry delete
+   #+BEGIN_SRC emacs-lisp
+     (require-package 'hungry-delete)
+     (global-hungry-delete-mode)
+   #+END_SRC
+** winner-mode
+   #+BEGIN_SRC emacs-lisp
+     (winner-mode 1)
+   #+END_SRC
+
+** isearch
    #+BEGIN_SRC emacs-lisp
      ;; An attempt at this Emacs SX question:
      ;; https://emacs.stackexchange.com/questions/10359/delete-portion-of-isearch-string-that-does-not-match-or-last-char-if-complete-m
@@ -327,17 +342,67 @@
      (define-key isearch-mode-map (kbd "<backspace>") 
        #'isearch-delete-something)
 
+     ;; Search back/forth for the symbol at point
+     ;; See http://www.emacswiki.org/emacs/SearchAtPoint
+     (defun isearch-yank-symbol ()
+       "*Put symbol at current point into search string."
+       (interactive)
+       (let ((sym (symbol-at-point)))
+         (if sym
+             (progn
+               (setq isearch-regexp t
+                     isearch-string (concat "\\_<" (regexp-quote (symbol-name sym)) "\\_>")
+                     isearch-message (mapconcat 'isearch-text-char-description isearch-string "")
+                     isearch-yank-flag t))
+           (ding)))
+       (isearch-search-and-update))
+
+          (define-key isearch-mode-map "\C-\M-w" 'isearch-yank-symbol)
+
+     ;; http://www.emacswiki.org/emacs/ZapToISearch
+     (defun zap-to-isearch (rbeg rend)
+       "Kill the region between the mark and the closest portion of
+     the isearch match string. The behaviour is meant to be analogous
+     to zap-to-char; let's call it zap-to-isearch. The deleted region
+     does not include the isearch word. This is meant to be bound only
+     in isearch mode.  The point of this function is that oftentimes
+     you want to delete some portion of text, one end of which happens
+     to be an active isearch word. The observation to make is that if
+     you use isearch a lot to move the cursor around (as you should,
+     it is much more efficient than using the arrows), it happens a
+     lot that you could just delete the active region between the mark
+     and the point, not include the isearch word."
+       (interactive "r")
+       (when (not mark-active)
+         (error "Mark is not active"))
+       (let* ((isearch-bounds (list isearch-other-end (point)))
+              (ismin (apply 'min isearch-bounds))
+              (ismax (apply 'max isearch-bounds))
+              )
+         (if (< (mark) ismin)
+             (kill-region (mark) ismin)
+           (if (> (mark) ismax)
+               (kill-region ismax (mark))
+             (error "Internal error in isearch kill function.")))
+         (isearch-exit)
+         ))
+
+     (define-key isearch-mode-map [(meta z)] 'zap-to-isearch)
+
+
+     ;; http://www.emacswiki.org/emacs/ZapToISearch
+     (defun isearch-exit-other-end (rbeg rend)
+       "Exit isearch, but at the other end of the search string.
+     This is useful when followed by an immediate kill."
+       (interactive "r")
+       (isearch-exit)
+       (goto-char isearch-other-end))
+
+     (define-key isearch-mode-map [(control return)] 'isearch-exit-other-end)
+
+
    #+END_SRC
-** hungry delete
-   #+BEGIN_SRC emacs-lisp
-     (require-package 'hungry-delete)
-     (global-hungry-delete-mode)
-   #+END_SRC
-** winner-mode
-   #+BEGIN_SRC emacs-lisp
-     (winner-mode 1)
-   #+END_SRC
-* emacs extension
+* Emacs extension
 ** find file as root
    #+BEGIN_SRC emacs-lisp
      (defun find-file-as-root ()
@@ -365,6 +430,7 @@
 ** rainbow delimiters
    #+BEGIN_SRC emacs-lisp 
      (require-package 'rainbow-delimiters)
+     (require-package 'rainbow-mode)
 
      (add-hook 'emacs-lisp-mode-hook 'rainbow-delimiters-mode)
      (add-hook 'c-mode-hook 'rainbow-delimiters-mode)
@@ -406,7 +472,7 @@
                      'my/smarter-move-beginning-of-line)
    #+END_SRC
 
-** smart v/h split
+** window operation
    #+BEGIN_SRC emacs-lisp
      (defun my/vsplit-last-buffer (prefix)
        "Split the window vertically and display the previous buffer."
@@ -424,6 +490,50 @@
 
      (global-set-key (kbd "C-x 2") 'my/vsplit-last-buffer)
      (global-set-key (kbd "C-x 3") 'my/hsplit-last-buffer)
+
+     (defun sanityinc/toggle-delete-other-windows ()
+       "Delete other windows in frame if any, or restore previous window config."
+       (interactive)
+       (if (and winner-mode
+                (equal (selected-window) (next-window)))
+           (winner-undo)
+         (delete-other-windows)))
+
+     (global-set-key "\C-x1" 'sanityinc/toggle-delete-other-windows)
+
+     ;;----------------------------------------------------------------------------
+     ;; Rearrange split windows
+     ;;----------------------------------------------------------------------------
+     ;;----------------------------------------------------------------------------
+;; When splitting window, show (other-buffer) in the new window
+;;----------------------------------------------------------------------------
+(defun split-window-func-with-other-buffer (split-function)
+  (lexical-let ((s-f split-function))
+    (lambda (&optional arg)
+      "Split this window and switch to the new window unless ARG is provided."
+      (interactive "P")
+      (funcall s-f)
+      (let ((target-window (next-window)))
+        (set-window-buffer target-window (other-buffer))
+        (unless arg
+          (select-window target-window))))))
+
+     (defun split-window-horizontally-instead ()
+       (interactive)
+       (save-excursion
+         (delete-other-windows)
+         (funcall (split-window-func-with-other-buffer 'split-window-horizontally))))
+
+     (defun split-window-vertically-instead ()
+       (interactive)
+       (save-excursion
+         (delete-other-windows)
+         (funcall (split-window-func-with-other-buffer 'split-window-vertically))))
+
+     (global-set-key "\C-x|" 'split-window-horizontally-instead)
+     (global-set-key "\C-x_" 'split-window-vertically-instead)
+
+
    #+END_SRC
 ** smart copy-line kill-line
    #+BEGIN_SRC emacs-lisp
@@ -508,6 +618,7 @@
    #+END_SRC
 ** ibuffer-vc
    #+BEGIN_SRC emacs-lisp
+     (require-package 'ibuffer-vc)
      (add-hook 'ibuffer-hook
                (lambda ()
                  (ibuffer-vc-set-filter-groups-by-vc-root)
@@ -602,10 +713,6 @@
 
      (global-set-key (kbd "C-x n") 'narrow-or-widen-dwim)
 
-     ;; (eval-after-load 'org-src
-     ;;   '(define-key org-src-mode-map
-     ;;      "\C-x\C-s" #'org-edit-src-exit))
-
    #+END_SRC
 ** god-mode
    #+BEGIN_SRC emacs-lisp
@@ -626,7 +733,7 @@
        (add-to-list 'god-exempt-major-modes 'org-agenda-mode))
 
    #+END_SRC
-* program
+* Program
 ** scheme
    #+BEGIN_SRC emacs-lisp
      ;; This is the binary name of my scheme implementation  
@@ -755,6 +862,8 @@
       (add-hook 'c-mode-hook 'linux-c-mode)
       (add-hook 'c++-mode-hook 'linux-cpp-mode)
 
+      (require-package 'color-identifiers-mode)
+
       (add-hook 'c-mode-hook 'color-identifiers-mode)
       (add-hook 'c++-mode-hook 'color-identifiers-mode)
 
@@ -763,6 +872,7 @@
 *** hideshow-org
     #+BEGIN_SRC emacs-lisp
       (require-package 'hideshow-org)
+      (require 'hideshow-org)
       (add-hook 'c-mode-hook 'hs-org/minor-mode)
     #+END_SRC
 
@@ -770,6 +880,7 @@
 #+BEGIN_SRC emacs-lisp
 (require-package 'company)
 (require-package 'company-flx)
+(require-package 'company-c-headers)
 
   (use-package company
     :ensure t
@@ -802,8 +913,43 @@
 
 ** magit
    #+BEGIN_SRC emacs-lisp
-(require-package 'magit)
+     (require-package 'magit)
+
      (global-set-key (kbd "C-x g") 'magit-status)
+
+     ;;----------------------------------------------------------------------------
+     ;; String utilities missing from core emacs
+     ;;----------------------------------------------------------------------------
+     (defun sanityinc/string-all-matches (regex str &optional group)
+       "Find all matches for `REGEX' within `STR', returning the full match string or group `GROUP'."
+       (let ((result nil)
+             (pos 0)
+             (group (or group 0)))
+         (while (string-match regex str pos)
+           (push (match-string group str) result)
+           (setq pos (match-end group)))
+         result))
+
+     (defun sanityinc/string-rtrim (str)
+       "Remove trailing whitespace from `STR'."
+       (replace-regexp-in-string "[ \t\n]+$" "" str))
+
+     (defvar git-svn--available-commands nil "Cached list of git svn subcommands")
+     (defun git-svn--available-commands ()
+       (or git-svn--available-commands
+           (setq git-svn--available-commands
+                 (sanityinc/string-all-matches
+                  "^  \\([a-z\\-]+\\) +"
+                  (shell-command-to-string "git svn help") 1))))
+
+     (defun git-svn (dir command)
+       "Run a git svn subcommand in DIR."
+       (interactive (list (read-directory-name "Directory: ")
+                          (completing-read "git-svn command: " (git-svn--available-commands) nil t nil nil (git-svn--available-commands))))
+       (let* ((default-directory (vc-git-root dir))
+              (compilation-buffer-name-function (lambda (major-mode-name) "*git-svn*")))
+         (compile (concat "git svn " command))))
+
    #+END_SRC
 
 ** comment-dwim-2
@@ -841,7 +987,7 @@
      (unbind-key "C-c C-q" aggressive-indent-mode-map))
  #+END_SRC
 ** flycheck
-   #+BEGIN_SRC emacs-lisp
+   #+BEGIN_SRC emacs-lisp :tangle no
      (require-package 'flycheck)
      (use-package flycheck
        :ensure t
@@ -853,7 +999,7 @@
        (defun my-select-clangcheck-for-checker ()
          "Select clang-check for flycheck's checker."
          (flycheck-set-checker-executable 'c/c++-clangcheck
-                                          "/path/to/clang-check")
+                                          "/usr/bin/clang-check")
          (flycheck-select-checker 'c/c++-clangcheck))
 
        (add-hook 'c-mode-common-hook #'my-select-clangcheck-for-checker)
@@ -891,11 +1037,12 @@
      (add-hook 'makefile-mode-hook (lambda ()
                                      (run-hooks 'prelude-makefile-mode-hook)))
    #+END_SRC
-* helm
+* Helm
 ** helm settings
    #+BEGIN_SRC emacs-lisp
      (require-package 'helm)
      (require-package 'helm-flx)
+     (require-package 'helm-fuzzier)
      (require 'helm)
 
      (require 'helm-config)
@@ -921,7 +1068,6 @@
      (helm-mode 1)
 
      (helm-flx-mode +1)
-     (require-package 'helm-fuzzier)
      (helm-fuzzier-mode 1)
 
      (setq helm-M-x-fuzzy-match t) ;; optional fuzzy matching for helm-M-x
@@ -940,10 +1086,6 @@
      (global-set-key (kbd "C-h SPC") 'helm-all-mark-rings)
    #+END_SRC
 
-   #+BEGIN_SRC emacs-lisp
-   
-   #+END_SRC
-
    List eshell history:
    #+BEGIN_SRC emacs-lisp
      (add-hook 'eshell-mode-hook
@@ -953,6 +1095,9 @@
 
 ** helm-gtags
    #+BEGIN_SRC emacs-lisp
+     (require-package 'helm-gtags)
+     (require 'helm-gtags)
+
      ;; Enable helm-gtags-mode
      (add-hook 'c-mode-hook 'helm-gtags-mode)
      (add-hook 'c++-mode-hook 'helm-gtags-mode)
@@ -981,7 +1126,7 @@
 
    #+END_SRC
 
-* org-mode
+* Org-mode
 ** basic 
    #+BEGIN_SRC emacs-lisp
      (require-package 'org)
@@ -1020,6 +1165,9 @@
    #+END_SRC
 ** babel
    #+BEGIN_SRC emacs-lisp
+     (require-package 'gnuplot)
+     (require-package 'puml-mode)
+
      ;; active Babel languages
      (org-babel-do-load-languages
       'org-babel-load-languages
@@ -1238,7 +1386,100 @@
 
 
    #+END_SRC
-* projectile
+** Agenda
+   #+BEGIN_SRC emacs-lisp
+     ;;; To-do settings
+
+     (setq org-todo-keywords
+           (quote ((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d!/!)")
+                   (sequence "PROJECT(p)" "|" "DONE(d!/!)" "CANCELLED(c@/!)")
+                   (sequence "WAITING(w@/!)" "HOLD(h)" "|" "CANCELLED(c@/!)"))))
+
+     (setq org-todo-keyword-faces
+           (quote (("NEXT" :inherit warning)
+                   ("PROJECT" :inherit font-lock-string-face))))
+
+
+  
+     ;;; Agenda views
+
+     (setq-default org-agenda-clockreport-parameter-plist '(:link t :maxlevel 3))
+
+
+     (let ((active-project-match "-INBOX/PROJECT"))
+
+       (setq org-stuck-projects
+             `(,active-project-match ("NEXT")))
+
+       (setq org-agenda-compact-blocks t
+             org-agenda-sticky t
+             org-agenda-start-on-weekday nil
+             org-agenda-span 'day
+             org-agenda-include-diary nil
+             org-agenda-sorting-strategy
+             '((agenda habit-down time-up user-defined-up effort-up category-keep)
+               (todo category-up effort-up)
+               (tags category-up effort-up)
+               (search category-up))
+             org-agenda-window-setup 'current-window
+             org-agenda-custom-commands
+             `(("N" "Notes" tags "NOTE"
+                ((org-agenda-overriding-header "Notes")
+                 (org-tags-match-list-sublevels t)))
+               ("g" "GTD"
+                ((agenda "" nil)
+                 (tags "INBOX"
+                       ((org-agenda-overriding-header "Inbox")
+                        (org-tags-match-list-sublevels nil)))
+                 (stuck ""
+                        ((org-agenda-overriding-header "Stuck Projects")
+                         (org-agenda-tags-todo-honor-ignore-options t)
+                         (org-tags-match-list-sublevels t)
+                         (org-agenda-todo-ignore-scheduled 'future)))
+                 (tags-todo "-INBOX/NEXT"
+                            ((org-agenda-overriding-header "Next Actions")
+                             (org-agenda-tags-todo-honor-ignore-options t)
+                             (org-agenda-todo-ignore-scheduled 'future)
+                             ;; TODO: skip if a parent is WAITING or HOLD
+                             (org-tags-match-list-sublevels t)
+                             (org-agenda-sorting-strategy
+                              '(todo-state-down effort-up category-keep))))
+                 (tags-todo ,active-project-match
+                            ((org-agenda-overriding-header "Projects")
+                             (org-tags-match-list-sublevels t)
+                             (org-agenda-sorting-strategy
+                              '(category-keep))))
+                 (tags-todo "-INBOX/-NEXT"
+                            ((org-agenda-overriding-header "Orphaned Tasks")
+                             (org-agenda-tags-todo-honor-ignore-options t)
+                             (org-agenda-todo-ignore-scheduled 'future)
+                             ;; TODO: skip if a parent is a project
+                             (org-agenda-skip-function
+                              '(lambda ()
+                                 (or (org-agenda-skip-subtree-if 'todo '("PROJECT" "HOLD" "WAITING"))
+                                     (org-agenda-skip-subtree-if 'nottododo '("TODO")))))
+                             (org-tags-match-list-sublevels t)
+                             (org-agenda-sorting-strategy
+                              '(category-keep))))
+                 (tags-todo "/WAITING"
+                            ((org-agenda-overriding-header "Waiting")
+                             (org-agenda-tags-todo-honor-ignore-options t)
+                             (org-agenda-todo-ignore-scheduled 'future)
+                             (org-agenda-sorting-strategy
+                              '(category-keep))))
+                 (tags-todo "-INBOX/HOLD"
+                            ((org-agenda-overriding-header "On Hold")
+                             ;; TODO: skip if a parent is WAITING or HOLD
+                             (org-tags-match-list-sublevels nil)
+                             (org-agenda-sorting-strategy
+                              '(category-keep))))
+                 ;; (tags-todo "-NEXT"
+                 ;;            ((org-agenda-overriding-header "All other TODOs")
+                 ;;             (org-match-list-sublevels t)))
+                 )))))
+
+   #+END_SRC
+* Projectile
   #+BEGIN_SRC emacs-lisp
     (require-package 'helm-projectile)
 
@@ -1248,7 +1489,7 @@
 
     (setq projectile-enable-caching t)
   #+END_SRC
-* eshell
+* Eshell
   Press any key to jump back to the prompt:
   #+BEGIN_SRC emacs-lisp
   (setq eshell-scroll-to-bottom-on-input t)
@@ -1310,7 +1551,7 @@
                  (kbd "M-q") 'eshell-push-command)))
   #+END_SRC
 
-* elfeed
+* Elfeed
   Simple cheatsheet:
   | key | function       |
   |-----+----------------|
@@ -1353,7 +1594,7 @@
             "http://www.rkn.io/feed.xml"))    ;; Programming
   #+END_SRC
 
-* stardict
+* Stardict
   #+BEGIN_SRC emacs-lisp
     ;; dictionary in emacs
     (global-set-key (kbd "C-c d") 'kid-sdcv-to-buffer)
@@ -1386,7 +1627,7 @@
                  )))))))
   #+END_SRC
 
-* circe 
+* Circe 
   #+BEGIN_SRC emacs-lisp 
     (require-package 'circe)
     (setq circe-network-options
@@ -1404,12 +1645,6 @@
       (circe "Freenode"))
   #+END_SRC
 * COMMENT Not use currently
-** fly spell
-   #+BEGIN_SRC emacs-lisp :tangle no
-     (require 'flyspell-lazy)
-     (flyspell-lazy-mode 1)
-     (flyspell-mode 1)
-   #+END_SRC
 
 ** fill column indicator
   #+BEGIN_SRC emacs-lisp 
@@ -1643,4 +1878,31 @@ mastermastermastermastermaster
     (register-input-method
      "eim-wb" "euc-cn" 'eim-use-package
      "五笔" "汉字五笔输入法" "wb.txt")
+  #+END_SRC
+* COMMENT fly spell
+  #+BEGIN_SRC emacs-lisp
+    ;;----------------------------------------------------------------------------
+    ;; Add spell-checking in comments for all programming language modes
+    ;;----------------------------------------------------------------------------
+    (if (fboundp 'prog-mode)
+        (add-hook 'prog-mode-hook 'flyspell-prog-mode)
+      (dolist (hook '(lisp-mode-hook
+                      emacs-lisp-mode-hook
+                      scheme-mode-hook
+                      clojure-mode-hook
+                      ruby-mode-hook
+                      yaml-mode
+                      python-mode-hook
+                      shell-mode-hook
+                      php-mode-hook
+                      css-mode-hook
+                      haskell-mode-hook
+                      caml-mode-hook
+                      nxml-mode-hook
+                      crontab-mode-hook
+                      perl-mode-hook
+                      tcl-mode-hook
+                      javascript-mode-hook))
+        (add-hook hook 'flyspell-prog-mode)))
+
   #+END_SRC
