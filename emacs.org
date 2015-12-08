@@ -116,6 +116,7 @@
 ** color theme
    #+BEGIN_SRC emacs-lisp
      ;; (load-theme 'dracula t)
+(require-package 'hc-zenburn-theme)
      (load-theme 'hc-zenburn t)
      ;; (load-theme 'monokai t)
      ;; (load-theme 'plan9 t)
@@ -1318,6 +1319,8 @@
 
   #+BEGIN_SRC emacs-lisp
     (require-package 'elfeed)
+    (maybe-require-package 'elfeed-goodies)
+
     (global-set-key (kbd "C-x w") 'elfeed)
 
     (setf url-queue-timeout 60)
