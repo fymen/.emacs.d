@@ -200,8 +200,11 @@
       dired-listing-switches "-lha"          ; human-readable listing
       ls-lisp-dirs-first t
       )
+     (require-package 'dired-filetype-face)
+
+     (with-eval-after-load 'dired  (require 'dired-filetype-face))
    #+END_SRC
-* Beneral
+* General
 ** keystrokes
    #+BEGIN_SRC emacs-lisp
      (global-set-key (kbd "C-w") 'backward-kill-word)
@@ -212,7 +215,30 @@
      (global-set-key (kbd "<f8>") 'eshell)
      (global-set-key (kbd "<f5>") 'revert-buffer)
 
+     (setq superword-mode t)
 
+     (defun get-point (symbol &optional arg)
+      "get the point"
+      (funcall symbol arg)
+      (point)
+     )
+
+     (defun copy-thing (begin-of-thing end-of-thing &optional arg)
+       "copy thing between beg & end into kill ring"
+       (save-excursion
+         (let ((beg (get-point begin-of-thing 1))
+               (end (get-point end-of-thing arg)))
+           (copy-region-as-kill beg end)))
+       )
+
+     (defun copy-word (&optional arg)
+       "Copy words at point into kill-ring"
+       (interactive "P")
+       (copy-thing 'subword-backward 'subword-forward arg)
+       ;;(paste-to-mark arg)
+       )
+
+     (global-set-key (kbd "C-c w") (quote copy-word))
      ;; (global-set-key (kbd "C-x o") 'ace-window)
    #+END_SRC
 ** from purcell
@@ -751,6 +777,7 @@
        (add-to-list 'god-exempt-major-modes 'org-agenda-mode))
 
    #+END_SRC
+
 * Program
 ** scheme
    #+BEGIN_SRC emacs-lisp
@@ -801,8 +828,8 @@
      (define-key smartparens-mode-map (kbd "C-M-n") 'sp-next-sexp)
      (define-key smartparens-mode-map (kbd "C-M-p") 'sp-previous-sexp)
 
-     (define-key smartparens-mode-map (kbd "C-S-f") 'sp-forward-symbol)
-     (define-key smartparens-mode-map (kbd "C-S-b") 'sp-backward-symbol)
+     ;; (define-key smartparens-mode-map (kbd "C-S-f") 'sp-forward-symbol)
+     ;; (define-key smartparens-mode-map (kbd "C-S-b") 'sp-backward-symbol)
 
      (define-key smartparens-mode-map (kbd "C-<right>") 'sp-forward-slurp-sexp)
      (define-key smartparens-mode-map (kbd "M-<right>") 'sp-forward-barf-sexp)
@@ -887,18 +914,12 @@
 
     #+END_SRC
 
-*** hideshow-org
-    #+BEGIN_SRC emacs-lisp
-      (require-package 'hideshow-org)
-      (require 'hideshow-org)
-      (add-hook 'c-mode-hook 'hs-org/minor-mode)
-    #+END_SRC
 
 ** Company Mode
 #+BEGIN_SRC emacs-lisp
-(require-package 'company)
-(require-package 'company-flx)
-(require-package 'company-c-headers)
+  (require-package 'company)
+  (require-package 'company-flx)
+  (require-package 'company-c-headers)
 
   (use-package company
     :ensure t
@@ -906,6 +927,7 @@
     :init
     (global-company-mode 1)
     (add-to-list 'company-backends 'company-c-headers)
+    ;; (add-to-list 'company-backends 'company-irony)
     (setq company-backends (delete 'company-semantic company-backends))
     (with-eval-after-load 'company
       (company-flx-mode +1))
@@ -916,6 +938,14 @@
                ("C-p" . company-select-previous)
                ("C-d" . company-show-doc-buffer)
                ("<tab>" . company-complete)))
+#+END_SRC
+
+To retrive candidates for your projects, you will have to tell Clang
+where your include paths are, create a file named .dir-local.el at
+your project root:
+#+BEGIN_SRC emacs-lisp :tangle no
+  ((nil . ((company-clang-arguments . ("-I/home/<user>/project_root/include1/"
+                                       "-I/home/<user>/project_root/include2/")))))
 #+END_SRC
 
 ** yasnippet
@@ -1155,11 +1185,11 @@
 
 
      (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
+     (add-hook 'org-mode-hook (lambda () (org-indent-mode t)))
 
      ;; Various preferences
      (setq org-log-done t
            org-completion-use-ido t
-           org-indent-mode t
            org-edit-timestamp-down-means-later t
            org-archive-mark-done nil
            org-catch-invisible-edits 'show
@@ -1202,53 +1232,6 @@
      (setq org-plantuml-jar-path "/home/oscar/.emacs.d/elpa/contrib/scripts/plantuml.jar")
      (setq puml-plantuml-jar-path "/home/oscar/.emacs.d/elpa/contrib/scripts/plantuml.jar")
      (add-to-list 'org-src-lang-modes '("plantuml" . puml))
-   #+END_SRC
-** capture
-   #+BEGIN_SRC emacs-lisp
-     (defvar my/org-basic-task-template "* TODO %^{Task}
-     SCHEDULED: %^t
-     %<%Y-%m-%d %H:%M>
-     :PROPERTIES:
-     :Effort: %^{effort|1:00|0:05|0:15|0:30|2:00|4:00}
-     :END:
-     %?
-     " "Basic task data")
-     (setq org-capture-templates
-           `(("e" "Emacs idea" entry
-              (file+headline "~/personal/emacs-notes/tasks.org" "Emacs")
-              "* TODO %^{Task}"
-              :immediate-finish t)
-             ("j" "Journal entry" plain
-              (file+datetree "~/personal/journal.org")
-              "%K - %a\n%i\n%?\n"
-              :unnarrowed t)
-             ("J" "Journal entry with date" plain
-              (file+datetree+prompt "~/personal/journal.org")
-              "%K - %a\n%i\n%?\n"
-              :unnarrowed t)
-             ("q" "Quick note" item
-              (file+headline "~/personal/organizer.org" "Quick notes"))
-             ("n" "note" entry (file "~/personal/refile.org")
-              "* %? :NOTE:\n%U\n%a\n" :clock-in t :clock-resume t)
-             ("B" "Book" entry
-              (file+datetree "~/personal/books.org" "Inbox")
-              "* %^{Title}  %^g
-     %i
-     ,*Author(s):* %^{Author} \\\\
-     ,*ISBN:* %^{ISBN}
-
-     %?
-
-     ,*Review on:* %^t \\
-     %a
-     %U"
-              :clock-in :clock-resume)
-             ("c" "Contact" entry (file "~/personal/contacts.org")
-              "* %(org-contacts-template-name)
-     :PROPERTIES:
-     :EMAIL: %(my/org-contacts-template-email)
-     :END:")))
-     (global-set-key (kbd "C-c c") 'org-capture)
    #+END_SRC
 ** latex
    #+BEGIN_SRC emacs-lisp
@@ -1499,6 +1482,57 @@
                  )))))
 
    #+END_SRC
+** capture
+   #+BEGIN_SRC emacs-lisp
+     (defvar my/org-basic-task-template "* TODO %^{Task}
+     SCHEDULED: %^t
+     %<%Y-%m-%d %H:%M>
+     :PROPERTIES:
+     :Effort: %^{effort|1:00|0:05|0:15|0:30|2:00|4:00}
+     :END:
+     %?
+     " "Basic task data")
+     (setq org-capture-templates
+           `(("e" "Emacs idea" entry
+              (file+headline "~/personal/emacs-notes/tasks.org" "Emacs")
+              "* TODO %^{Task}"
+              :immediate-finish t)
+             ("t" "task todo" entry
+              (file+headline "~/personal/life/tasks.org" "Emacs")
+              "* TODO %^{Task}"
+              :immediate-finish t)
+             ("j" "Journal entry" plain
+              (file+datetree "~/personal/journal.org")
+              "%K - %a\n%i\n%?\n"
+              :unnarrowed t)
+             ("J" "Journal entry with date" plain
+              (file+datetree+prompt "~/personal/journal.org")
+              "%K - %a\n%i\n%?\n"
+              :unnarrowed t)
+             ("q" "Quick note" item
+              (file+headline "~/personal/organizer.org" "Quick notes"))
+             ("n" "note" entry (file "~/personal/refile.org")
+              "* %? :NOTE:\n%U\n%a\n" :clock-in t :clock-resume t)
+             ("B" "Book" entry
+              (file+datetree "~/personal/books.org" "Inbox")
+              "* %^{Title}  %^g
+     %i
+     ,*Author(s):* %^{Author} \\\\
+     ,*ISBN:* %^{ISBN}
+
+     %?
+
+     ,*Review on:* %^t \\
+     %a
+     %U"
+              :clock-in :clock-resume)
+             ("c" "Contact" entry (file "~/personal/contacts.org")
+              "* %(org-contacts-template-name)
+     :PROPERTIES:
+     :EMAIL: %(my/org-contacts-template-email)
+     :END:")))
+     (global-set-key (kbd "C-c c") 'org-capture)
+   #+END_SRC   
 * Projectile
   #+BEGIN_SRC emacs-lisp
     (require-package 'helm-projectile)
@@ -1665,7 +1699,6 @@
       (circe "Freenode"))
   #+END_SRC
 * COMMENT Not use currently
-
 ** fill column indicator
   #+BEGIN_SRC emacs-lisp 
     ;; Fill column indicator
@@ -1888,7 +1921,23 @@ mastermastermastermastermaster
      (define-key launcher-map "s" #'shell)
      (define-key launcher-map "e" #'eval-buffer)
    #+END_SRC
-* COMMENT wubi input method
+** irony
+#+BEGIN_SRC emacs-lisp
+  (add-hook 'c++-mode-hook 'irony-mode)
+  (add-hook 'c-mode-hook 'irony-mode)
+  (add-hook 'objc-mode-hook 'irony-mode)
+
+  ;; replace the `completion-at-point' and `complete-symbol' bindings in
+  ;; irony-mode's buffers by irony-mode's function
+  (defun my-irony-mode-hook ()
+    (define-key irony-mode-map [remap completion-at-point]
+      'irony-completion-at-point-async)
+    (define-key irony-mode-map [remap complete-symbol]
+      'irony-completion-at-point-async))
+  (add-hook 'irony-mode-hook 'my-irony-mode-hook)
+  (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
+#+END_SRC
+** wubi input method
   #+BEGIN_SRC emacs-lisp
     (add-to-list 'load-path "~/.emacs.d/lisp/emacs-eim/")
     (autoload 'eim-use-package "eim" "Another emacs input method")
@@ -1899,7 +1948,7 @@ mastermastermastermastermaster
      "eim-wb" "euc-cn" 'eim-use-package
      "五笔" "汉字五笔输入法" "wb.txt")
   #+END_SRC
-* COMMENT fly spell
+** fly spell
   #+BEGIN_SRC emacs-lisp
     ;;----------------------------------------------------------------------------
     ;; Add spell-checking in comments for all programming language modes
@@ -1926,3 +1975,10 @@ mastermastermastermastermaster
         (add-hook hook 'flyspell-prog-mode)))
 
   #+END_SRC
+** hideshow-org
+    #+BEGIN_SRC emacs-lisp
+      (require-package 'hideshow-org)
+      (require 'hideshow-org)
+      (add-hook 'c-mode-hook 'hs-org/minor-mode)
+    #+END_SRC
+
