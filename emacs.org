@@ -213,7 +213,6 @@
      (global-set-key (kbd "C--") 'mark-sexp)
 
      (global-set-key (kbd "<f8>") 'eshell)
-     (global-set-key (kbd "<f5>") 'revert-buffer)
 
      (setq superword-mode t)
 
@@ -653,7 +652,7 @@
      (setq hydra-lv nil))
  #+END_SRC
 ** guide-key
-   #+BEGIN_SRC emacs-lisp
+   #+BEGIN_SRC emacs-lisp :tangle no
      (require-package 'guide-key)
      (setq guide-key/guide-key-sequence '("C-x" "C-c" "C-x 4" "C-x 5" "C-c ;" "C-c ; f" "C-c ' f" "C-x n" "C-x C-r" "C-x r" "C-l"))
 
@@ -777,7 +776,22 @@
        (add-to-list 'god-exempt-major-modes 'org-agenda-mode))
 
    #+END_SRC
+** keyfreq
+#+BEGIN_SRC emacs-lisp
+  (require-package 'keyfreq)
 
+  (require 'keyfreq)
+  (setq keyfreq-excluded-commands
+        '(self-insert-command
+          abort-recursive-edit
+          forward-char
+          backward-char
+          previous-line
+          next-line))
+  (keyfreq-mode 1)
+  (keyfreq-autosave-mode 1)
+
+#+END_SRC
 * Program
 ** scheme
    #+BEGIN_SRC emacs-lisp
@@ -868,7 +882,6 @@
    #+END_SRC
 
 ** cc-mode
-*** c-mode
     #+BEGIN_SRC emacs-lisp 
         (defun linux-c-mode()
         ;; 将回车代替C-j的功能，换行的同时对齐
@@ -914,7 +927,6 @@
 
     #+END_SRC
 
-
 ** Company Mode
 #+BEGIN_SRC emacs-lisp
   (require-package 'company)
@@ -926,9 +938,9 @@
     :diminish company-mode
     :init
     (global-company-mode 1)
-    (add-to-list 'company-backends 'company-c-headers)
-    ;; (add-to-list 'company-backends 'company-irony)
     (setq company-backends (delete 'company-semantic company-backends))
+    (add-to-list 'company-backends 'company-c-headers)
+    (add-to-list 'company-backends 'company-clang)
     (with-eval-after-load 'company
       (company-flx-mode +1))
 
@@ -941,7 +953,7 @@
 #+END_SRC
 
 To retrive candidates for your projects, you will have to tell Clang
-where your include paths are, create a file named .dir-local.el at
+where your include paths are, create a file named =.dir-local.el= at
 your project root:
 #+BEGIN_SRC emacs-lisp :tangle no
   ((nil . ((company-clang-arguments . ("-I/home/<user>/project_root/include1/"
@@ -1037,26 +1049,28 @@ your project root:
 ** flycheck
    #+BEGIN_SRC emacs-lisp :tangle no
      (require-package 'flycheck)
-     (use-package flycheck
-       :ensure t
-       :diminish flycheck-mode
-       :init
-       ;; (global-flycheck-mode)
-       (setq flycheck-indication-mode 'right-fringe)
-  
-       (defun my-select-clangcheck-for-checker ()
-         "Select clang-check for flycheck's checker."
-         (flycheck-set-checker-executable 'c/c++-clangcheck
-                                          "/usr/bin/clang-check")
-         (flycheck-select-checker 'c/c++-clangcheck))
+     (require  'flycheck)
 
-       (add-hook 'c-mode-common-hook #'my-select-clangcheck-for-checker)
+     (require-package 'flycheck-clangcheck)
+     (require 'flycheck-clangcheck)
 
-       ;; enable static analysis
-       (setq flycheck-clangcheck-analyze t))
+     (setq flycheck-clangcheck-analyze t)
+     ;; (global-flycheck-mode)
+     (setq flycheck-indication-mode 'right-fringe)
+
+     (defun my-select-clangcheck-for-checker ()
+       "Select clang-check for flycheck's checker."
+       (flycheck-set-checker-executable 'c/c++-clangcheck
+                                        "/usr/bin/clang-check")
+       (flycheck-select-checker 'c/c++-clangcheck))
+
+     (add-hook 'c-mode-common-hook #'my-select-clangcheck-for-checker)
+
+     ;; enable static analysis
+     (setq flycheck-clangcheck-analyze t)
    #+END_SRC
 ** compilation
-   #+BEGIN_SRC emacs-lisp :tangle no
+   #+BEGIN_SRC emacs-lisp
      (defun prelude-colorize-compilation-buffer ()
        "Colorize a compilation mode buffer."
        (interactive)
@@ -1066,12 +1080,37 @@ your project root:
            (ansi-color-apply-on-region (point-min) (point-max)))))
 
      ;; setup compilation-mode used by `compile' command
-     (require-package 'compile)
-          (require 'compile)
-          (setq compilation-ask-about-save nil          ; Just save before compiling
-                compilation-always-kill t               ; Just kill old compile processes before starting the new one
-                compilation-scroll-output 'first-error) ; Automatically scroll to first
-          (global-set-key (kbd "<f5>") 'compile)
+     (require 'compile)
+
+     (setq compilation-ask-about-save nil          ; Just save before compiling
+           compilation-always-kill t               ; Just kill old compile processes before starting the new one
+           compilation-scroll-output 'first-error) ; Automatically scroll to first
+   #+END_SRC
+
+   #+BEGIN_SRC emacs-lisp
+     (require-package 'cd-compile)
+     (require 'cd-compile)
+     (global-set-key (kbd "<f5>") 'cd-compile)
+   #+END_SRC
+
+   To configure it change to a specific directory and compile. put
+   following codes in the =.dir-locals.el= in the directory.
+   #+BEGIN_SRC emacs-lisp :tangle no
+     ((nil . ((company-clang-arguments . ("-I/home/oscar/workspace/phoenix/PHOENIX-SDK5.0/board/buildroot/output/build/hon-encode-0/stream"
+                                          "-I/home/oscar/workspace/phoenix/PHOENIX-SDK5.0/board/buildroot/output/build/hon-encode-0/ipc"
+                                          "-I/home/oscar/workspace/phoenix/PHOENIX-SDK5.0/board/buildroot/output/build/hon-encode-0/osd"
+                                          "-I/home/oscar/workspace/phoenix/PHOENIX-SDK5.0/board/buildroot/output/build/hon-encode-0/email"
+                                          "/home/oscar/workspace/phoenix/PHOENIX-SDK5.0/board/buildroot/output/build/hon-encode-0/../his-sdk-0/include"
+                                          "-I/home/oscar/workspace/phoenix/PHOENIX-SDK5.0/board/buildroot/output/build/hon-encode-0/../hon-ipc-0"
+                                          "-I/home/oscar/workspace/phoenix/PHOENIX-SDK5.0/board/buildroot/output/build/hon-encode-0/mpp/extdrv/tw2865"
+                                          "-I/home/oscar/workspace/phoenix/PHOENIX-SDK5.0/board/buildroot/output/build/hon-encode-0/mpp//home/oscar/workspace/phoenix/PHOENIX-SDK5.0/board/buildroot/output/build/hon-encode-0/extdrv/tlv320aic31"
+                                          "-I/home/oscar/workspace/phoenix/PHOENIX-SDK5.0/board/buildroot/output/build/hon-encode-0/mpp//home/oscar/workspace/phoenix/PHOENIX-SDK5.0/board/buildroot/output/build/hon-encode-0/extdrv/ak7756e"
+
+                                          "-I/home/oscar/workspace/phoenix/PHOENIX-SDK5.0/board/buildroot/output/host/opt/ext-toolchain/target/usr/include/"
+
+                                          "-I/home/oscar/workspace/phoenix/PHOENIX-SDK5.0/board/apps/encode/stream/"
+                                          ))
+              (cd-compile-directory . "/home/oscar/workspace/phoenix/PHOENIX-SDK5.0/")))
 
    #+END_SRC
 ** Makefile
@@ -1085,6 +1124,25 @@ your project root:
      (add-hook 'makefile-mode-hook (lambda ()
                                      (run-hooks 'prelude-makefile-mode-hook)))
    #+END_SRC
+** wgrep
+   #+BEGIN_SRC emacs-lisp
+     (require-package 'wgrep)
+     (require-package 'wgrep-ag)
+
+     (require 'wgrep)
+     (require 'wgrep-ag)
+
+     ;; (define-key ag-mode-map (kbd "q") 'kill-this-buffer)
+     (setq ag-highlight-search t)
+   #+END_SRC
+
+** hideshow-org
+    #+BEGIN_SRC emacs-lisp
+      (require-package 'hideshow-org)
+      (require 'hideshow-org)
+      ;; (add-hook 'c-mode-hook 'hs-org/minor-mode)
+    #+END_SRC
+
 * Helm
 ** helm settings
    #+BEGIN_SRC emacs-lisp
@@ -1126,6 +1184,7 @@ your project root:
      (global-set-key (kbd "C-x y") 'helm-show-kill-ring)
      (global-set-key (kbd "C-x b") 'helm-mini)
      (global-set-key (kbd "C-x C-f") 'helm-find-files)
+     (global-set-key (kbd "M-i") 'helm-occur)
 
      (when (executable-find "ack-grep")
        (setq helm-grep-default-command "ack-grep -Hn --no-group --no-color %e %p %f"
@@ -1151,6 +1210,9 @@ your project root:
      (add-hook 'c++-mode-hook 'helm-gtags-mode)
      (add-hook 'asm-mode-hook 'helm-gtags-mode)
 
+     (setq helm-gtags-auto-update t)
+     (setq helm-gtags-update-interval-second 60)
+
      ;; Set key bindings
      (eval-after-load "helm-gtags"
        '(progn
@@ -1161,17 +1223,6 @@ your project root:
           (define-key helm-gtags-mode-map (kbd "C-c <") 'helm-gtags-previous-history)
           (define-key helm-gtags-mode-map (kbd "C-c >") 'helm-gtags-next-history)
           (define-key helm-gtags-mode-map (kbd "M-,") 'helm-gtags-pop-stack)))
-   #+END_SRC
-** swoop
-   #+BEGIN_SRC emacs-lisp
-     (require-package 'helm-swoop)
-
-     ;; Change keybinds to whatever you like :)
-     (global-set-key (kbd "M-i") 'helm-swoop)
-     (global-set-key (kbd "M-I") 'helm-swoop-back-to-last-point)
-     (global-set-key (kbd "C-c M-i") 'helm-multi-swoop)
-     (global-set-key (kbd "C-x M-i") 'helm-multi-swoop-all)
-
    #+END_SRC
 
 * Org-mode
@@ -1197,6 +1248,7 @@ your project root:
            org-fast-tag-selection-single-key 'expert
            org-html-validation-link nil
            org-export-kill-product-buffer-when-displayed t
+           org-list-allow-alphabetical t
            org-tags-column 80)
 
      (add-hook 'org-mode-hook 'auto-fill-mode)
@@ -1241,6 +1293,8 @@ your project root:
 
      (require 'ox-latex)
      (require 'ox-beamer)
+     (setq org-latex-images-centered 't)
+
      (setq org-latex-coding-system 'utf-8)
 
      (setf org-latex-default-packages-alist
@@ -1259,7 +1313,6 @@ your project root:
                      filecolor=black
                     }
 
-             \\usepackage{fontspec}
              \\usepackage{array}
              \\usepackage{xcolor}
              \\definecolor{bg}{rgb}{0.95,0.95,0.95}"))
@@ -1269,13 +1322,18 @@ your project root:
      (setq org-latex-minted-options
            '(
              ("bgcolor" "bg")
-             ("frame" "single")))
+             ("frame" "lines")
+             ("linenos" "")
+             ("fontsize" "\\scriptsize")
+             ))
 
      (add-to-list 'org-latex-classes
                   '("article-cn"
                    "\\documentclass[11pt]{article}
                      [DEFAULT-PACKAGES]
                      [PACKAGES]
+                     \\usepackage{fontspec}
+
                      \\XeTeXlinebreaklocale ``zh''
                      \\XeTeXlinebreakskip = 0pt plus 1pt minus 0.1pt
                      \\newcommand\\fontnamehei{WenQuanYi Zen Hei}
@@ -1309,6 +1367,7 @@ your project root:
                    ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
                    ("\\paragraph{%s}" . "\\paragraph*{%s}")
                    ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
+
    #+END_SRC
 ** publish
    #+BEGIN_SRC emacs-lisp
@@ -1645,6 +1704,7 @@ your project root:
             "http://www.geekonomics10000.com/feed " 
             "http://feeds2.feedburner.com/xumathena" 
             "http://coolshell.cn/feed " 
+            "http://blog.binchen.org/rss.xml"
             "http://www.rkn.io/feed.xml"))    ;; Programming
   #+END_SRC
 
@@ -1850,20 +1910,6 @@ your project root:
 
    #+END_SRC
 
-** wgrep
-   #+BEGIN_SRC emacs-lisp
-     (use-package ag
-       :ensure t
-       :init
-       (use-package wgrep
-         :ensure t)
-       (use-package wgrep-ag
-         :ensure t)
-       :config
-       (bind-keys :map ag-mode-map
-                  ("q" . kill-this-buffer))
-       (setq ag-highlight-search t))
-   #+END_SRC
 
 ** diminish minor-mode 
    #+BEGIN_SRC emacs-lisp 
@@ -1921,22 +1967,7 @@ mastermastermastermastermaster
      (define-key launcher-map "s" #'shell)
      (define-key launcher-map "e" #'eval-buffer)
    #+END_SRC
-** irony
-#+BEGIN_SRC emacs-lisp
-  (add-hook 'c++-mode-hook 'irony-mode)
-  (add-hook 'c-mode-hook 'irony-mode)
-  (add-hook 'objc-mode-hook 'irony-mode)
 
-  ;; replace the `completion-at-point' and `complete-symbol' bindings in
-  ;; irony-mode's buffers by irony-mode's function
-  (defun my-irony-mode-hook ()
-    (define-key irony-mode-map [remap completion-at-point]
-      'irony-completion-at-point-async)
-    (define-key irony-mode-map [remap complete-symbol]
-      'irony-completion-at-point-async))
-  (add-hook 'irony-mode-hook 'my-irony-mode-hook)
-  (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
-#+END_SRC
 ** wubi input method
   #+BEGIN_SRC emacs-lisp
     (add-to-list 'load-path "~/.emacs.d/lisp/emacs-eim/")
@@ -1975,10 +2006,15 @@ mastermastermastermastermaster
         (add-hook hook 'flyspell-prog-mode)))
 
   #+END_SRC
-** hideshow-org
-    #+BEGIN_SRC emacs-lisp
-      (require-package 'hideshow-org)
-      (require 'hideshow-org)
-      (add-hook 'c-mode-hook 'hs-org/minor-mode)
-    #+END_SRC
 
+** swoop
+   #+BEGIN_SRC emacs-lisp
+     (require-package 'helm-swoop)
+
+     ;; Change keybinds to whatever you like :)
+     (global-set-key (kbd "M-i") 'helm-swoop)
+     (global-set-key (kbd "M-I") 'helm-swoop-back-to-last-point)
+     (global-set-key (kbd "C-c M-i") 'helm-multi-swoop)
+     (global-set-key (kbd "C-x M-i") 'helm-multi-swoop-all)
+
+   #+END_SRC
