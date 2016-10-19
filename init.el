@@ -18,6 +18,9 @@
     ("bcc6775934c9adf5f3bd1f428326ce0dcd34d743a92df48c128e6438b815b44f" "3c83b3676d796422704082049fc38b6966bcad960f896669dfc21a7a37a748fa" "8577da1641ed4bdf255341ca92e3d0e49c9f4d574458f09ce78159690442cade" default)))
  '(fci-rule-color "#5E5E5E")
  '(paradox-github-token t)
+ '(safe-local-variable-values
+   (quote
+    ((company-clang-arguments "-I/home/oscar/workspace/phoenix/PHOENIX-SDK5.0/board/buildroot/output/build/hon-encode-0/stream" "-I/home/oscar/workspace/phoenix/PHOENIX-SDK5.0/board/buildroot/output/build/hon-encode-0/ipc" "-I/home/oscar/workspace/phoenix/PHOENIX-SDK5.0/board/buildroot/output/build/hon-encode-0/osd" "-I/home/oscar/workspace/phoenix/PHOENIX-SDK5.0/board/buildroot/output/build/hon-encode-0/email" "/home/oscar/workspace/phoenix/PHOENIX-SDK5.0/board/buildroot/output/build/hon-encode-0/../his-sdk-0/include" "-I/home/oscar/workspace/phoenix/PHOENIX-SDK5.0/board/buildroot/output/build/hon-encode-0/../hon-ipc-0" "-I/home/oscar/workspace/phoenix/PHOENIX-SDK5.0/board/buildroot/output/build/hon-encode-0/mpp/extdrv/tw2865" "-I/home/oscar/workspace/phoenix/PHOENIX-SDK5.0/board/buildroot/output/build/hon-encode-0/mpp//home/oscar/workspace/phoenix/PHOENIX-SDK5.0/board/buildroot/output/build/hon-encode-0/extdrv/tlv320aic31" "-I/home/oscar/workspace/phoenix/PHOENIX-SDK5.0/board/buildroot/output/build/hon-encode-0/mpp//home/oscar/workspace/phoenix/PHOENIX-SDK5.0/board/buildroot/output/build/hon-encode-0/extdrv/ak7756e" "-I/home/oscar/workspace/phoenix/PHOENIX-SDK5.0/board/buildroot/output/host/opt/ext-toolchain/target/usr/include/" "-I/home/oscar/workspace/phoenix/PHOENIX-SDK5.0/board/apps/encode/stream/"))))
  '(sml/active-background-color "dark blue")
  '(vc-annotate-background "#202020")
  '(vc-annotate-color-map
