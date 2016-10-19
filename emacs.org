@@ -99,7 +99,7 @@
 ** fonts
    #+BEGIN_SRC emacs-lisp
      ;; Setting English Font
-     (set-face-attribute 'default nil :font "Droid Sans Mono 10") 
+     (set-face-attribute 'default nil :font "Droid Sans Mono 14") 
 
      ;; Chinese Font
      (dolist (charset '(kana han symbol cjk-misc bopomofo))
@@ -1179,7 +1179,7 @@ your project root:
    #+BEGIN_SRC emacs-lisp
      (require-package 'org)
      (require-package 'org-bullets)
-     (require-package 'org-screenshot)
+     ;; (require-package 'org-screenshot)
 
      (add-to-list 'auto-mode-alist '("\\.txt\\'" . org-mode))
 
@@ -1700,7 +1700,7 @@ your project root:
   #+END_SRC
 * COMMENT Not use currently
 ** fill column indicator
-  #+BEGIN_SRC emacs-lisp 
+  #+BEGIN_SRC emacs-lisp :tangle no
     ;; Fill column indicator
     (require 'fill-column-indicator)
     (setq fci-rule-color "#111122")
