@@ -445,6 +445,21 @@
 
 
    #+END_SRC
+
+** unfill paragraph
+#+BEGIN_SRC emacs-lisp
+  ;;; Stefan Monnier <foo at acm.org>. It is the opposite of fill-paragraph    
+  (defun unfill-paragraph (&optional region)
+    "Takes a multi-line paragraph and makes it into a single line of text."
+    (interactive (progn (barf-if-buffer-read-only) '(t)))
+    (let ((fill-column (point-max))
+          ;; This would override `fill-column' if it's an integer.
+          (emacs-lisp-docstring-fill-column t))
+      (fill-paragraph nil region)))
+
+  ;; Handy key definition
+  (define-key global-map "\M-Q" 'unfill-paragraph)
+#+END_SRC
 * Emacs extension
 ** find file as root
    #+BEGIN_SRC emacs-lisp
@@ -791,6 +806,13 @@
   (keyfreq-mode 1)
   (keyfreq-autosave-mode 1)
 
+#+END_SRC
+** wc-mode
+#+BEGIN_SRC emacs-lisp
+  (require-package 'wc-mode)
+
+  (require 'wc-mode)
+  (global-set-key "\C-cw" 'wc-mode)
 #+END_SRC
 * Program
 ** scheme
@@ -1403,6 +1425,7 @@ your project root:
 ** page
    #+BEGIN_SRC emacs-lisp
      (require-package 'org-page)
+     (require 'org-page)
 
      (setq op/repository-directory "~/gitest/fymen.github.io/")
 
@@ -1410,10 +1433,10 @@ your project root:
      (setq op/site-main-title "A peacefull heart")
      (setq op/site-sub-title "Free is not free! ----don't know by whom")
      (setq op/personal-github-link "https://github.com/fymen/")
-     (setq op/theme 'oscar)
+     (setq op/theme 'kactus)
      ;; (setq op/personal-disqus-shortname "kelvinh")
      ;; (setq op/personal-google-analytics-id "UA-41088132-1")
-      
+
 
      (setq op/category-config-alist
            '(("blog" ;; this is the default configuration
@@ -1557,7 +1580,7 @@ your project root:
               "* TODO %^{Task}"
               :immediate-finish t)
              ("t" "task todo" entry
-              (file+headline "~/personal/life/tasks.org" "Emacs")
+              (file+headline "~/personal/life/tasks.org" "work")
               "* TODO %^{Task}"
               :immediate-finish t)
              ("j" "Journal entry" plain
@@ -1740,6 +1763,20 @@ your project root:
                  ;; (other-window 1)
                  )))))))
   #+END_SRC
+
+* web-mode
+#+BEGIN_SRC emacs-lisp
+(require-package 'web-mode)
+
+(require 'web-mode)
+(add-to-list 'auto-mode-alist '("\\.phtml\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.tpl\\.php\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.[agj]sp\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.as[cp]x\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.erb\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.mustache\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.djhtml\\'" . web-mode))
+#+END_SRC
 
 * Circe 
   #+BEGIN_SRC emacs-lisp 
