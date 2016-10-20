@@ -807,12 +807,15 @@
   (keyfreq-autosave-mode 1)
 
 #+END_SRC
+** olivetti(for prose writing)
+#+BEGIN_SRC emacs-lisp
+  (require-package 'olivetti)
+#+END_SRC
 ** wc-mode
 #+BEGIN_SRC emacs-lisp
   (require-package 'wc-mode)
 
   (require 'wc-mode)
-  (global-set-key "\C-cw" 'wc-mode)
 #+END_SRC
 * Program
 ** scheme
