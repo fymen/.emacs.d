@@ -1276,7 +1276,7 @@ your project root:
            org-list-allow-alphabetical t
            org-tags-column 80)
 
-     (add-hook 'org-mode-hook 'auto-fill-mode)
+     ;; (add-hook 'org-mode-hook 'auto-fill-mode) ;
 
      ;; The bottom line issue
      (setq org-use-sub-superscripts (quote {})
@@ -1437,7 +1437,7 @@ your project root:
      (setq op/site-sub-title "Free is not free! ----don't know by whom")
      (setq op/personal-github-link "https://github.com/fymen/")
      (setq op/theme 'kactus)
-     ;; (setq op/personal-disqus-shortname "kelvinh")
+     (setq op/personal-disqus-shortname "fymen")
      ;; (setq op/personal-google-analytics-id "UA-41088132-1")
 
 
