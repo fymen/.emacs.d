@@ -811,12 +811,15 @@
   (keyfreq-autosave-mode 1)
 
 #+END_SRC
+** olivetti(for prose writing)
+#+BEGIN_SRC emacs-lisp
+  (require-package 'olivetti)
+#+END_SRC
 ** wc-mode
 #+BEGIN_SRC emacs-lisp
   (require-package 'wc-mode)
 
   (require 'wc-mode)
-  (global-set-key "\C-cw" 'wc-mode)
 #+END_SRC
 * Program
 ** scheme
@@ -1277,7 +1280,7 @@ your project root:
            org-list-allow-alphabetical t
            org-tags-column 80)
 
-     (add-hook 'org-mode-hook 'auto-fill-mode)
+     ;; (add-hook 'org-mode-hook 'auto-fill-mode) ;
 
      ;; The bottom line issue
      (setq org-use-sub-superscripts (quote {})
@@ -1438,7 +1441,7 @@ your project root:
      (setq op/site-sub-title "Free is not free! ----don't know by whom")
      (setq op/personal-github-link "https://github.com/fymen/")
      (setq op/theme 'kactus)
-     ;; (setq op/personal-disqus-shortname "kelvinh")
+     (setq op/personal-disqus-shortname "fymen")
      ;; (setq op/personal-google-analytics-id "UA-41088132-1")
 
 
