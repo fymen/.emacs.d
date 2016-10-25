@@ -1436,7 +1436,10 @@ your project root:
      (setq op/site-main-title "A peacefull heart")
      (setq op/site-sub-title "Free is not free! ----don't know by whom")
      (setq op/personal-github-link "https://github.com/fymen/")
-     (setq op/theme 'kactus)
+
+     (setq op/theme-root-directory "~/.emacs.d/")
+     (setq op/theme 'my-wy)
+
      (setq op/personal-disqus-shortname "fymen")
      ;; (setq op/personal-google-analytics-id "UA-41088132-1")
 

@@ -1,6 +1,7 @@
 body {
     font-family:"lucida grande", "lucida sans unicode", lucida, helvetica, "Hiragino Sans GB", "Microsoft YaHei", "WenQuanYi Micro Hei", sans-serif;
     font-size: 18px;
+    max-width: 45em;
 }
 
 post-wy {
@@ -79,7 +80,7 @@ code {
 }
 
 a:hover {
-	background-color: LightGrey;
+    background-color: LightGrey;
 }
 
 
