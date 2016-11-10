@@ -1,5 +1,6 @@
 #+OPTIONS: toc:4 h:4
 #+TITLE: Emacs init configuration
+#+SETUPFILE: /home/oscar/org/theme-html/theme-bigblow.setup
 
 * Packages
   #+BEGIN_SRC emacs-lisp
@@ -1444,7 +1445,8 @@ your project root:
      (setq op/theme-root-directory "~/.emacs.d/")
      (setq op/theme 'my-wy)
 
-     (setq op/personal-disqus-shortname "fymen")
+     (setq op/personal-disqus-shortname "fymen") 
+     ;;(setq op/personal-duoshuo-shortname "fymen")
      ;; (setq op/personal-google-analytics-id "UA-41088132-1")
 
 
@@ -1774,7 +1776,8 @@ your project root:
                  )))))))
   #+END_SRC
 
-* web-mode
+* web development
+** web-mode
 #+BEGIN_SRC emacs-lisp
 (require-package 'web-mode)
 
@@ -1787,7 +1790,20 @@ your project root:
 (add-to-list 'auto-mode-alist '("\\.mustache\\'" . web-mode))
 (add-to-list 'auto-mode-alist '("\\.djhtml\\'" . web-mode))
 #+END_SRC
+** skewer-mode
+#+BEGIN_SRC emacs-lisp
+(require-package 'web-mode)
+(require 'web-mode)
 
+(add-hook 'js2-mode-hook 'skewer-mode)
+(add-hook 'css-mode-hook 'skewer-css-mode)
+(add-hook 'html-mode-hook 'skewer-html-mode)
+#+END_SRC
+** js2-mode
+#+BEGIN_SRC emacs-lisp
+(require-package 'js2-mode)
+(require 'js2-mode)
+#+END_SRC
 * Circe 
   #+BEGIN_SRC emacs-lisp 
     (require-package 'circe)
