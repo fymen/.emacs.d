@@ -1777,6 +1777,12 @@ your project root:
   #+END_SRC
 
 * web development
+
+** init http server
+#+BEGIN_SRC emacs-lisp
+  (require 'simple-httpd)
+  (setq httpd-root "/home/oscar/gitest/webtest/")
+#+END_SRC
 ** web-mode
 #+BEGIN_SRC emacs-lisp
 (require-package 'web-mode)
@@ -1792,8 +1798,8 @@ your project root:
 #+END_SRC
 ** skewer-mode
 #+BEGIN_SRC emacs-lisp
-(require-package 'web-mode)
-(require 'web-mode)
+(require-package 'skewer-mode)
+(require 'skewer-mode)
 
 (add-hook 'js2-mode-hook 'skewer-mode)
 (add-hook 'css-mode-hook 'skewer-css-mode)
