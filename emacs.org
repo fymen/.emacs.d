@@ -1297,7 +1297,7 @@ your project root:
 ** babel
    #+BEGIN_SRC emacs-lisp
      (require-package 'gnuplot)
-     (require-package 'puml-mode)
+     ;; (require-package 'puml-mode)
 
      ;; active Babel languages
      (org-babel-do-load-languages
@@ -1900,16 +1900,6 @@ your project root:
 
      (add-hook 'mouse-leave-buffer-hook 'auto-save-command)
      (add-hook 'focus-out-hook 'auto-save-command)
-   #+END_SRC
-
-** visual regexp
-   #+BEGIN_SRC emacs-lisp
-     ;; Visual regexp
-     (require 'visual-regexp)
-     (define-key global-map (kbd "C-c q") 'vr/query-replace)
-     (define-key global-map (kbd "C-c r") 'vr/replace)
-
-     (define-key global-map (kbd "C-c m") 'vr/mc-mark)
    #+END_SRC
 
 ** auto complete mode
