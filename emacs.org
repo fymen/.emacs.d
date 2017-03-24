@@ -822,6 +822,7 @@
 
   (require 'wc-mode)
 #+END_SRC
+
 * Program
 ** scheme
    #+BEGIN_SRC emacs-lisp
@@ -913,50 +914,68 @@
 
 ** cc-mode
     #+BEGIN_SRC emacs-lisp 
-        (defun linux-c-mode()
-        ;; 将回车代替C-j的功能，换行的同时对齐
-        (define-key c-mode-map [return] 'newline-and-indent)
-        (interactive)
-        ;; 设置C程序的对齐风格
-        (c-set-style "K&R")
-        ;; 自动模式，在此种模式下当你键入{时，会自动根据你设置的对齐风格对齐
-        (c-toggle-auto-state)
-        ;; TAB键的宽度
-        (setq c-basic-offset 4)
-        ;; 此模式下，当按Backspace时会删除最多的空格
-        (c-toggle-hungry-state)
-        ;; 在菜单中加入当前Buffer的函数索引
-        (imenu-add-menubar-index)
-        ;; 在状态条上显示当前光标在哪个函数体内部
-        (which-function-mode)
-        (c-toggle-auto-newline 1)
-        (c-set-offset 'inextern-lang 0);;在extern c{} 中正常对齐
-        )
+              (defun linux-c-mode()
+              ;; 将回车代替C-j的功能，换行的同时对齐
+              (define-key c-mode-map [return] 'newline-and-indent)
+              (interactive)
+              ;; 设置C程序的对齐风格
+              (c-set-style "K&R")
+              ;; 自动模式，在此种模式下当你键入{时，会自动根据你设置的对齐风格对齐
+              (c-toggle-auto-state)
+              ;; TAB键的宽度
+              (setq c-basic-offset 3)
+    	  (setq indent-tabs-mode nil)
+              ;; 此模式下，当按Backspace时会删除最多的空格
+              (c-toggle-hungry-state)
+              ;; 在菜单中加入当前Buffer的函数索引
+              (imenu-add-menubar-index)
+              ;; 在状态条上显示当前光标在哪个函数体内部
+              (which-function-mode)
+              (c-toggle-auto-newline 1)
+              (c-set-offset 'inextern-lang 0);;在extern c{} 中正常对齐
+              )
 
-      (defun linux-cpp-mode()
-        (define-key c++-mode-map [return] 'newline-and-indent)
-        (define-key c++-mode-map [(control c) (c)] 'compile)
-        (interactive)
-        (c-set-style "K&R")
-        (c-toggle-auto-state)
-        (c-toggle-hungry-state)
-        (setq c-basic-offset 4)
-        (imenu-add-menubar-index)
-        (which-function-mode)
-        (c-set-offset 'inextern-lang 0);;在extern c{} 中正常对齐
-        )
+    	(defun linux-cpp-mode()
+              (define-key c++-mode-map [return] 'newline-and-indent)
+              (define-key c++-mode-map [(control c) (c)] 'compile)
+              (interactive)
+              (c-set-style "K&R")
+              (c-toggle-auto-state)
+              (c-toggle-hungry-state)
 
-      ;;c程序风格
-      (add-hook 'c-mode-hook 'linux-c-mode)
-      (add-hook 'c++-mode-hook 'linux-cpp-mode)
+    	  (setq c++-tab-always-indent t)
+              (setq c-basic-offset 3)
+    	  (setq indent-tabs-mode nil)
+	
+              (imenu-add-menubar-index)
+              (which-function-mode)
+              (c-set-offset 'inextern-lang 0);;在extern c{} 中正常对齐
+              )
 
-      (require-package 'color-identifiers-mode)
+    	;;c程序风格
+    	(add-hook 'c-mode-hook 'linux-c-mode)
+    	(add-hook 'c++-mode-hook 'linux-cpp-mode)
 
-      (add-hook 'c-mode-hook 'color-identifiers-mode)
-      (add-hook 'c++-mode-hook 'color-identifiers-mode)
+    	(require-package 'color-identifiers-mode)
+
+    	(add-hook 'c-mode-hook 'color-identifiers-mode)
+    	(add-hook 'c++-mode-hook 'color-identifiers-mode)
 
     #+END_SRC
 
+** Doxygen
+To install doxymacs:
+#+BEGIN_SRC sh
+sudo apt-get install doxymacs
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp
+  (add-hook 'c-mode-common-hook
+    (lambda ()
+      (require 'doxymacs)
+      (doxymacs-mode t)
+      (doxymacs-font-lock)))
+#+END_SRC
 ** Company Mode
 #+BEGIN_SRC emacs-lisp
   (require-package 'company)
@@ -1051,21 +1070,21 @@ your project root:
  #+END_SRC
 ** dtrt-indent
    #+BEGIN_SRC emacs-lisp
-(require-package 'dtrt-indent)
+     (require-package 'dtrt-indent)
      (add-hook 'c-mode-common-hook 
-       (lambda()
-         (require 'dtrt-indent)
-         ;; (setq dtrt-indent-verbosity 0)
-         (dtrt-indent-mode t)))
+   	 (lambda()
+      	   (require 'dtrt-indent)
+      	   ;; (setq dtrt-indent-verbosity 0)
+      	   (dtrt-indent-mode t)))
    #+END_SRC
-** aggressive-indent
+** COMMENT aggressive-indent
  #+BEGIN_SRC emacs-lisp 
    (require-package 'aggressive-indent)
    (use-package aggressive-indent
      :ensure t
      :diminish aggressive-indent-mode
      :init
-     (global-aggressive-indent-mode 1)
+     ;; (global-aggressive-indent-mode 1)
 
      ;; (add-to-list
      ;;  'aggressive-indent-dont-indent-if
@@ -1718,7 +1737,7 @@ your project root:
 
     (elfeed-goodies/setup)
     (setq elfeed-feeds
-          '("http://www.howardism.org/index.xml"     ;; My Blog
+  	'("http://www.howardism.org/index.xml"     ;; My Blog
             "http://endlessparentheses.com/atom.xml" ;; Emacs Blog
             "http://www.masteringemacs.org/feed/"    ;; Emacs Blog
             ;; "http://emacs-fu.blogspot.com/feeds/posts/default"
@@ -1827,6 +1846,7 @@ your project root:
       (interactive)
       (circe "Freenode"))
   #+END_SRC
+
 * COMMENT Not use currently
 ** fill column indicator
   #+BEGIN_SRC emacs-lisp :tangle no

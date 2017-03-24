@@ -17,6 +17,9 @@
    (quote
     ("bcc6775934c9adf5f3bd1f428326ce0dcd34d743a92df48c128e6438b815b44f" "3c83b3676d796422704082049fc38b6966bcad960f896669dfc21a7a37a748fa" "8577da1641ed4bdf255341ca92e3d0e49c9f4d574458f09ce78159690442cade" default)))
  '(fci-rule-color "#5E5E5E")
+ '(package-selected-packages
+   (quote
+    (async dash git-commit yasnippet whole-line-or-region wgrep-ag web-mode wc-mode use-package smartscan smartparens smart-mode-line skewer-mode rainbow-mode rainbow-delimiters page-break-lines org-page org-bullets olivetti nyan-mode multiple-cursors magit keyfreq ibuffer-vc hungry-delete highlight-symbol hideshow-org helm-projectile helm-gtags helm-fuzzier helm-flx hc-zenburn-theme golden-ratio god-mode gnuplot git-timemachine expand-region esh-buf-stack elfeed-goodies dtrt-indent dired-filetype-face company-flx company-c-headers comment-dwim-2 color-identifiers-mode circe cd-compile blog-minimal beacon avy anzu aggressive-indent)))
  '(paradox-github-token t)
  '(safe-local-variable-values
    (quote
