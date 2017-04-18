@@ -19,7 +19,7 @@
  '(fci-rule-color "#5E5E5E")
  '(package-selected-packages
    (quote
-    (async dash git-commit yasnippet whole-line-or-region wgrep-ag web-mode wc-mode use-package smartscan smartparens smart-mode-line skewer-mode rainbow-mode rainbow-delimiters page-break-lines org-page org-bullets olivetti nyan-mode multiple-cursors magit keyfreq ibuffer-vc hungry-delete highlight-symbol hideshow-org helm-projectile helm-gtags helm-fuzzier helm-flx hc-zenburn-theme golden-ratio god-mode gnuplot git-timemachine expand-region esh-buf-stack elfeed-goodies dtrt-indent dired-filetype-face company-flx company-c-headers comment-dwim-2 color-identifiers-mode circe cd-compile blog-minimal beacon avy anzu aggressive-indent)))
+    (sdcv async dash git-commit yasnippet whole-line-or-region wgrep-ag web-mode wc-mode use-package smartscan smartparens smart-mode-line skewer-mode rainbow-mode rainbow-delimiters page-break-lines org-page org-bullets olivetti nyan-mode multiple-cursors magit keyfreq ibuffer-vc hungry-delete highlight-symbol hideshow-org helm-projectile helm-gtags helm-fuzzier helm-flx hc-zenburn-theme golden-ratio god-mode gnuplot git-timemachine expand-region esh-buf-stack elfeed-goodies dtrt-indent dired-filetype-face company-flx company-c-headers comment-dwim-2 color-identifiers-mode circe cd-compile blog-minimal beacon avy anzu aggressive-indent)))
  '(paradox-github-token t)
  '(safe-local-variable-values
    (quote
