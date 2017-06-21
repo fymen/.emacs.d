@@ -100,15 +100,15 @@
 ** fonts
    #+BEGIN_SRC emacs-lisp
      ;; Setting English Font
-     (if (eq system-type 'darwin) (set-face-attribute 'default nil :font "Droid Sans Mono 14") 
-       (set-face-attribute 'default nil :font "Droid Sans Mono 10"))
+;     (if (eq system-type 'darwin) (set-face-attribute 'default nil :font "Droid Sans Mono 14") 
+;       (set-face-attribute 'default nil :font "Droid Sans Mono 10"))
 
 
      ;; Chinese Font
-     (dolist (charset '(kana han symbol cjk-misc bopomofo))
-       (set-fontset-font (frame-parameter nil 'font)
-                         charset (font-spec :family "WenQuanYi Micro Hei Mono"
-                                            :size 16)))
+;     (dolist (charset '(kana han symbol cjk-misc bopomofo))
+;       (set-fontset-font (frame-parameter nil 'font)
+;                         charset (font-spec :family "WenQuanYi Micro Hei Mono"
+;                                            :size 16)))
    #+END_SRC
 *** Chinese relative
     #+BEGIN_SRC emacs-lisp
@@ -160,7 +160,7 @@
      (setq frame-title-format "%f %4 %b %Z %* %10 %I")
 
    #+END_SRC
-** smart-modeline
+** COMMENT smart-modeline
    #+BEGIN_SRC emacs-lisp
      (require-package 'smart-mode-line)
 
@@ -1786,6 +1786,7 @@ your project root:
 ** web-mode
 #+BEGIN_SRC emacs-lisp
 (require-package 'web-mode)
+(require-package 'js2-mode)
 
 (require 'web-mode)
 (add-to-list 'auto-mode-alist '("\\.phtml\\'" . web-mode))
@@ -1796,7 +1797,7 @@ your project root:
 (add-to-list 'auto-mode-alist '("\\.mustache\\'" . web-mode))
 (add-to-list 'auto-mode-alist '("\\.djhtml\\'" . web-mode))
 #+END_SRC
-** skewer-mode
+** COMMENT skewer-mode
 #+BEGIN_SRC emacs-lisp
 (require-package 'skewer-mode)
 (require 'skewer-mode)
