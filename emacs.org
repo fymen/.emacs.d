@@ -923,7 +923,7 @@
               ;; 自动模式，在此种模式下当你键入{时，会自动根据你设置的对齐风格对齐
               (c-toggle-auto-state)
               ;; TAB键的宽度
-              (setq c-basic-offset 3)
+              (setq c-basic-offset 8)
     	  (setq indent-tabs-mode nil)
               ;; 此模式下，当按Backspace时会删除最多的空格
               (c-toggle-hungry-state)
@@ -1422,31 +1422,33 @@ your project root:
    #+BEGIN_SRC emacs-lisp
      (require 'ox-publish)
      (setq org-publish-project-alist
-           '(
-             ("blog-notes"
-              :base-directory "~/gitest/blog/"
-              :base-extension "org"
-              :publishing-directory "~/gitest/sagebane.github.com/"
-              :recursive t
-              :exclude "template.org"
-              :publishing-function org-html-publish-to-html
-              :headline-levels 4
-              :auto-preamble t
-              :auto-sitemap t                ; Generate sitemap.org automagically...
-              :sitemap-filename "sitemap.org"  ; ... call it sitemap.org (it's the default)...
-              :sitemap-title "Sitemap"         ; ... with title 'Sitemap'.
-              :email "zuijiuru at gmail dot com"
-              )
-             ("blog-static"
-              :base-directory "~/gitest/blog/"
-              :base-extension "css\\|js\\|png\\|jpg\\|gif\\|pdf\\|mp3\\|ogg\\|swf"
-              :publishing-directory "~/gitest/sagebane.github.com/"
-              :recursive t
-              :publishing-function org-publish-attachment
-              )
-             ("blog" :components ("blog-notes" "blog-static"))
-             ;;
-             ))
+        '(
+          ("blog"
+        :components ("blog-notes" "blog-static"))
+
+          ("blog-notes"
+        :base-directory "~/gitest/blog/"
+        :base-extension "org"
+        :publishing-directory "~/gitest/sagebane.github.com/"
+        :recursive t
+        :exclude "template.org"
+        :publishing-function org-html-publish-to-html
+        :headline-levels 4
+        :auto-preamble t
+        :auto-sitemap t                ; Generate sitemap.org automagically...
+        :sitemap-filename "sitemap.org"  ; ... call it sitemap.org (it's the default)...
+        :sitemap-title "Sitemap"         ; ... with title 'Sitemap'.
+        :email "fengmao dot qi at gmail dot com"
+        )
+          ("blog-static"
+        :base-directory "~/gitest/blog/"
+        :base-extension "css\\|js\\|png\\|jpg\\|gif\\|pdf\\|mp3\\|ogg\\|swf"
+        :publishing-directory "~/gitest/sagebane.github.com/"
+        :recursive t
+        :publishing-function org-publish-attachment
+        )
+          ;;
+          ))
 
    #+END_SRC
 ** page
@@ -1646,6 +1648,15 @@ your project root:
      :END:")))
      (global-set-key (kbd "C-c c") 'org-capture)
    #+END_SRC   
+** nikola
+#+BEGIN_SRC emacs-lisp
+  (require 'blog-admin)
+
+  (setq blog-admin-backend-path "~/gitest/fymen.github.io/")
+  (setq blog-admin-backend-type 'nikola)
+  (setq blog-admin-backend-nikola-executable "nikola")
+  (setq blog-admin-backend-nikola-config-file "conf.py") ;; conf.py is default
+#+END_SRC
 * Projectile
   #+BEGIN_SRC emacs-lisp
     (require-package 'helm-projectile)
