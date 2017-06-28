@@ -1451,58 +1451,6 @@ your project root:
           ))
 
    #+END_SRC
-** page
-   #+BEGIN_SRC emacs-lisp
-     (require-package 'org-page)
-     (require 'org-page)
-
-     (setq op/repository-directory "~/gitest/fymen.github.io/")
-
-     (setq op/site-domain "http://fymen.github.io/")
-     (setq op/site-main-title "A peacefull heart")
-     (setq op/site-sub-title "Free is not free! ----don't know by whom")
-     (setq op/personal-github-link "https://github.com/fymen/")
-
-     (setq op/theme-root-directory "~/.emacs.d/")
-     (setq op/theme 'my-wy)
-
-     (setq op/personal-disqus-shortname "fymen") 
-     ;;(setq op/personal-duoshuo-shortname "fymen")
-     ;; (setq op/personal-google-analytics-id "UA-41088132-1")
-
-
-     (setq op/category-config-alist
-           '(("blog" ;; this is the default configuration
-              :show-meta t
-              :show-comment t
-              :uri-generator op/generate-uri
-              :uri-template "/blog/%y/%m/%d/%t/"
-              :sort-by :date     ;; how to sort the posts
-              :category-index t) ;; generate category index or not
-             ("wiki"
-              :show-meta t
-              :show-comment nil
-              :uri-generator op/generate-uri
-              :uri-template "/wiki/%t/"
-              :sort-by :mod-date
-              :category-index t)
-             ("index"
-              :show-meta nil
-              :show-comment nil
-              :uri-generator op/generate-uri
-              :uri-template "/"
-              :sort-by :date
-              :category-index nil)
-             ("about"
-              :show-meta nil
-              :show-comment nil
-              :uri-generator op/generate-uri
-              :uri-template "/about/"
-              :sort-by :date
-              :category-index nil)))
-
-
-   #+END_SRC
 ** Agenda
    #+BEGIN_SRC emacs-lisp
      ;;; To-do settings
@@ -1648,14 +1596,27 @@ your project root:
      :END:")))
      (global-set-key (kbd "C-c c") 'org-capture)
    #+END_SRC   
-** nikola
+** hexo
 #+BEGIN_SRC emacs-lisp
   (require 'blog-admin)
 
   (setq blog-admin-backend-path "~/gitest/fymen.github.io/")
-  (setq blog-admin-backend-type 'nikola)
-  (setq blog-admin-backend-nikola-executable "nikola")
-  (setq blog-admin-backend-nikola-config-file "conf.py") ;; conf.py is default
+  (setq blog-admin-backend-new-post-in-drafts t)             ;; 默认在drafts创建文章
+  (setq blog-admin-backend-new-post-with-same-name-dir nil)  ;; 默认不创建相应的目录，因为我目前没有发现这个目录的作用，先干掉 
+  (setq blog-admin-backend-hexo-config-file "_config.yml")   ;; hexo 配置文件
+
+  (add-hook 'blog-admin-backend-after-new-post-hook 'find-file)
+
+  (setq blog-admin-backend-hexo-template-org-post  ;; post模板
+			   "#+TITLE: %s
+  ,#+AUTHOR: 青青子襟
+  ,#+EMAIL: fengmao.qi@gmail.com
+  ,#+DATE: %s
+  ,#+LAYOUT: post
+  ,#+TAGS:
+  ,#+CATEGORIES:
+  ,#+DESCRIPTON:")
+
 #+END_SRC
 * Projectile
   #+BEGIN_SRC emacs-lisp
