@@ -1313,6 +1313,35 @@ your project root:
      (global-set-key (kbd "C-c b") 'org-iswitchb)
 
    #+END_SRC
+   #+BEGIN_SRC emacs-lisp
+     (defun my-org-screenshot ()
+       "Take a screenshot into a time stamped unique-named file in the
+     same directory as the org-buffer and insert a link to this file."
+       (interactive)
+       (org-display-inline-images)
+       (setq filename
+   	  (concat
+   	   (make-temp-name
+   	    (concat (file-name-nondirectory (file-name-sans-extension buffer-file-name))
+   		    "/"
+   		    (format-time-string "%Y%m%d_%H%M%S_")) ) ".png"))
+       (unless (file-exists-p (file-name-directory filename))
+         (make-directory (file-name-directory filename)))
+   					  ; take screenshot
+       (if (eq system-type 'darwin)
+   	(progn
+   	  (call-process-shell-command "screencapture" nil nil nil nil " -s " (concat
+   									      "\"" filename "\"" ))
+   	  (call-process-shell-command "convert" nil nil nil nil (concat "\"" filename "\" -resize  \"50%\"" ) (concat "\"" filename "\"" ))
+   	  ))
+       (if (eq system-type 'gnu/linux)
+   	(call-process "import" nil nil nil filename))
+   					  ; insert into file if correctly taken
+       (if (file-exists-p filename)
+   	(insert (concat "#+attr_html: :width 800\n" "[[file:" filename "]]")))
+       ;; (org-display-inline-images)
+       )
+   #+END_SRC
 ** babel
    #+BEGIN_SRC emacs-lisp
      (require-package 'gnuplot)
@@ -1648,14 +1677,28 @@ your project root:
      :END:")))
      (global-set-key (kbd "C-c c") 'org-capture)
    #+END_SRC   
-** nikola
+** hexo
 #+BEGIN_SRC emacs-lisp
   (require 'blog-admin)
 
-  (setq blog-admin-backend-path "~/gitest/fymen.github.io/")
-  (setq blog-admin-backend-type 'nikola)
-  (setq blog-admin-backend-nikola-executable "nikola")
-  (setq blog-admin-backend-nikola-config-file "conf.py") ;; conf.py is default
+  (setq blog-admin-backend-path "~/gitest/my-blog")
+  (setq blog-admin-backend-type 'hexo)
+  (setq blog-admin-backend-new-post-in-drafts t) ;; create new post in drafts by default
+  (setq blog-admin-backend-hexo-config-file "_config.yml") ;; default assumes _config.yml
+
+  (add-hook 'blog-admin-backend-after-new-post-hook 'find-file) ;; Open post after create new post
+  (setq blog-admin-backend-hexo-template-org-post  ;; post模板
+	"#+TITLE: %s
+  ,#+AUTHOR: 
+  ,#+EMAIL: fengmao.qi@gmail.com
+  ,#+DATE: %s
+  ,#+LAYOUT: post
+  ,#+TAGS:
+  ,#+CATEGORIES:
+  ,#+DESCRIPTON:
+  ")
+
+
 #+END_SRC
 * Projectile
   #+BEGIN_SRC emacs-lisp
