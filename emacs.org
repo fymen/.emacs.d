@@ -160,39 +160,21 @@
      (setq frame-title-format "%f %4 %b %Z %* %10 %I")
 
    #+END_SRC
-** COMMENT smart-modeline
+** smart-modeline
    #+BEGIN_SRC emacs-lisp
      (require-package 'smart-mode-line)
 
-     (sml/setup)
-     (custom-set-variables '(sml/active-background-color "dark blue"))
      (display-time-mode 1)
-   #+END_SRC
-
-   Hide some minor mode:
-   #+BEGIN_SRC emacs-lisp
-     (setq useless-minor-modes '(" AC"   ;; First must have a space. :-(
-                                 "GitGutter"
-                                 "Fly"
-                                 "ARev"
-                                 "Abbrev"
-                                 "Fill"
-                                 "ColorIds"
-                                 "FIC"
-                                 "Projectile"
-                                 "Helm"
-                                 "yas"
-                                 "Golden"
-                                 "ivy"
-                                 "hs+"
-                                 "Guide"
-                                 "WLR"
-                                 "PgLn"
-                                 "hl-s"
-                                 "SP/s"
-                                 "Anzu"
-                                 "FlyC.*"))
-     (setq sml/hidden-modes (mapconcat 'identity useless-minor-modes "\\| *"))
+     (require 'smart-mode-line)
+     (setq sml/no-confirm-load-theme t)
+     (setq powerline-arrow-shape 'curve)
+     (setq powerline-default-separator-dir '(right . left))
+     (setq sml/mode-width 0)
+     (setq sml/name-width 20)
+     (rich-minority-mode 1)
+     (setf rm-blacklist "")
+     (setq sml/theme 'dark)
+     (sml/setup)
    #+END_SRC
 ** dired
    #+BEGIN_SRC emacs-lisp
@@ -451,6 +433,10 @@
 
    #+END_SRC
 
+** encrypt
+#+BEGIN_SRC emacs-lisp
+  (require 'epa-file)
+#+END_SRC
 ** unfill paragraph
 #+BEGIN_SRC emacs-lisp
   ;;; Stefan Monnier <foo at acm.org>. It is the opposite of fill-paragraph    
@@ -1480,58 +1466,6 @@ your project root:
           ))
 
    #+END_SRC
-** page
-   #+BEGIN_SRC emacs-lisp
-     (require-package 'org-page)
-     (require 'org-page)
-
-     (setq op/repository-directory "~/gitest/fymen.github.io/")
-
-     (setq op/site-domain "http://fymen.github.io/")
-     (setq op/site-main-title "A peacefull heart")
-     (setq op/site-sub-title "Free is not free! ----don't know by whom")
-     (setq op/personal-github-link "https://github.com/fymen/")
-
-     (setq op/theme-root-directory "~/.emacs.d/")
-     (setq op/theme 'my-wy)
-
-     (setq op/personal-disqus-shortname "fymen") 
-     ;;(setq op/personal-duoshuo-shortname "fymen")
-     ;; (setq op/personal-google-analytics-id "UA-41088132-1")
-
-
-     (setq op/category-config-alist
-           '(("blog" ;; this is the default configuration
-              :show-meta t
-              :show-comment t
-              :uri-generator op/generate-uri
-              :uri-template "/blog/%y/%m/%d/%t/"
-              :sort-by :date     ;; how to sort the posts
-              :category-index t) ;; generate category index or not
-             ("wiki"
-              :show-meta t
-              :show-comment nil
-              :uri-generator op/generate-uri
-              :uri-template "/wiki/%t/"
-              :sort-by :mod-date
-              :category-index t)
-             ("index"
-              :show-meta nil
-              :show-comment nil
-              :uri-generator op/generate-uri
-              :uri-template "/"
-              :sort-by :date
-              :category-index nil)
-             ("about"
-              :show-meta nil
-              :show-comment nil
-              :uri-generator op/generate-uri
-              :uri-template "/about/"
-              :sort-by :date
-              :category-index nil)))
-
-
-   #+END_SRC
 ** Agenda
    #+BEGIN_SRC emacs-lisp
      ;;; To-do settings
@@ -1681,15 +1615,16 @@ your project root:
 #+BEGIN_SRC emacs-lisp
   (require 'blog-admin)
 
-  (setq blog-admin-backend-path "~/gitest/my-blog")
-  (setq blog-admin-backend-type 'hexo)
-  (setq blog-admin-backend-new-post-in-drafts t) ;; create new post in drafts by default
-  (setq blog-admin-backend-hexo-config-file "_config.yml") ;; default assumes _config.yml
+  (setq blog-admin-backend-path "~/gitest/fymen.github.io/")
+  (setq blog-admin-backend-new-post-in-drafts t)             ;; 默认在drafts创建文章
+  (setq blog-admin-backend-new-post-with-same-name-dir nil)  ;; 默认不创建相应的目录，因为我目前没有发现这个目录的作用，先干掉 
+  (setq blog-admin-backend-hexo-config-file "_config.yml")   ;; hexo 配置文件
 
-  (add-hook 'blog-admin-backend-after-new-post-hook 'find-file) ;; Open post after create new post
+  (add-hook 'blog-admin-backend-after-new-post-hook 'find-file)
+
   (setq blog-admin-backend-hexo-template-org-post  ;; post模板
-	"#+TITLE: %s
-  ,#+AUTHOR: 
+			   "#+TITLE: %s
+  ,#+AUTHOR: 青青子襟
   ,#+EMAIL: fengmao.qi@gmail.com
   ,#+DATE: %s
   ,#+LAYOUT: post
@@ -1697,7 +1632,6 @@ your project root:
   ,#+CATEGORIES:
   ,#+DESCRIPTON:
   ")
-
 
 #+END_SRC
 * Projectile
