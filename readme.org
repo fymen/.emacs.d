@@ -1,6 +1,12 @@
+A simple emacs, sawfish and tmux configuration.
+
+Tested both on ubuntu 14.04+  and Mac 10.12.5.
+
 * Requirement
 Emacs25+
+
 sawfish
+
 tmux
 * emacs25
 #+BEGIN_SRC sh
@@ -27,10 +33,13 @@ Use configuration in =.emacs.d/other-conf/=
 ln -s ~/.emacs.d/other-conf/sawfish/ ~/.sawfish/
 #+END_SRC
 
+Then logout and switch to sawfish in login session.
+
 Basic usage:
 | key                 | function                  |
 |---------------------+---------------------------|
-| Super-Enter         | open gnome-terminal       |
+| Middle mouse button | sawfish default menu      |
+|---------------------+---------------------------|
 | Super-e             | open emacs                |
 | Super-f             | open firefox              |
 | Super-1             | the first virtual desktop |
@@ -39,8 +48,8 @@ Basic usage:
 | Super-4             | fourth virtual desktop    |
 | Super-m             | Maxmize current window    |
 | Super-tab           | Cycle between windows     |
-|---------------------+---------------------------|
-| Middle mouse button | sawfish default menu      |
+
+
 
 * tmux
 #+BEGIN_SRC sh
