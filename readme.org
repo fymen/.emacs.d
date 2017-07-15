@@ -30,7 +30,7 @@ sudo apt-get install sawfish
 
 Use configuration in =.emacs.d/other-conf/=
 #+BEGIN_SRC sh
-ln -s ~/.emacs.d/other-conf/sawfish/ ~/.sawfish/
+ln -s ~/.emacs.d/other-conf/sawfish/ ~/.sawfish
 #+END_SRC
 
 Then logout and switch to sawfish in login session.
