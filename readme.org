@@ -5,7 +5,7 @@ Tested both on ubuntu 14.04+  and Mac 10.12.5.
 * Requirement
 Emacs25+
 
-sawfish
+sawfish or i3-wm
 
 tmux
 * emacs25
@@ -22,6 +22,19 @@ Basic usage:
 
 Please Refer to *emacs.org*
 
+* i3-wm(recommend)
+sawfish is obselet, i3-wm is better.
+#+BEGIN_SRC sh
+sudo apt-get install i3-wm
+#+END_SRC
+
+Use configuration in =.emacs.d/other-conf/=
+#+BEGIN_SRC sh
+ln -s ~/.emacs.d/other-conf/i3/ ~/.i3
+#+END_SRC
+
+You can find Cheatsheet here:
+https://i3wm.org/docs/refcard.html
 * sawfish 
 Install sawfish:
 #+BEGIN_SRC sh
@@ -48,8 +61,6 @@ Basic usage:
 | Super-4             | fourth virtual desktop    |
 | Super-m             | Maxmize current window    |
 | Super-tab           | Cycle between windows     |
-
-
 
 * tmux
 #+BEGIN_SRC sh

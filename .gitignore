@@ -16,3 +16,5 @@ projectile*
 /recentf
 /tramp
 /.mc-lists.el
+/#emacs.org#
+/ido.last
