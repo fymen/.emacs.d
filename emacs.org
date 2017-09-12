@@ -100,15 +100,15 @@
 ** fonts
    #+BEGIN_SRC emacs-lisp
      ;; Setting English Font
-     (if (eq system-type 'darwin) (set-face-attribute 'default nil :font "Droid Sans Mono 14") 
-       (set-face-attribute 'default nil :font "Droid Sans Mono 10"))
+;     (if (eq system-type 'darwin) (set-face-attribute 'default nil :font "Droid Sans Mono 14") 
+;       (set-face-attribute 'default nil :font "Droid Sans Mono 10"))
 
 
      ;; Chinese Font
-     (dolist (charset '(kana han symbol cjk-misc bopomofo))
-       (set-fontset-font (frame-parameter nil 'font)
-                         charset (font-spec :family "WenQuanYi Micro Hei Mono"
-                                            :size 16)))
+;     (dolist (charset '(kana han symbol cjk-misc bopomofo))
+;       (set-fontset-font (frame-parameter nil 'font)
+;                         charset (font-spec :family "WenQuanYi Micro Hei Mono"
+;                                            :size 16)))
    #+END_SRC
 *** Chinese relative
     #+BEGIN_SRC emacs-lisp
@@ -175,33 +175,6 @@
      (setf rm-blacklist "")
      (setq sml/theme 'dark)
      (sml/setup)
-
-   #+END_SRC
-
-   Hide some minor mode:
-   #+BEGIN_SRC emacs-lisp
-     ;; (setq useless-minor-modes '(" AC"   ;; First must have a space. :-(
-     ;;                             "GitGutter"
-     ;;                             "Fly"
-     ;;                             "ARev"
-     ;;                             "Abbrev"
-     ;;                             "Fill"
-     ;;                             "ColorIds"
-     ;;                             "FIC"
-     ;;                             "Projectile"
-     ;;                             "Helm"
-     ;;                             "yas"
-     ;;                             "Golden"
-     ;;                             "ivy"
-     ;;                             "hs+"
-     ;;                             "Guide"
-     ;;                             "WLR"
-     ;;                             "PgLn"
-     ;;                             "hl-s"
-     ;;                             "SP/s"
-     ;;                             "Anzu"
-     ;;                             "FlyC.*"))
-     ;; (setq sml/hidden-modes (mapconcat 'identity useless-minor-modes "\\| *"))
    #+END_SRC
 ** dired
    #+BEGIN_SRC emacs-lisp
@@ -463,6 +436,10 @@
 ** encrypt
 #+BEGIN_SRC emacs-lisp
   (require 'epa-file)
+
+  (setq epa-file-select-keys 0)
+
+  ;; for RSA please include: -*- epa-file-encrypt-to: ("your@email.address") -*-
 #+END_SRC
 ** unfill paragraph
 #+BEGIN_SRC emacs-lisp
@@ -1090,24 +1067,6 @@ your project root:
       	   ;; (setq dtrt-indent-verbosity 0)
       	   (dtrt-indent-mode t)))
    #+END_SRC
-** COMMENT aggressive-indent
- #+BEGIN_SRC emacs-lisp 
-   (require-package 'aggressive-indent)
-   (use-package aggressive-indent
-     :ensure t
-     :diminish aggressive-indent-mode
-     :init
-     ;; (global-aggressive-indent-mode 1)
-
-     ;; (add-to-list
-     ;;  'aggressive-indent-dont-indent-if
-     ;;  '(and (derived-mode-p 'c-mode)
-     ;;        (null (string-match "\\([;{}]\\|\\b\\(if\\|for\\|while\\)\\b\\)"
-     ;;                            (thing-at-point 'line)))))
-
-     (add-to-list 'aggressive-indent-excluded-modes 'html-mode)
-     (unbind-key "C-c C-q" aggressive-indent-mode-map))
- #+END_SRC
 ** flycheck
    #+BEGIN_SRC emacs-lisp :tangle no
      (require-package 'flycheck)
@@ -1329,6 +1288,35 @@ your project root:
      (global-set-key (kbd "C-c a") 'org-agenda)
      (global-set-key (kbd "C-c b") 'org-iswitchb)
 
+   #+END_SRC
+   #+BEGIN_SRC emacs-lisp
+     (defun my-org-screenshot ()
+       "Take a screenshot into a time stamped unique-named file in the
+     same directory as the org-buffer and insert a link to this file."
+       (interactive)
+       (org-display-inline-images)
+       (setq filename
+   	  (concat
+   	   (make-temp-name
+   	    (concat (file-name-nondirectory (file-name-sans-extension buffer-file-name))
+   		    "/"
+   		    (format-time-string "%Y%m%d_%H%M%S_")) ) ".png"))
+       (unless (file-exists-p (file-name-directory filename))
+         (make-directory (file-name-directory filename)))
+   					  ; take screenshot
+       (if (eq system-type 'darwin)
+   	(progn
+   	  (call-process-shell-command "screencapture" nil nil nil nil " -s " (concat
+   									      "\"" filename "\"" ))
+   	  (call-process-shell-command "convert" nil nil nil nil (concat "\"" filename "\" -resize  \"50%\"" ) (concat "\"" filename "\"" ))
+   	  ))
+       (if (eq system-type 'gnu/linux)
+   	(call-process "import" nil nil nil filename))
+   					  ; insert into file if correctly taken
+       (if (file-exists-p filename)
+   	(insert (concat "#+attr_html: :width 800\n" "[[file:" filename "]]")))
+       ;; (org-display-inline-images)
+       )
    #+END_SRC
 ** babel
    #+BEGIN_SRC emacs-lisp
@@ -1632,7 +1620,8 @@ your project root:
   ,#+LAYOUT: post
   ,#+TAGS:
   ,#+CATEGORIES:
-  ,#+DESCRIPTON:")
+  ,#+DESCRIPTON:
+  ")
 
 #+END_SRC
 * Projectile
@@ -1789,15 +1778,10 @@ your project root:
   #+END_SRC
 
 * web development
-
-** COMMENT init http server
-#+BEGIN_SRC emacs-lisp
-  (require-package 'simple-httpd)
-  (setq httpd-root "/home/oscar/gitest/webtest/")
-#+END_SRC
 ** web-mode
 #+BEGIN_SRC emacs-lisp
 (require-package 'web-mode)
+(require-package 'js2-mode)
 
 (require 'web-mode)
 (add-to-list 'auto-mode-alist '("\\.phtml\\'" . web-mode))
@@ -1808,7 +1792,7 @@ your project root:
 (add-to-list 'auto-mode-alist '("\\.mustache\\'" . web-mode))
 (add-to-list 'auto-mode-alist '("\\.djhtml\\'" . web-mode))
 #+END_SRC
-** skewer-mode
+** COMMENT skewer-mode
 #+BEGIN_SRC emacs-lisp
 (require-package 'skewer-mode)
 (require 'skewer-mode)

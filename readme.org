@@ -1,0 +1,66 @@
+A simple emacs, sawfish and tmux configuration.
+
+Tested both on ubuntu 14.04+  and Mac 10.12.5.
+
+* Requirement
+Emacs25+
+
+sawfish
+
+tmux
+* emacs25
+#+BEGIN_SRC sh
+  cd ~/
+  git clone https://github.com/fymen/.emacs.d.git
+#+END_SRC
+Then execute emacs, it will update all the dependent packages automaticly
+
+Basic usage:
+| key   | function |
+|-------+----------|
+| C-x g | magit    |
+
+Please Refer to *emacs.org*
+
+* sawfish 
+Install sawfish:
+#+BEGIN_SRC sh
+sudo apt-get install sawfish
+#+END_SRC
+
+Use configuration in =.emacs.d/other-conf/=
+#+BEGIN_SRC sh
+ln -s ~/.emacs.d/other-conf/sawfish/ ~/.sawfish
+#+END_SRC
+
+Then logout and switch to sawfish in login session.
+
+Basic usage:
+| key                 | function                  |
+|---------------------+---------------------------|
+| Middle mouse button | sawfish default menu      |
+|---------------------+---------------------------|
+| Super-e             | open emacs                |
+| Super-f             | open firefox              |
+| Super-1             | the first virtual desktop |
+| Super-2             | second virtual desktop    |
+| Super-3             | third virtual desktop     |
+| Super-4             | fourth virtual desktop    |
+| Super-m             | Maxmize current window    |
+| Super-tab           | Cycle between windows     |
+
+
+
+* tmux
+#+BEGIN_SRC sh
+sudo apt-get install tmux
+ln -s ~/.emacs.d/other-conf/tmux.conf ~/.tmux.conf
+#+END_SRC
+
+Basic usage:
+| key   | function               |
+|-------+------------------------|
+| C-l c | Create a new tab       |
+| C-l n | Switch to next tab     |
+| C-l p | Switch to previous tab |
+| C-l [ | View terminal history  |

@@ -1,6 +1,6 @@
 (require 'package)
 (add-to-list 'package-archives
-	     ;; '("marmalade" . "http://marmalade-repo.org/packages/") ;
+;; '("marmalade" . "http://marmalade-repo.org/packages/") ;
 	     '("melpa" . "https://melpa.org/packages/"))
 ;;        '("melpa-stable" . "https://stable.melpa.org/packages/") t)
 
@@ -8,7 +8,8 @@
 
 (org-babel-load-file
  (expand-file-name "emacs.org"
-		   user-emacs-directory))
+ 		   user-emacs-directory))
+
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
