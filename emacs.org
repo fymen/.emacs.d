@@ -1287,6 +1287,10 @@ your project root:
           (define-key helm-gtags-mode-map (kbd "M-,") 'helm-gtags-pop-stack)))
    #+END_SRC
 
+** helm-pass
+#+BEGIN_SRC emacs-lisp
+  (require-package 'helm-pass)
+#+END_SRC
 * Org-mode
 ** basic 
    #+BEGIN_SRC emacs-lisp
@@ -1611,7 +1615,7 @@ your project root:
    #+END_SRC   
 ** hexo
 #+BEGIN_SRC emacs-lisp
-  (require 'blog-admin)
+  (require-package 'blog-admin)
 
   (setq blog-admin-backend-path "~/gitest/fymen.github.io/")
   (setq blog-admin-backend-new-post-in-drafts t)             ;; 默认在drafts创建文章
@@ -1786,9 +1790,9 @@ your project root:
 
 * web development
 
-** init http server
+** COMMENT init http server
 #+BEGIN_SRC emacs-lisp
-  (require 'simple-httpd)
+  (require-package 'simple-httpd)
   (setq httpd-root "/home/oscar/gitest/webtest/")
 #+END_SRC
 ** web-mode
@@ -1835,254 +1839,3 @@ your project root:
       (interactive)
       (circe "Freenode"))
   #+END_SRC
-
-* COMMENT Not use currently
-** fill column indicator
-  #+BEGIN_SRC emacs-lisp :tangle no
-    ;; Fill column indicator
-    (require 'fill-column-indicator)
-    (setq fci-rule-color "#111122")
-  #+END_SRC
-
-** auto ident after yank
-   #+BEGIN_SRC emacs-lisp :tangle no
-     (dolist (command '(yank yank-pop))
-     (eval
-      `(defadvice, command (after indent-region activate)
-         (and (not current-prefix-arg)
-              (member major-mode
-                      '(emacs-lisp-mode lisp-mode clojure-mode scheme-mode
-                                        haskell-mode ruby-mode rspec-mode
-                                        python-mode c-mode c++-mode objc-mode
-                                        latex-mode js-mode plain-tex-mode))
-              (let ((mark-even-if-inactive transient-mark-mode))
-                (indent-region (region-beginning) (region-end) nil))))))
-
-   #+END_SRC
-** smarter comment
-   #+BEGIN_SRC emacs-lisp :tangle no
-     (defun qiang-comment-dwim-line (&optional arg)
-       "Replacement for the comment-dwim command.
-     If no region is selected and current line is not blank and
-     we are not at the end of the line, then comment current line.
-     Replaces default behaviour of comment-dwim,
-     when it inserts comment at the end of the line. "
-
-       (interactive "*P")
-       (comment-normalize-vars)
-
-       (if (and (not (region-active-p)) (not (looking-at "[ \t]*$")))
-           (comment-or-uncomment-region (line-beginning-position) (line-end-position))
-         (comment-dwim arg)))
-
-
-     (global-set-key "\M-;" 'qiang-comment-dwim-line) 
-   #+END_SRC
-
-** Automatic Saving
-   #+BEGIN_SRC emacs-lisp :tangle no
-     (defun auto-save-command ()
-       (let* ((basic (and buffer-file-name
-                          (buffer-modified-p (current-buffer))
-                          (file-writable-p buffer-file-name)
-                          (not org-src-mode)))
-              (proj (and (projectile-project-p)
-                         basic)))
-         (if proj 
-             (projectile-save-project-buffers)
-           (when basic
-             (save-buffer)))))
-
-     (defmacro advise-commands (advice-name commands class &rest body)
-       "Apply advice named ADVICE-NAME to multiple COMMANDS.
-     The body of the advice is in BODY."
-       `(progn
-          ,@(mapcar (lambda (command)
-                      `(defadvice ,command (,class ,(intern (concat (symbol-name command) "-" advice-name)) activate)
-                         ,@body))
-                    commands)))
-
-     (advise-commands "auto-save"
-                      (ido-switch-buffer ace-window magit-status windmove-up windmove-down windmove-left windmove-right mode-line-other-buffer)
-                      before
-                      (auto-save-command))
-
-     (add-hook 'mouse-leave-buffer-hook 'auto-save-command)
-     (add-hook 'focus-out-hook 'auto-save-command)
-   #+END_SRC
-
-** auto complete mode
-    #+BEGIN_SRC emacs-lisp
-      ;; auto complete mode
-      ;; should be loaded after yasnippet so that they can work together
-      ;(require 'auto-complete-clang)
-      ;(define-key c-mode-map (kbd "C-S-<return>") 'ac-complete-clang)
-
-      (require 'auto-complete-config)
-      (add-to-list 'ac-dictionary-directories "~/.emacs.d/ac-dict")
-      (ac-config-default)
-      ;; set the trigger key so that it can work together with yasnippet on tab key,
-      ;; if the word exists in yasnippet, pressing tab will cause yasnippet to
-      ;; activate, otherwise, auto-complete will
-      (ac-set-trigger-key "TAB")
-      (ac-set-trigger-key "<tab>")
-    #+END_SRC
-** proxy
-   #+BEGIN_SRC emacs-lisp
-     (setq url-proxy-services '(("no_proxy" . "work\\.com")
-				("https" . "127.0.0.1:1080")))
-   #+END_SRC   
-
-** cscope
-   #+BEGIN_SRC emacs-lisp
-      (require 'xcscope)
-      ;(cscope-setup)
-     (add-hook 'c-mode-hook 'cscope-minor-mode)
-   #+END_SRC
-
-** ido-mode
-   #+BEGIN_SRC emacs-lisp
-     ;; Interactively Do Things
-     (require 'ido)
-     (ido-mode t)
-     (ido-everywhere 1)
-
-     (setq ido-enable-prefix nil
-           ido-enable-flex-matching t
-           ido-case-fold nil
-           ido-auto-merge-work-directories-length -1
-           ido-create-new-buffer 'always
-           ido-use-filename-at-point nil
-           ido-max-prospects 10)
-
-     ;; Use ido everywhere
-     (require 'ido-ubiquitous)
-     (ido-ubiquitous-mode 1)
-
-     (require 'flx-ido)
-     (flx-ido-mode 1)
-     ;; disable ido faces to see flx highlights.
-     (setq ido-use-faces nil)
-
-   #+END_SRC   
-** smart M-x
-   #+BEGIN_SRC emacs-lisp
-     ;; Smart M-x is smart
-     (require 'smex)
-     (smex-initialize)
-
-     ;; Smart M-x
-     (global-set-key (kbd "M-x") 'smex)
-     (global-set-key (kbd "M-X") 'smex-major-mode-commands)
-     (global-set-key (kbd "C-c C-c M-x") 'execute-extended-command)
-
-   #+END_SRC
-
-
-** diminish minor-mode 
-   #+BEGIN_SRC emacs-lisp 
-     (require 'diminish)
-     (diminish 'abbrev-mode "Abv")
- ;    (diminish 'hs-org/minor-mode)
-
-     (eval-after-load "yasnippet" '(diminish 'yas-minor-mode))
-     (eval-after-load "eldoc" '(diminish 'eldoc-mode))
-     (eval-after-load "paredit" '(diminish 'paredit-mode))
-     (eval-after-load "tagedit" '(diminish 'tagedit-mode))
-     (eval-after-load "elisp-slime-nav" '(diminish 'elisp-slime-nav-mode))
-     (eval-after-load "skewer-mode" '(diminish 'skewer-mode))
-     (eval-after-load "skewer-css" '(diminish 'skewer-css-mode))
-     (eval-after-load "skewer-html" '(diminish 'skewer-html-mode))
-     (eval-after-load "smartparens" '(diminish 'smartparens-mode))
-     (eval-after-load "guide-key" '(diminish 'guide-key-mode))
-     (eval-after-load "whitespace-cleanup-mode" '(diminish 'whitespace-cleanup-mode))
-     (eval-after-load "subword" '(diminish 'subword-mode))
-   #+END_SRC
-
-
-master
-mastermastermastermastermaster
-** Ivy and Swiper
-   #+BEGIN_SRC emacs-lisp
-     (use-package swiper
-     :ensure t
-     :diminish ivy-mode
-     :bind (("C-s" . swiper)
-            ("C-r" . swiper)
-            ("C-c C-r" . ivy-resume))
-     :init
-     (ivy-mode 1)
-
-     (setq ivy-display-style 'fancy
-           ivy-use-virtual-buffers t))
-
-   #+END_SRC
-** launch map
-   #+BEGIN_SRC emacs-lisp 
-     (define-prefix-command 'launcher-map)
-     ;; `C-x l' is `count-lines-page' by default. If you
-     ;; use that, you can try s-l or <C-return>.
-     (global-set-key (kbd "C-l") 'launcher-map)
-     (define-key launcher-map "p" #'paradox-list-packages)
-     (define-key launcher-map "c" #'helm-calcul-expression)
-     (define-key launcher-map "d" #'ediff-buffers)
-     (define-key launcher-map "f" #'find-dired)
-     (define-key launcher-map "g" #'lgrep)
-     (define-key launcher-map "G" #'rgrep)
-     (define-key launcher-map "h" #'man) ; Help
-     (define-key launcher-map "i" #'package-install-from-buffer)
-     (define-key launcher-map "n" #'nethack)
-     (define-key launcher-map "s" #'shell)
-     (define-key launcher-map "e" #'eval-buffer)
-   #+END_SRC
-
-** wubi input method
-  #+BEGIN_SRC emacs-lisp
-    (add-to-list 'load-path "~/.emacs.d/lisp/emacs-eim/")
-    (autoload 'eim-use-package "eim" "Another emacs input method")
-    ;; Tooltip 暂时还不好用
-    ;; (setq eim-use-tooltip nil)
-
-    (register-input-method
-     "eim-wb" "euc-cn" 'eim-use-package
-     "五笔" "汉字五笔输入法" "wb.txt")
-  #+END_SRC
-** fly spell
-  #+BEGIN_SRC emacs-lisp
-    ;;----------------------------------------------------------------------------
-    ;; Add spell-checking in comments for all programming language modes
-    ;;----------------------------------------------------------------------------
-    (if (fboundp 'prog-mode)
-        (add-hook 'prog-mode-hook 'flyspell-prog-mode)
-      (dolist (hook '(lisp-mode-hook
-                      emacs-lisp-mode-hook
-                      scheme-mode-hook
-                      clojure-mode-hook
-                      ruby-mode-hook
-                      yaml-mode
-                      python-mode-hook
-                      shell-mode-hook
-                      php-mode-hook
-                      css-mode-hook
-                      haskell-mode-hook
-                      caml-mode-hook
-                      nxml-mode-hook
-                      crontab-mode-hook
-                      perl-mode-hook
-                      tcl-mode-hook
-                      javascript-mode-hook))
-        (add-hook hook 'flyspell-prog-mode)))
-
-  #+END_SRC
-
-** swoop
-   #+BEGIN_SRC emacs-lisp
-     (require-package 'helm-swoop)
-
-     ;; Change keybinds to whatever you like :)
-     (global-set-key (kbd "M-i") 'helm-swoop)
-     (global-set-key (kbd "M-I") 'helm-swoop-back-to-last-point)
-     (global-set-key (kbd "C-c M-i") 'helm-multi-swoop)
-     (global-set-key (kbd "C-x M-i") 'helm-multi-swoop-all)
-
-   #+END_SRC
