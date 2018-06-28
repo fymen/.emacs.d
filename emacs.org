@@ -953,19 +953,6 @@
 
     #+END_SRC
 
-** Doxygen
-To install doxymacs:
-#+BEGIN_SRC sh
-sudo apt-get install doxymacs
-#+END_SRC
-
-#+BEGIN_SRC emacs-lisp
-  (add-hook 'c-mode-common-hook
-    (lambda ()
-      (require 'doxymacs)
-      (doxymacs-mode t)
-      (doxymacs-font-lock)))
-#+END_SRC
 ** Company Mode
 #+BEGIN_SRC emacs-lisp
   (require-package 'company)
