@@ -1683,50 +1683,6 @@ your project root:
                  (kbd "M-q") 'eshell-push-command)))
   #+END_SRC
 
-* Elfeed
-  Simple cheatsheet:
-  | key | function       |
-  |-----+----------------|
-  | =r= | mark as read   |
-  | =u= | mark as unread |
-
-  #+BEGIN_SRC emacs-lisp
-    (require-package 'elfeed)
-    (maybe-require-package 'elfeed-goodies)
-
-    (global-set-key (kbd "C-x w") 'elfeed)
-
-    (setf url-queue-timeout 60)
-    (require 'elfeed)
-    (require 'elfeed-goodies)
-
-    (elfeed-goodies/setup)
-    (setq elfeed-feeds
-  	'("http://www.howardism.org/index.xml"     ;; My Blog
-            "http://endlessparentheses.com/atom.xml" ;; Emacs Blog
-            "http://www.masteringemacs.org/feed/"    ;; Emacs Blog
-            ;; "http://emacs-fu.blogspot.com/feeds/posts/default"
-            "http://emacsredux.com/atom.xml"         ;; Emacs Blog
-            "http://www.lunaryorn.com/feed.atom"     ;; Emacs Blog
-            "http://swannodette.github.com/atom.xml" ;; David Nolen, duh.
-            "http://batsov.com/atom.xml"             ;; Bozhidar Batsov
-            "http://twogreenleaves.org/index.php?feed=rss"
-
-            "https://medium.com/feed/@hlship/"       ;; Programming
-            "http://gigasquidsoftware.com/atom.xml"  ;; Clojure
-            "http://blog.fogus.me/feed/"      ;; Programming
-            "http://dlessparentheses.com/atom.xml" ;emacs
-            "http://feeds.feedburner.com/ruanyifeng"
-            "http://feeds.feedburner.com/yizhe" 
-            "http://feed.mifengtd.cn/" 
-            "http://feed.feedsky.com/tektalk" 
-            "http://www.geekonomics10000.com/feed " 
-            "http://feeds2.feedburner.com/xumathena" 
-            "http://coolshell.cn/feed " 
-            "http://blog.binchen.org/rss.xml"
-            "http://www.rkn.io/feed.xml"))    ;; Programming
-  #+END_SRC
-
 * Stardict
   #+BEGIN_SRC emacs-lisp
     (require-package 'sdcv)
