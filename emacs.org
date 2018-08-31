@@ -1151,6 +1151,15 @@ your project root:
       ;; (add-hook 'c-mode-hook 'hs-org/minor-mode)
     #+END_SRC
 
+** markdown/json-mode
+    #+BEGIN_SRC emacs-lisp
+      (require-package 'markdown-mode)
+      (require 'markdown-mode)
+
+      (require-package 'json-mode)
+      (require 'json-mode)
+    #+END_SRC
+
 * Helm
 ** helm settings
    #+BEGIN_SRC emacs-lisp
@@ -1738,6 +1747,7 @@ your project root:
 (add-to-list 'auto-mode-alist '("\\.erb\\'" . web-mode))
 (add-to-list 'auto-mode-alist '("\\.mustache\\'" . web-mode))
 (add-to-list 'auto-mode-alist '("\\.djhtml\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.ts" . web-mode))
 #+END_SRC
 ** COMMENT skewer-mode
 #+BEGIN_SRC emacs-lisp
