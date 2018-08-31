@@ -1194,6 +1194,10 @@ your project root:
      (global-set-key (kbd "C-x C-f") 'helm-find-files)
      (global-set-key (kbd "M-i") 'helm-occur)
 
+     (global-set-key (kbd "C-c p f") 'helm-projectile-find-file-dwim)
+     (global-set-key (kbd "C-c p p") 'helm-projectile-switch-project)
+
+
      (when (executable-find "ack-grep")
        (setq helm-grep-default-command "ack-grep -Hn --no-group --no-color %e %p %f"
              helm-grep-default-recurse-command "ack-grep -H --no-group --no-color %e %p %f"))
