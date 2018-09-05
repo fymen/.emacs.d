@@ -1159,6 +1159,12 @@ your project root:
       (require-package 'json-mode)
       (require 'json-mode)
     #+END_SRC
+** xcscope
+    #+BEGIN_SRC emacs-lisp
+      (require-package 'xcscope)
+      (require 'xcscope)
+      (cscope-setup)
+    #+END_SRC
 
 * Helm
 ** helm settings
