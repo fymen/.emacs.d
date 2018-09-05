@@ -35,32 +35,6 @@ ln -s ~/.emacs.d/other-conf/i3/ ~/.i3
 
 You can find Cheatsheet here:
 https://i3wm.org/docs/refcard.html
-* sawfish 
-Install sawfish:
-#+BEGIN_SRC sh
-sudo apt-get install sawfish
-#+END_SRC
-
-Use configuration in =.emacs.d/other-conf/=
-#+BEGIN_SRC sh
-ln -s ~/.emacs.d/other-conf/sawfish/ ~/.sawfish
-#+END_SRC
-
-Then logout and switch to sawfish in login session.
-
-Basic usage:
-| key                 | function                  |
-|---------------------+---------------------------|
-| Middle mouse button | sawfish default menu      |
-|---------------------+---------------------------|
-| Super-e             | open emacs                |
-| Super-f             | open firefox              |
-| Super-1             | the first virtual desktop |
-| Super-2             | second virtual desktop    |
-| Super-3             | third virtual desktop     |
-| Super-4             | fourth virtual desktop    |
-| Super-m             | Maxmize current window    |
-| Super-tab           | Cycle between windows     |
 
 * tmux
 #+BEGIN_SRC sh

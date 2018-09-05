@@ -324,7 +324,6 @@
    #+BEGIN_SRC emacs-lisp
      (require-package 'avy)
      (global-set-key (kbd "C-;") 'avy-goto-char-2)
-     (global-set-key (kbd "M-g f") 'avy-goto-line)
      (global-set-key (kbd "C-'") 'avy-isearch)
      (global-set-key (kbd "M-g f") 'avy-goto-line)
    #+END_SRC
