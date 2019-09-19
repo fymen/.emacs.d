@@ -15,17 +15,14 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(custom-safe-themes
-   (quote
-    ("3c83b3676d796422704082049fc38b6966bcad960f896669dfc21a7a37a748fa" default)))
  '(package-selected-packages
    (quote
-    (blog-admin yasnippet whole-line-or-region wgrep-ag web-mode wc-mode use-package smartscan smartparens smart-mode-line skewer-mode sdcv rainbow-mode rainbow-delimiters paradox page-break-lines org-page org-bullets olivetti nyan-mode multiple-cursors magit keyfreq ibuffer-vc hungry-delete highlight-symbol hideshow-org helm-projectile helm-gtags helm-fuzzier helm-flx hc-zenburn-theme golden-ratio god-mode gnuplot git-timemachine expand-region esh-buf-stack elfeed-goodies dtrt-indent dired-filetype-face company-flx company-c-headers comment-dwim-2 color-identifiers-mode circe cd-compile blog-minimal beacon avy arch-packer anzu aggressive-indent)))
- '(paradox-github-token t)
- '(sml/active-background-color "dark blue"))
+    (leetcode circe skewer-mode js2-mode web-mode sdcv elfeed-goodies elfeed esh-buf-stack helm-projectile blog-admin yasnippet whole-line-or-region wgrep-ag wc-mode use-package smartscan smartparens smart-mode-line rainbow-mode rainbow-delimiters paradox page-break-lines org-bullets org olivetti nyan-mode multiple-cursors magit keyfreq ibuffer-vc hungry-delete highlight-symbol hideshow-org helm-pass helm-gtags helm-fuzzier helm-flx hc-zenburn-theme golden-ratio god-mode gnuplot expand-region dtrt-indent dired-filetype-face company-flx company-c-headers comment-dwim-2 color-identifiers-mode cd-compile beacon avy anzu)))
+ '(paradox-github-token t))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  )
+(put 'set-goal-column 'disabled nil)

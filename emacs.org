@@ -54,7 +54,7 @@
 * Personal information
   #+BEGIN_SRC emacs-lisp
     (setq user-full-name "Oscar Qi")
-    (setq user-mail-address "oscar.qi@honeywell.com")
+    (setq user-mail-address "oscar.qi@gmail.com")
   #+END_SRC
 * Costume
 ** emacs UI
@@ -100,15 +100,15 @@
 ** fonts
    #+BEGIN_SRC emacs-lisp
      ;; Setting English Font
-;     (if (eq system-type 'darwin) (set-face-attribute 'default nil :font "Droid Sans Mono 14") 
-;       (set-face-attribute 'default nil :font "Droid Sans Mono 10"))
+     (if (eq system-type 'darwin) (set-face-attribute 'default nil :font "Droid Sans Mono 20") 
+       (set-face-attribute 'default nil :height 120))
 
 
      ;; Chinese Font
-;     (dolist (charset '(kana han symbol cjk-misc bopomofo))
-;       (set-fontset-font (frame-parameter nil 'font)
-;                         charset (font-spec :family "WenQuanYi Micro Hei Mono"
-;                                            :size 16)))
+     ;(dolist (charset '(kana han symbol cjk-misc bopomofo))
+     ; (set-fontset-font (frame-parameter nil 'font)
+     ;                   charset (font-spec :family "WenQuanYi Micro Hei Mono"
+     ;                                      :size 16)))
    #+END_SRC
 *** Chinese relative
     #+BEGIN_SRC emacs-lisp
@@ -171,7 +171,6 @@
      (setq powerline-default-separator-dir '(right . left))
      (setq sml/mode-width 0)
      (setq sml/name-width 20)
-     (rich-minority-mode 1)
      (setf rm-blacklist "")
      (setq sml/theme 'dark)
      (sml/setup)
@@ -696,38 +695,38 @@
    #+END_SRC
 ** Golden Ratio
    #+BEGIN_SRC emacs-lisp
-     (require-package 'golden-ratio)
-     ;; (setq 'golden-ratio-inhibit-functions 'pl/helm-alive-p)
-     ;; (defun pl/helm-alive-p ()
-     ;;   (if (boundp 'helm-alive-p)
-     ;;       (symbol-value 'helm-alive-p)))
+         (require-package 'golden-ratio)
+         ;; (setq 'golden-ratio-inhibit-functions 'pl/helm-alive-p)
+         ;; (defun pl/helm-alive-p ()
+         ;;   (if (boundp 'helm-alive-p)
+         ;;       (symbol-value 'helm-alive-p)))
 
-     ;; do not enable golden-raio in thses modes
-     (setq golden-ratio-exclude-modes '("ediff-mode"
-                                        "helm-mode"
-                                        "dired-mode"
-                                        "gud-mode"
-                                        "gdb-locals-mode"
-                                        "gdb-registers-mode"
-                                        "gdb-breakpoints-mode"
-                                        "gdb-threads-mode"
-                                        "gdb-frames-mode"
-                                        "gdb-inferior-io-mode"
-                                        "gud-mode"
-                                        "gdb-inferior-io-mode"
-                                        "gdb-disassembly-mode"
-                                        "gdb-memory-mode"
-                                        "magit-log-mode"
-                                        "magit-reflog-mode"
-                                        "magit-status-mode"
-                                        "IELM"
-                                        ;; "eshell-mode"
-                                        "fundamental-mode"
-                                        "dired-mode"))
+         ;; do not enable golden-raio in thses modes
+         (setq golden-ratio-exclude-modes '("ediff-mode"
+                                            "helm-mode"
+                                            "dired-mode"
+                                            "gud-mode"
+                                            "gdb-locals-mode"
+                                            "gdb-registers-mode"
+                                            "gdb-breakpoints-mode"
+                                            "gdb-threads-mode"
+                                            "gdb-frames-mode"
+                                            "gdb-inferior-io-mode"
+                                            "gud-mode"
+                                            "gdb-inferior-io-mode"
+                                            "gdb-disassembly-mode"
+                                            "gdb-memory-mode"
+                                            "magit-log-mode"
+                                            "magit-reflog-mode"
+                                            "magit-status-mode"
+                                            "IELM"
+                                            ;; "eshell-mode"
+                                            "fundamental-mode"
+                                            "dired-mode"))
 
-     (golden-ratio-mode 1)
-     (setq golden-ratio-auto-scale t)
-     (add-to-list 'golden-ratio-extra-commands 'ace-window)
+         (golden-ratio-mode 1)
+         ;(setq golden-ratio-auto-scale t)
+         (add-to-list 'golden-ratio-extra-commands 'ace-window)
    #+END_SRC
 
 ** multiple cursors
@@ -1323,7 +1322,7 @@ your project root:
        ;; (org-display-inline-images)
        )
    #+END_SRC
-** babel
+** COMMENT babel
    #+BEGIN_SRC emacs-lisp
      (require-package 'gnuplot)
      ;; (require-package 'puml-mode)

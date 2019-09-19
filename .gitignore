@@ -18,3 +18,4 @@ projectile*
 /.mc-lists.el
 /#emacs.org#
 /ido.last
+/transient/history.el
