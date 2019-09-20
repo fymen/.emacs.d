@@ -101,14 +101,14 @@
    #+BEGIN_SRC emacs-lisp
      ;; Setting English Font
      (if (eq system-type 'darwin) (set-face-attribute 'default nil :font "Droid Sans Mono 20") 
-       (set-face-attribute 'default nil :height 120))
+       (set-face-attribute 'default nil :height 100))
 
 
      ;; Chinese Font
-     ;(dolist (charset '(kana han symbol cjk-misc bopomofo))
-     ; (set-fontset-font (frame-parameter nil 'font)
-     ;                   charset (font-spec :family "WenQuanYi Micro Hei Mono"
-     ;                                      :size 16)))
+     (dolist (charset '(kana han symbol cjk-misc bopomofo))
+     (set-fontset-font (frame-parameter nil 'font)
+                       charset (font-spec :family "WenQuanYi Micro Hei Mono"
+                                          :size 16)))
    #+END_SRC
 *** Chinese relative
     #+BEGIN_SRC emacs-lisp
@@ -1605,29 +1605,13 @@ your project root:
      :END:")))
      (global-set-key (kbd "C-c c") 'org-capture)
    #+END_SRC   
-** hexo
-#+BEGIN_SRC emacs-lisp
-  (require-package 'blog-admin)
+** ox-hugo
+#+begin_src elisp
+  (require-package 'ox-hugo)
 
-  (setq blog-admin-backend-path "~/gitest/fymen.github.io/")
-  (setq blog-admin-backend-new-post-in-drafts t)             ;; 默认在drafts创建文章
-  (setq blog-admin-backend-new-post-with-same-name-dir nil)  ;; 默认不创建相应的目录，因为我目前没有发现这个目录的作用，先干掉 
-  (setq blog-admin-backend-hexo-config-file "_config.yml")   ;; hexo 配置文件
-
-  (add-hook 'blog-admin-backend-after-new-post-hook 'find-file)
-
-  (setq blog-admin-backend-hexo-template-org-post  ;; post模板
-			   "#+TITLE: %s
-  ,#+AUTHOR: 青青子襟
-  ,#+EMAIL: fengmao.qi@gmail.com
-  ,#+DATE: %s
-  ,#+LAYOUT: post
-  ,#+TAGS:
-  ,#+CATEGORIES:
-  ,#+DESCRIPTON:
-  ")
-
-#+END_SRC
+  (with-eval-after-load 'ox
+    (require 'ox-hugo))
+#+end_src
 * Projectile
   #+BEGIN_SRC emacs-lisp
     (require-package 'helm-projectile)
