@@ -5,10 +5,10 @@ Tested both on ubuntu 14.04+  and Mac 10.12.5.
 * Requirement
 Emacs25+
 
-sawfish or i3-wm
+i3-wm
 
 tmux
-* emacs25
+* emacs25 or 26
 #+BEGIN_SRC sh
   cd ~/
   git clone https://github.com/fymen/.emacs.d.git
