@@ -1163,7 +1163,10 @@ your project root:
       (require 'xcscope)
       (cscope-setup)
     #+END_SRC
-
+** python3
+#+begin_src emacs-lisp
+(setq python-shell-interpreter "python3")
+#+end_src
 * Helm
 ** helm settings
    #+BEGIN_SRC emacs-lisp
@@ -1606,7 +1609,7 @@ your project root:
      (global-set-key (kbd "C-c c") 'org-capture)
    #+END_SRC   
 ** ox-hugo
-#+begin_src elisp
+#+begin_src emacs-lisp
   (require-package 'ox-hugo)
 
   (with-eval-after-load 'ox
@@ -1639,7 +1642,7 @@ your project root:
   #+END_SRC
   
   I will prefer the Unix implementations, like the =find= and =chomd=:
-  #+BEGIN_SRC elisp
+  #+BEGIN_SRC emacs-lisp
      (setq eshell-prefer-lisp-functions nil)
   #+END_SRC
   
