@@ -101,7 +101,7 @@
    #+BEGIN_SRC emacs-lisp
      ;; Setting English Font
      (if (eq system-type 'darwin) (set-face-attribute 'default nil :font "Droid Sans Mono 20") 
-       (set-face-attribute 'default nil :height 100))
+       (set-face-attribute 'default nil :height 110))
 
 
      ;; Chinese Font
@@ -454,7 +454,8 @@
   (define-key global-map "\M-Q" 'unfill-paragraph)
 #+END_SRC
 * Emacs extension
-** find file as root
+** COMMENT find file as root
+This function is replaced by helm find files with "C-c r".
    #+BEGIN_SRC emacs-lisp
      (defun find-file-as-root ()
        "Like `ido-find-file, but automatically edit the file with
@@ -693,7 +694,7 @@
      (require-package 'nyan-mode)
      (nyan-mode 1)
    #+END_SRC
-** Golden Ratio
+** COMMENT Golden Ratio
    #+BEGIN_SRC emacs-lisp
          (require-package 'golden-ratio)
          ;; (setq 'golden-ratio-inhibit-functions 'pl/helm-alive-p)
