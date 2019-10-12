@@ -222,7 +222,6 @@
        )
 
      (global-set-key (kbd "C-c w") (quote copy-word))
-     ;; (global-set-key (kbd "C-x o") 'ace-window)
    #+END_SRC
 ** from purcell
    #+BEGIN_SRC emacs-lisp
@@ -454,6 +453,12 @@
   (define-key global-map "\M-Q" 'unfill-paragraph)
 #+END_SRC
 * Emacs extension
+** ace-window
+#+begin_src emacs-lisp
+(require-package 'ace-window)
+(global-set-key (kbd "M-o") 'ace-window) 
+#+end_src
+
 ** COMMENT find file as root
 This function is replaced by helm find files with "C-c r".
    #+BEGIN_SRC emacs-lisp
@@ -1693,36 +1698,6 @@ your project root:
     (require-package 'sdcv)
 
     (global-set-key (kbd "C-c d") 'sdcv-search-input)
-
-      ;; dictionary in emacs
-      ;; (global-set-key (kbd "C-c d") 'kid-sdcv-to-buffer)
-
-      ;; (defun kid-sdcv-to-buffer ()
-      ;;   (interactive)
-      ;;   (let ((word (if mark-active
-      ;;                   (buffer-substring-no-properties (region-beginning) (region-end))
-      ;;                 (current-word nil t))))
-      ;;     (setq word (read-string
-      ;;                 (format "Search the dictionary for (default %s): " word) nil nil word))
-      ;;     (set-buffer (get-buffer-create "*sdcv*"))
-      ;;     (buffer-disable-undo)
-      ;;     (erase-buffer)
-      ;;     (let ((process (start-process-shell-command "sdcv" "*sdcv*" "sdcv" "-n" word)))
-      ;;       (set-process-sentinel
-      ;;        process
-      ;;        (lambda (process signal)
-      ;;          (when (memq (process-status process) '(exit signal))
-      ;;            (unless (string= (buffer-name) "*sdcv*")
-      ;;              (switch-to-buffer-other-window "*sdcv*")
-      ;;              (local-set-key (kbd "d") 'kid-sdcv-to-buffer)
-      ;;              (local-set-key (kbd "q") (lambda ()
-      ;;                                         (interactive)
-      ;;                                         (bury-buffer)
-      ;;                                         (unless (null (cdr (window-list))) ; only one window
-      ;;                                           )))
-      ;;              ;; (goto-char (point-min))
-      ;;              ;; (other-window 1)
-      ;;              )))))))
   #+END_SRC
 
 * web development
@@ -1741,34 +1716,9 @@ your project root:
 (add-to-list 'auto-mode-alist '("\\.djhtml\\'" . web-mode))
 (add-to-list 'auto-mode-alist '("\\.ts" . web-mode))
 #+END_SRC
-** COMMENT skewer-mode
-#+BEGIN_SRC emacs-lisp
-(require-package 'skewer-mode)
-(require 'skewer-mode)
-
-(add-hook 'js2-mode-hook 'skewer-mode)
-(add-hook 'css-mode-hook 'skewer-css-mode)
-(add-hook 'html-mode-hook 'skewer-html-mode)
-#+END_SRC
 ** js2-mode
 #+BEGIN_SRC emacs-lisp
 (require-package 'js2-mode)
 (require 'js2-mode)
 #+END_SRC
-* Circe 
-  #+BEGIN_SRC emacs-lisp 
-    (require-package 'circe)
-    (setq circe-network-options
-          '(("Freenode"
-             :tls t
-             :nick "fymen"
-             :sasl-username "fymen"
-             :sasl-password "zuijiu"
-             :channels ("#emacs-circe")
-             )))
 
-    (defun circe-connect-all ()
-      "Connects to my favorite IRC servers and channels."
-      (interactive)
-      (circe "Freenode"))
-  #+END_SRC
