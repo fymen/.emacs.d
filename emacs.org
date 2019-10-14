@@ -1,6 +1,5 @@
 #+OPTIONS: toc:4 h:4
 #+TITLE: Emacs init configuration
-#+SETUPFILE: /home/oscar/org/theme-html/theme-bigblow.setup
 
 * Packages
   #+BEGIN_SRC emacs-lisp
@@ -1434,39 +1433,6 @@ your project root:
                    ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
                    ("\\paragraph{%s}" . "\\paragraph*{%s}")
                    ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
-
-   #+END_SRC
-** publish
-   #+BEGIN_SRC emacs-lisp
-     (require 'ox-publish)
-     (setq org-publish-project-alist
-        '(
-          ("blog"
-        :components ("blog-notes" "blog-static"))
-
-          ("blog-notes"
-        :base-directory "~/gitest/blog/"
-        :base-extension "org"
-        :publishing-directory "~/gitest/sagebane.github.com/"
-        :recursive t
-        :exclude "template.org"
-        :publishing-function org-html-publish-to-html
-        :headline-levels 4
-        :auto-preamble t
-        :auto-sitemap t                ; Generate sitemap.org automagically...
-        :sitemap-filename "sitemap.org"  ; ... call it sitemap.org (it's the default)...
-        :sitemap-title "Sitemap"         ; ... with title 'Sitemap'.
-        :email "fengmao dot qi at gmail dot com"
-        )
-          ("blog-static"
-        :base-directory "~/gitest/blog/"
-        :base-extension "css\\|js\\|png\\|jpg\\|gif\\|pdf\\|mp3\\|ogg\\|swf"
-        :publishing-directory "~/gitest/sagebane.github.com/"
-        :recursive t
-        :publishing-function org-publish-attachment
-        )
-          ;;
-          ))
 
    #+END_SRC
 ** Agenda

@@ -33,8 +33,10 @@ Use configuration in =.emacs.d/other-conf/=
 ln -s ~/.emacs.d/other-conf/i3/ ~/.i3
 #+END_SRC
 
-You can find Cheatsheet here:
+You shall find a Cheatsheet here:
 https://i3wm.org/docs/refcard.html
+
+i3-gaps has more features.
 
 * tmux
 #+BEGIN_SRC sh
