@@ -52,8 +52,8 @@
     #+END_SRC
 * Personal information
   #+BEGIN_SRC emacs-lisp
-    (setq user-full-name "Oscar Qi")
-    (setq user-mail-address "oscar.qi@gmail.com")
+    (setq user-full-name "Fengmao Qi")
+    (setq user-mail-address "fengmao.qi@gmail.com")
   #+END_SRC
 * Costume
 ** emacs UI
@@ -200,10 +200,10 @@
      (setq superword-mode t)
 
      (defun get-point (symbol &optional arg)
-      "get the point"
-      (funcall symbol arg)
-      (point)
-     )
+       "get the point"
+       (funcall symbol arg)
+       (point)
+       )
 
      (defun copy-thing (begin-of-thing end-of-thing &optional arg)
        "copy thing between beg & end into kill ring"
@@ -221,6 +221,11 @@
        )
 
      (global-set-key (kbd "C-c w") (quote copy-word))
+
+     (global-set-key (kbd "C-x O") (lambda ()
+                                     (interactive)
+                                     (other-window -1)))
+
    #+END_SRC
 ** from purcell
    #+BEGIN_SRC emacs-lisp
@@ -660,7 +665,7 @@ This function is replaced by helm find files with "C-c r".
        ;; ("s" shell :exit t)
        ("e" eval-buffer :exit t))
 
-     (global-set-key (kbd "C-l") 'hydra-launcher/body)
+     (global-set-key (kbd "C-,") 'hydra-launcher/body)
 
      (setq hydra-lv nil))
  #+END_SRC
@@ -1659,13 +1664,6 @@ your project root:
                  (kbd "M-q") 'eshell-push-command)))
   #+END_SRC
 
-* Stardict
-  #+BEGIN_SRC emacs-lisp
-    (require-package 'sdcv)
-
-    (global-set-key (kbd "C-c d") 'sdcv-search-input)
-  #+END_SRC
-
 * web development
 ** web-mode
 #+BEGIN_SRC emacs-lisp
@@ -1687,4 +1685,34 @@ your project root:
 (require-package 'js2-mode)
 (require 'js2-mode)
 #+END_SRC
+* Luanguage tools
+** langtool
+#+begin_src emacs-lisp
+  (require-package 'langtool)
+  (require 'langtool)
 
+  ;; (setq langtool-language-tool-server-jar "~/bin/LanguageTool-4.7/languagetool-server.jar")
+  ;; (setq langtool-server-user-arguments '("-p" "8082"))
+
+  (setq langtool-language-tool-jar "~/bin/LanguageTool-4.7/languagetool-commandline.jar")
+
+  (setq langtool-default-language "en-US")
+
+  (defun langtool-autoshow-detail-popup (overlays)
+    (when (require 'popup nil t)
+      ;; Do not interrupt current popup
+      (unless (or popup-instances
+                  ;; suppress popup after type `C-g` .
+                  (memq last-command '(keyboard-quit)))
+        (let ((msg (langtool-details-error-message overlays)))
+          (popup-tip msg)))))
+
+  (setq langtool-autoshow-message-function
+        'langtool-autoshow-detail-popup)
+#+end_src
+** Stardict
+  #+BEGIN_SRC emacs-lisp
+    (require-package 'sdcv)
+
+    (global-set-key (kbd "C-c d") 'sdcv-search-input)
+  #+END_SRC

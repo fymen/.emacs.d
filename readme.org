@@ -1,14 +1,14 @@
-A simple emacs, sawfish and tmux configuration.
+A simple emacs, window manager and tmux configuration.
 
-Tested both on ubuntu 14.04+  and Mac 10.12.5.
+Tested both on ubuntu 18.04  and Mac 10.12.5.
 
 * Requirement
-Emacs25+
+Emacs26
 
 i3-wm
 
 tmux
-* emacs25 or 26
+* emacs
 #+BEGIN_SRC sh
   cd ~/
   git clone https://github.com/fymen/.emacs.d.git
@@ -20,7 +20,7 @@ Basic usage:
 |-------+----------|
 | C-x g | magit    |
 
-Please Refer to *emacs.org*
+Please Refer to [[file:emacs.org][emacs.org]].
 
 * i3-wm(recommend)
 sawfish is obselet, i3-wm is better.
