@@ -2,7 +2,7 @@ A simple emacs, window manager and tmux configuration.
 
 Tested both on ubuntu 18.04  and Mac 10.12.5.
 
-[[file:snapshot.png][my-screen]]
+[[file:snapshot.png]]
 
 * emacs
 #+BEGIN_SRC sh
