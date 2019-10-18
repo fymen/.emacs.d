@@ -2,12 +2,8 @@ A simple emacs, window manager and tmux configuration.
 
 Tested both on ubuntu 18.04  and Mac 10.12.5.
 
-* Requirement
-Emacs26
+[[file:snapshot.png][my-screen]]
 
-i3-wm
-
-tmux
 * emacs
 #+BEGIN_SRC sh
   cd ~/
@@ -20,7 +16,7 @@ Basic usage:
 |-------+----------|
 | C-x g | magit    |
 
-Please Refer to [[file:emacs.org][emacs.org]].
+Please Refer to [[file:emacs.org][emacs.org]] for more.
 
 * i3-wm(recommend)
 sawfish is obselet, i3-wm is better.
