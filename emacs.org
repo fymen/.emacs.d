@@ -50,11 +50,6 @@
                    :config
                    (setq paradox-execute-asynchronously t))
     #+END_SRC
-* Personal information
-  #+BEGIN_SRC emacs-lisp
-    (setq user-full-name "Fengmao Qi")
-    (setq user-mail-address "fengmao.qi@gmail.com")
-  #+END_SRC
 * Costume
 ** emacs UI
    Disable some no used menu bar to enlarge our main frame.
@@ -1220,10 +1215,6 @@ your project root:
      (global-set-key (kbd "C-x C-f") 'helm-find-files)
      (global-set-key (kbd "M-i") 'helm-occur)
 
-     (global-set-key (kbd "C-c p f") 'helm-projectile-find-file-dwim)
-     (global-set-key (kbd "C-c p p") 'helm-projectile-switch-project)
-
-
      (when (executable-find "ack-grep")
        (setq helm-grep-default-command "ack-grep -Hn --no-group --no-color %e %p %f"
              helm-grep-default-recurse-command "ack-grep -H --no-group --no-color %e %p %f"))
@@ -1263,6 +1254,21 @@ your project root:
           (define-key helm-gtags-mode-map (kbd "M-,") 'helm-gtags-pop-stack)))
    #+END_SRC
 
+** helm-Projectile
+  #+BEGIN_SRC emacs-lisp
+    (require-package 'helm-projectile)
+
+    (projectile-global-mode)
+    (setq projectile-completion-system 'helm)
+    (helm-projectile-on)
+
+    (setq projectile-enable-caching t)
+
+    (global-set-key (kbd "C-c p f") 'helm-projectile-find-file-dwim)
+    (global-set-key (kbd "C-c p p") 'helm-projectile-switch-project)
+    (global-set-key (kbd "C-c p b") 'helm-projectile-switch-to-buffer)
+    (global-set-key (kbd "C-c p g") 'helm-projectile-grep)
+  #+END_SRC
 ** helm-pass
 #+BEGIN_SRC emacs-lisp
   (require-package 'helm-pass)
@@ -1592,16 +1598,6 @@ your project root:
   (with-eval-after-load 'ox
     (require 'ox-hugo))
 #+end_src
-* Projectile
-  #+BEGIN_SRC emacs-lisp
-    (require-package 'helm-projectile)
-
-    (projectile-global-mode)
-    (setq projectile-completion-system 'helm)
-    (helm-projectile-on)
-
-    (setq projectile-enable-caching t)
-  #+END_SRC
 * Eshell
   Press any key to jump back to the prompt:
   #+BEGIN_SRC emacs-lisp
@@ -1685,7 +1681,7 @@ your project root:
 (require-package 'js2-mode)
 (require 'js2-mode)
 #+END_SRC
-* Luanguage tools
+* Language tools
 ** langtool
 #+begin_src emacs-lisp
   (require-package 'langtool)
