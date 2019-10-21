@@ -9,18 +9,13 @@ Tested both on ubuntu 18.04  and Mac 10.12.5.
   git clone https://github.com/fymen/.emacs.d.git
 #+END_SRC
 
-You may want to store your personal infomation as =personal-info.org=, and it will be autoloaded.
-#+begin_src example
-
-#+BEGIN_SRC emacs-lisp
-  (setq user-full-name "Tom Green")
-  (setq user-mail-address "Tom.Green@gmail.com")
-#+END_SRC
-
+You may want to store your personal infomation as =personal-info.org=, and it will be autoloaded:
+#+begin_src org
+  ,#+BEGIN_SRC emacs-lisp
+     (setq user-full-name "Tom Green")
+     (setq user-mail-address "Tom.Green@gmail.com")
+  ,#+END_SRC
 #+end_src
-
-
-
 
 Then execute emacs, it will update all the dependent packages automaticly
 

@@ -1107,21 +1107,9 @@ your project root:
    To configure it change to a specific directory and compile. put
    following codes in the =.dir-locals.el= in the directory.
    #+BEGIN_SRC emacs-lisp :tangle no
-     ((nil . ((company-clang-arguments . ("-I/home/oscar/workspace/phoenix/PHOENIX-SDK5.0/board/buildroot/output/build/hon-encode-0/stream"
-                                          "-I/home/oscar/workspace/phoenix/PHOENIX-SDK5.0/board/buildroot/output/build/hon-encode-0/ipc"
-                                          "-I/home/oscar/workspace/phoenix/PHOENIX-SDK5.0/board/buildroot/output/build/hon-encode-0/osd"
-                                          "-I/home/oscar/workspace/phoenix/PHOENIX-SDK5.0/board/buildroot/output/build/hon-encode-0/email"
-                                          "/home/oscar/workspace/phoenix/PHOENIX-SDK5.0/board/buildroot/output/build/hon-encode-0/../his-sdk-0/include"
-                                          "-I/home/oscar/workspace/phoenix/PHOENIX-SDK5.0/board/buildroot/output/build/hon-encode-0/../hon-ipc-0"
-                                          "-I/home/oscar/workspace/phoenix/PHOENIX-SDK5.0/board/buildroot/output/build/hon-encode-0/mpp/extdrv/tw2865"
-                                          "-I/home/oscar/workspace/phoenix/PHOENIX-SDK5.0/board/buildroot/output/build/hon-encode-0/mpp//home/oscar/workspace/phoenix/PHOENIX-SDK5.0/board/buildroot/output/build/hon-encode-0/extdrv/tlv320aic31"
-                                          "-I/home/oscar/workspace/phoenix/PHOENIX-SDK5.0/board/buildroot/output/build/hon-encode-0/mpp//home/oscar/workspace/phoenix/PHOENIX-SDK5.0/board/buildroot/output/build/hon-encode-0/extdrv/ak7756e"
-
-                                          "-I/home/oscar/workspace/phoenix/PHOENIX-SDK5.0/board/buildroot/output/host/opt/ext-toolchain/target/usr/include/"
-
-                                          "-I/home/oscar/workspace/phoenix/PHOENIX-SDK5.0/board/apps/encode/stream/"
+     ((nil . ((company-clang-arguments . ("The compiling arguments"
                                           ))
-              (cd-compile-directory . "/home/oscar/workspace/phoenix/PHOENIX-SDK5.0/")))
+              (cd-compile-directory . "The path to your project")))
 
    #+END_SRC
 ** Makefile

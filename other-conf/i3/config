@@ -30,7 +30,7 @@ exec --no-startup-id feh --bg-scale ~/images/Fantastic-House-Painting-Wallpapers
 floating_modifier $mod
 
 # start a terminal
-bindsym $mod+Return exec i3-sensible-terminal # -e tmux
+bindsym $mod+Return exec i3-sensible-terminal -e tmux
 # bindsym $mod+i exec "firefox"
 # bindsym $mod+m exec "emacs"
 
