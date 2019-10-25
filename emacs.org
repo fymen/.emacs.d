@@ -1297,7 +1297,7 @@ your project root:
 
      (global-set-key (kbd "C-c l") 'org-store-link)
      (global-set-key (kbd "C-c a") 'org-agenda)
-     (global-set-key (kbd "C-c b") 'org-iswitchb)
+     (global-set-key (kbd "C-c b") 'org-switchb)
 
    #+END_SRC
    #+BEGIN_SRC emacs-lisp
@@ -1305,39 +1305,39 @@ your project root:
        "Take a screenshot into a time stamped unique-named file in the
      same directory as the org-buffer and insert a link to this file."
        (interactive)
-       (org-display-inline-images)
+       ;; (org-display-inline-images)
        (setq filename
-   	  (concat
-   	   (make-temp-name
-   	    (concat (file-name-nondirectory (file-name-sans-extension buffer-file-name))
-   		    "/"
-   		    (format-time-string "%Y%m%d_%H%M%S_")) ) ".png"))
+          (concat
+           (make-temp-name
+            (concat (file-name-nondirectory (file-name-sans-extension buffer-file-name))
+                    "/"
+                    (format-time-string "%Y%m%d_%H%M%S_")) ) ".png"))
        (unless (file-exists-p (file-name-directory filename))
          (make-directory (file-name-directory filename)))
-   					  ; take screenshot
+                                          ; take screenshot
        (if (eq system-type 'darwin)
-   	(progn
-   	  (call-process-shell-command "screencapture" nil nil nil nil " -s " (concat
-   									      "\"" filename "\"" ))
-   	  (call-process-shell-command "convert" nil nil nil nil (concat "\"" filename "\" -resize  \"50%\"" ) (concat "\"" filename "\"" ))
-   	  ))
+        (progn
+          (call-process-shell-command "screencapture" nil nil nil nil " -s " (concat
+                                                                              "\"" filename "\"" ))
+          (call-process-shell-command "convert" nil nil nil nil (concat "\"" filename "\" -resize  \"50%\"" ) (concat "\"" filename "\"" ))
+          ))
        (if (eq system-type 'gnu/linux)
-   	(call-process "import" nil nil nil filename))
-   					  ; insert into file if correctly taken
+        (call-process "import" nil nil nil filename))
+                                          ; insert into file if correctly taken
        (if (file-exists-p filename)
-   	(insert (concat "#+attr_html: :width 800\n" "[[file:" filename "]]")))
+        (insert (concat "#+attr_html: :width 800\n" "[[file:" filename "]]")))
        ;; (org-display-inline-images)
        )
    #+END_SRC
-** COMMENT babel
+** babel
    #+BEGIN_SRC emacs-lisp
      (require-package 'gnuplot)
-     ;; (require-package 'puml-mode)
+     (require-package 'plantuml-mode)
 
      ;; active Babel languages
      (org-babel-do-load-languages
       'org-babel-load-languages
-      '((sh . t)
+      '((shell . t)
         (dot . t)
         (ditaa . t)
         (python . t)
@@ -1345,10 +1345,9 @@ your project root:
         (plantuml . t)
         (emacs-lisp . t)
         ))
-
-     (setq org-plantuml-jar-path "/home/oscar/.emacs.d/elpa/contrib/scripts/plantuml.jar")
-     (setq puml-plantuml-jar-path "/home/oscar/.emacs.d/elpa/contrib/scripts/plantuml.jar")
-     (add-to-list 'org-src-lang-modes '("plantuml" . puml))
+     ;; Install plantuml.jar by: sudo apt install plantuml
+     (setq org-plantuml-jar-path "/usr/share/plantuml/plantuml.jar")
+     (setq puml-plantuml-jar-path "/usr/share/plantuml/plantuml.jar")
    #+END_SRC
 ** latex
    #+BEGIN_SRC emacs-lisp

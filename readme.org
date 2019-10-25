@@ -2,6 +2,7 @@ A simple emacs, window manager and tmux configuration.
 
 Tested both on ubuntu 18.04  and Mac 10.12.5.
 
+#+attr_html: :width 800
 [[file:snapshot.png]]
 
 * emacs
@@ -55,3 +56,4 @@ Basic usage:
 | C-l n | Switch to next tab     |
 | C-l p | Switch to previous tab |
 | C-l [ | View terminal history  |
+
