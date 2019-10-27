@@ -660,7 +660,7 @@ This function is replaced by helm find files with "C-c r".
        ;; ("s" shell :exit t)
        ("e" eval-buffer :exit t))
 
-     (global-set-key (kbd "C-,") 'hydra-launcher/body)
+     (global-set-key (kbd "C-c y") 'hydra-launcher/body)
 
      (setq hydra-lv nil))
  #+END_SRC
@@ -1261,6 +1261,17 @@ your project root:
 #+BEGIN_SRC emacs-lisp
   (require-package 'helm-pass)
 #+END_SRC
+** helm-ag
+#+begin_src emacs-lisp
+  (require-package 'helm-ag)
+
+  (custom-set-variables
+   '(helm-ag-base-command "rg")
+   '(helm-ag-command-option "--no-heading")
+   '(helm-ag-insert-at-point 'symbol))
+
+  (global-set-key (kbd "C-c h g") 'helm-do-ag)
+#+end_src
 * Org-mode
 ** basic 
    #+BEGIN_SRC emacs-lisp
