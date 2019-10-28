@@ -57,3 +57,30 @@ Basic usage:
 | C-l p | Switch to previous tab |
 | C-l [ | View terminal history  |
 
+* Other usefull tools
+There is also a list maybe help for non-emacs user: [[https://www.wezm.net/technical/2019/10/useful-command-line-tools/][useful-command-line-tools]]
+** [[https://syncthing.net/][syncthing]]
+A decentralized file synchronization program.
+** [[https://wheremylife.cn/][Wheremylife]], [[https://kindle4rss.com/][kindle4rss]] or [[https://calibre-ebook.com][calibre]]
+RSS feeds delivery service.
+** beorg
+** [[https://github.com/junegunn/fzf][fzf]]
+Install [[https://github.com/sharkdp/fd][fd]] and setup environment.
+
+#+begin_src shell
+export FZF_DEFAULT_COMMAND='fd --type f'
+#+end_src
+** zsh and [[https://github.com/robbyrussell/oh-my-zsh/][oh-my-zash]]
+zsh is another shell just like bash, and on-my-zash is a framework for managing the zsh configuration.
+
+Install oh-my-zash
+#+begin_src shell
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
+#+end_src
+
+Adjust theme of plugins in =.zshrc= :
+#+begin_src shell
+plugins=(git
+	 tmux
+	fzf)
+#+end_src

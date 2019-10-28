@@ -94,7 +94,7 @@
 ** fonts
    #+BEGIN_SRC emacs-lisp
      ;; Setting English Font
-     (if (eq system-type 'darwin) (set-face-attribute 'default nil :font "Droid Sans Mono 20") 
+     (if (eq system-type 'darwin) (set-face-attribute 'default nil) 
        (set-face-attribute 'default nil :height 110))
 
 
@@ -1262,6 +1262,11 @@ your project root:
   (require-package 'helm-pass)
 #+END_SRC
 ** helm-ag
+It's said that ripgrep is faster.
+#+begin_src shell
+sudo snap install ripgrep --classic
+#+end_src
+
 #+begin_src emacs-lisp
   (require-package 'helm-ag)
 
@@ -1710,3 +1715,40 @@ your project root:
 
     (global-set-key (kbd "C-c d") 'sdcv-search-input)
   #+END_SRC
+* Elfeed
+  Simple cheatsheet:
+  | key | function       |
+  |-----+----------------|
+  | =r= | mark as read   |
+  | =u= | mark as unread |
+
+  #+BEGIN_SRC emacs-lisp
+    (require-package 'elfeed)
+    (maybe-require-package 'elfeed-goodies)
+
+    (global-set-key (kbd "C-x w") 'elfeed)
+
+    (setf url-queue-timeout 60)
+    (setf elfeed-curl-extra-arguments '("--socks5-hostname" "127.0.0.1:1080"))
+    (require 'elfeed)
+    (require 'elfeed-goodies)
+
+    (elfeed-goodies/setup)
+
+    (setq elfeed-feeds
+          '(("https://nullprogram.com/feed/" blog emacs)
+            ("https://nedroid.com/feed/" webcomic)
+            ("https://www.howardism.org/index.xml" blog emacs)
+            ("https://emacsredux.com/atom.xml" blog emacs)
+            ("https://batsov.com/atom.xml" git programme)
+            ("http://blog.fogus.me/feed/" programme)
+            "https://feeds.feedburner.com/ruanyifeng"
+            "https://blog.binchen.org/rss.xml"
+            "https://blog.youxu.info/feed.xml"
+            "https://coolshell.cn/feed "
+            ("https://www.mifengtd.cn/feed.xml" GTD) 
+
+            ("https://www.wezm.net/feed/" linux rust)
+            ))
+  #+END_SRC
+
