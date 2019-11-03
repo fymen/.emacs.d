@@ -1,4 +1,4 @@
-A simple emacs, window manager and tmux configuration.
+ A simple emacs, window manager and tmux configuration.
 
 Tested both on ubuntu 18.04  and Mac 10.12.5.
 
@@ -63,15 +63,13 @@ There is also a list maybe help for non-emacs user: [[https://www.wezm.net/techn
 A decentralized file synchronization program.
 ** [[https://wheremylife.cn/][Wheremylife]], [[https://kindle4rss.com/][kindle4rss]] or [[https://calibre-ebook.com][calibre]]
 RSS feeds delivery service.
-** beorg
-** [[https://github.com/junegunn/fzf][fzf]]
-Install [[https://github.com/sharkdp/fd][fd]] and setup environment.
-
-#+begin_src shell
-export FZF_DEFAULT_COMMAND='fd --type f'
-#+end_src
 ** zsh and [[https://github.com/robbyrussell/oh-my-zsh/][oh-my-zash]]
 zsh is another shell just like bash, and on-my-zash is a framework for managing the zsh configuration.
+
+Install zsh and make it as default shell
+#+begin_src shell
+sudo apt install zsh && chsh -s $(which zsh)
+#+end_src
 
 Install oh-my-zash
 #+begin_src shell
@@ -83,4 +81,20 @@ Adjust theme of plugins in =.zshrc= :
 plugins=(git
 	 tmux
 	fzf)
+#+end_src
+** [[https://github.com/junegunn/fzf][fzf]]
+Install [[https://github.com/sharkdp/fd][fd]] and setup environment.
+
+#+begin_src shell
+export FZF_DEFAULT_COMMAND='fd --type f'
+#+end_src
+** beorg
+** tridactyl
+| key           | function                                                      |
+|---------------+---------------------------------------------------------------|
+| C-c u         | recover recently closed tab                                   |
+| / (C-g & C-G) | search in page, C-g to search forward, C-G to search backward |
+** wqy and [[https://github.com/tonsky/FiraCode][FiraCode]] or Inconsolata
+#+begin_src emacs-lisp
+  sudo apt install fonts-firacode fonts-wqy-microhei fonts-inconsolata
 #+end_src

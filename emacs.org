@@ -71,53 +71,32 @@
      (line-number-mode 1)
    #+END_SRC
 ** prettify symbols
-   #+BEGIN_SRC emacs-lisp
-     (when (boundp 'global-prettify-symbols-mode)
-       (add-hook 'emacs-lisp-mode-hook
-                 (lambda ()
-                   (push '("lambda" . ?λ) prettify-symbols-alist)))
-       (add-hook 'clojure-mode-hook
-                 (lambda ()
-                   (push '("fn" . ?ƒ) prettify-symbols-alist)))
-       (global-prettify-symbols-mode +1))
-   #+END_SRC
+#+BEGIN_SRC emacs-lisp
+  (when (boundp 'global-prettify-symbols-mode)
+    (add-hook 'emacs-lisp-mode-hook
+              (lambda ()
+                (push '("lambda" . ?λ) prettify-symbols-alist)))
+    (add-hook 'clojure-mode-hook
+              (lambda ()
+                (push '("fn" . ?ƒ) prettify-symbols-alist)))
+    (global-prettify-symbols-mode +1))
+#+END_SRC
 ** highlight parenthesis
+#+BEGIN_SRC emacs-lisp
+  (show-paren-mode t) ;; 匹配括号高亮
+  ;;; Also highlight parens  
+  (setq show-paren-delay 0  
+        show-paren-style 'parenthesis)
 
-   #+BEGIN_SRC emacs-lisp
+#+END_SRC
 
-     (show-paren-mode t) ;; 匹配括号高亮
-     ;;; Also highlight parens  
-     (setq show-paren-delay 0  
-           show-paren-style 'parenthesis)
-
-   #+END_SRC
-** fonts
-   #+BEGIN_SRC emacs-lisp
-     ;; Setting English Font
-     (if (eq system-type 'darwin) (set-face-attribute 'default nil) 
-       (set-face-attribute 'default nil :height 110))
-
-
-     ;; Chinese Font
-     (dolist (charset '(kana han symbol cjk-misc bopomofo))
-     (set-fontset-font (frame-parameter nil 'font)
-                       charset (font-spec :family "WenQuanYi Micro Hei Mono"
-                                          :size 16)))
-   #+END_SRC
-*** Chinese relative
-    #+BEGIN_SRC emacs-lisp
-      (setq sentence-end
-            "\\([。！？]\\|……\\|[.?!][]\"')}]*\\($\\|[ \t]\\)\\)[ \t\n]*") 
-      (setq sentence-end-double-space nil)
-    #+END_SRC
 ** color theme
    #+BEGIN_SRC emacs-lisp
-     ;; (load-theme 'dracula t)
-(require-package 'hc-zenburn-theme)
-     (load-theme 'hc-zenburn t)
-     ;; (load-theme 'monokai t)
-     ;; (load-theme 'plan9 t)
-     ;; (load-theme 'phoenix-dark-pink t)
+     ;; (require-package 'hc-zenburn-theme)
+     ;; (load-theme 'hc-zenburn t)
+
+     (require-package 'zenburn-theme)
+     (load-theme 'zenburn t)
    #+END_SRC
   
 ** high light
@@ -157,6 +136,7 @@
 ** smart-modeline
    #+BEGIN_SRC emacs-lisp
      (require-package 'smart-mode-line)
+     (require-package 'smart-mode-line-powerline-theme)
 
      (display-time-mode 1)
      (require 'smart-mode-line)
@@ -166,7 +146,7 @@
      (setq sml/mode-width 0)
      (setq sml/name-width 20)
      (setf rm-blacklist "")
-     (setq sml/theme 'dark)
+     (setq sml/theme 'powerline)
      (sml/setup)
    #+END_SRC
 ** dired
@@ -182,6 +162,35 @@
 
      (with-eval-after-load 'dired  (require 'dired-filetype-face))
    #+END_SRC
+** OS related && fonts
+#+BEGIN_SRC emacs-lisp
+  ;; Setup English Font
+  (when (eq system-type 'darwin)
+    (set-face-attribute 'default nil) 
+    (set-face-attribute 'default nil :height 150))
+
+  (when (eq system-type 'gnu/linux)
+    (set-frame-font "Inconsolata 20")
+    ;; Chinese Font
+    (dolist (charset '(kana han symbol cjk-misc bopomofo))
+      (set-fontset-font (frame-parameter nil 'font)
+                        charset (font-spec :family "WenQuanYi Micro Hei Mono"
+                                           :size 16)))
+    ;; Default Browser
+    (setq browse-url-browser-function 'browse-url-generic
+          browse-url-generic-program "firefox"
+          browse-url-new-window-flag t)
+    (menu-bar-mode -1)
+    ;; enable pdf-tools
+    (require-package 'pdf-tools)
+    (pdf-tools-install))
+#+END_SRC
+*** Chinese relative
+#+BEGIN_SRC emacs-lisp
+  (setq sentence-end
+        "\\([。！？]\\|……\\|[.?!][]\"')}]*\\($\\|[ \t]\\)\\)[ \t\n]*") 
+  (setq sentence-end-double-space nil)
+#+END_SRC
 * General
 ** keystrokes
    #+BEGIN_SRC emacs-lisp
@@ -458,21 +467,6 @@
 (global-set-key (kbd "M-o") 'ace-window) 
 #+end_src
 
-** COMMENT find file as root
-This function is replaced by helm find files with "C-c r".
-   #+BEGIN_SRC emacs-lisp
-     (defun find-file-as-root ()
-       "Like `ido-find-file, but automatically edit the file with
-          root-(point)rivileges (using tramp/sudo), if the file is not writable by
-          user."
-       (interactive)
-       (let ((file (ido-read-file-name "Edit as root: ")))
-         (unless (file-writable-p file)
-           (setq file (concat "/sudo:root@localhost:" file)))
-         (find-file file)))
-
-     (global-set-key (kbd "C-x F") 'find-file-as-root)
-   #+END_SRC
 ** beacon-mode
    #+BEGIN_SRC emacs-lisp
      (use-package beacon
@@ -698,42 +692,6 @@ This function is replaced by helm find files with "C-c r".
      (require-package 'nyan-mode)
      (nyan-mode 1)
    #+END_SRC
-** COMMENT Golden Ratio
-   #+BEGIN_SRC emacs-lisp
-         (require-package 'golden-ratio)
-         ;; (setq 'golden-ratio-inhibit-functions 'pl/helm-alive-p)
-         ;; (defun pl/helm-alive-p ()
-         ;;   (if (boundp 'helm-alive-p)
-         ;;       (symbol-value 'helm-alive-p)))
-
-         ;; do not enable golden-raio in thses modes
-         (setq golden-ratio-exclude-modes '("ediff-mode"
-                                            "helm-mode"
-                                            "dired-mode"
-                                            "gud-mode"
-                                            "gdb-locals-mode"
-                                            "gdb-registers-mode"
-                                            "gdb-breakpoints-mode"
-                                            "gdb-threads-mode"
-                                            "gdb-frames-mode"
-                                            "gdb-inferior-io-mode"
-                                            "gud-mode"
-                                            "gdb-inferior-io-mode"
-                                            "gdb-disassembly-mode"
-                                            "gdb-memory-mode"
-                                            "magit-log-mode"
-                                            "magit-reflog-mode"
-                                            "magit-status-mode"
-                                            "IELM"
-                                            ;; "eshell-mode"
-                                            "fundamental-mode"
-                                            "dired-mode"))
-
-         (golden-ratio-mode 1)
-         ;(setq golden-ratio-auto-scale t)
-         (add-to-list 'golden-ratio-extra-commands 'ace-window)
-   #+END_SRC
-
 ** multiple cursors
    #+BEGIN_SRC emacs-lisp 
      (require-package 'multiple-cursors)
@@ -1601,6 +1559,63 @@ sudo snap install ripgrep --classic
   (with-eval-after-load 'ox
     (require 'ox-hugo))
 #+end_src
+** pdf-view
+#+begin_src emacs-lisp
+  (defun md-compile ()
+    "Compiles the currently loaded markdown file using pandoc into a PDF"
+    (interactive)
+    (save-buffer)
+    (shell-command (concat "pandoc " (buffer-file-name) " -o "
+                           (replace-regexp-in-string "md" "pdf" (buffer-file-name)))))
+
+  (defun update-other-buffer ()
+    (interactive)
+    (other-window 1)
+    (revert-buffer nil t)
+    (other-window -1))
+
+  (defun md-compile-and-update-other-buffer ()
+    "Has as a premise that it's run from a markdown-mode buffer and the
+     other buffer already has the PDF open"
+    (interactive)
+    (md-compile)
+    (update-other-buffer))
+
+  (defun latex-compile-and-update-other-buffer ()
+    "Has as a premise that it's run from a latex-mode buffer and the
+     other buffer already has the PDF open"
+    (interactive)
+    (save-buffer)
+    (shell-command (concat "pdflatex " (buffer-file-name)))
+    (switch-to-buffer (other-buffer))
+    (kill-buffer)
+    (update-other-buffer))
+
+  (defun org-compile-beamer-and-update-other-buffer ()
+    "Has as a premise that it's run from an org-mode buffer and the
+     other buffer already has the PDF open"
+    (interactive)
+    (org-beamer-export-to-pdf)
+    (update-other-buffer))
+
+  (defun org-compile-latex-and-update-other-buffer ()
+    "Has as a premise that it's run from an org-mode buffer and the
+     other buffer already has the PDF open"
+    (interactive)
+    (org-latex-export-to-pdf)
+    (update-other-buffer))
+
+  (eval-after-load 'latex-mode
+    '(define-key latex-mode-map (kbd "C-c r") 'latex-compile-and-update-other-buffer))
+
+  (define-key org-mode-map (kbd "C-c lr") 'org-compile-latex-and-update-other-buffer)
+  (define-key org-mode-map (kbd "C-c br") 'org-compile-beamer-and-update-other-buffer)
+
+  (eval-after-load 'markdown-mode
+    '(define-key markdown-mode-map (kbd "C-c r") 'md-compile-and-update-other-buffer))
+
+
+#+end_src
 * Eshell
   Press any key to jump back to the prompt:
   #+BEGIN_SRC emacs-lisp
@@ -1681,8 +1696,8 @@ sudo snap install ripgrep --classic
 #+END_SRC
 ** js2-mode
 #+BEGIN_SRC emacs-lisp
-(require-package 'js2-mode)
-(require 'js2-mode)
+  (require-package 'js2-mode)
+  (require 'js2-mode)
 #+END_SRC
 * Language tools
 ** langtool
