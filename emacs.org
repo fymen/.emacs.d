@@ -160,6 +160,9 @@
       )
      (require-package 'dired-filetype-face)
 
+     ;; auto refresh dired when file changes
+     (add-hook 'dired-mode-hook 'auto-revert-mode)
+
      (with-eval-after-load 'dired  (require 'dired-filetype-face))
    #+END_SRC
 ** OS related && fonts
@@ -1016,27 +1019,17 @@ your project root:
       	   (dtrt-indent-mode t)))
    #+END_SRC
 ** flycheck
-   #+BEGIN_SRC emacs-lisp :tangle no
+   #+BEGIN_SRC emacs-lisp
      (require-package 'flycheck)
      (require  'flycheck)
 
-     (require-package 'flycheck-clangcheck)
-     (require 'flycheck-clangcheck)
+     (require-package 'flycheck-clang-analyzer)
 
-     (setq flycheck-clangcheck-analyze t)
-     ;; (global-flycheck-mode)
-     (setq flycheck-indication-mode 'right-fringe)
+     (require 'flycheck-clang-analyzer)
 
-     (defun my-select-clangcheck-for-checker ()
-       "Select clang-check for flycheck's checker."
-       (flycheck-set-checker-executable 'c/c++-clangcheck
-                                        "/usr/bin/clang-check")
-       (flycheck-select-checker 'c/c++-clangcheck))
+     (global-flycheck-mode)
 
-     (add-hook 'c-mode-common-hook #'my-select-clangcheck-for-checker)
-
-     ;; enable static analysis
-     (setq flycheck-clangcheck-analyze t)
+     (flycheck-clang-analyzer-setup)
    #+END_SRC
 ** compilation
    #+BEGIN_SRC emacs-lisp
@@ -1340,8 +1333,8 @@ sudo snap install ripgrep --classic
      (setf org-latex-default-packages-alist
            (remove '("T1" "fontenc" t) org-latex-default-packages-alist))
 
-     (setq org-latex-pdf-process '("xelatex -shell-escape  %f"
-                                   "xelatex -shell-escape  %f"))
+     (setq org-latex-pdf-process '("xelatex -8bit -shell-escape  %f"
+                                   "xelatex -8bit -shell-escape  %f"))
      (setq org-latex-packages-alist
            '("
              \\hypersetup{ colorlinks,% 
@@ -1561,6 +1554,9 @@ sudo snap install ripgrep --classic
 #+end_src
 ** pdf-view
 #+begin_src emacs-lisp
+  ;; auto refresh dired when file changes
+  (add-hook 'pdf-view-mode-hook 'auto-revert-mode)
+
   (defun md-compile ()
     "Compiles the currently loaded markdown file using pandoc into a PDF"
     (interactive)
@@ -1595,15 +1591,13 @@ sudo snap install ripgrep --classic
     "Has as a premise that it's run from an org-mode buffer and the
      other buffer already has the PDF open"
     (interactive)
-    (org-beamer-export-to-pdf)
-    (update-other-buffer))
+    (org-beamer-export-to-pdf))
 
   (defun org-compile-latex-and-update-other-buffer ()
     "Has as a premise that it's run from an org-mode buffer and the
      other buffer already has the PDF open"
     (interactive)
-    (org-latex-export-to-pdf)
-    (update-other-buffer))
+    (org-latex-export-to-pdf))
 
   (eval-after-load 'latex-mode
     '(define-key latex-mode-map (kbd "C-c r") 'latex-compile-and-update-other-buffer))
@@ -1730,6 +1724,14 @@ sudo snap install ripgrep --classic
 
     (global-set-key (kbd "C-c d") 'sdcv-search-input)
   #+END_SRC
+** Ispell
+#+begin_src emacs-lisp
+  (setq ispell-program-name (executable-find "hunspell")
+        ispell-dictionary "en_US")
+
+  (setq ispell-local-dictionary-alist
+        '(("en_US" "[[:alpha:]]" "[^[:alpha:]]" "[']" nil ("-d" "en_US") nil utf-8)))
+#+end_src
 * Elfeed
   Simple cheatsheet:
   | key | function       |
@@ -1764,6 +1766,7 @@ sudo snap install ripgrep --classic
             ("https://www.mifengtd.cn/feed.xml" GTD) 
 
             ("https://www.wezm.net/feed/" linux rust)
+            ("https://200ok.ch/atom.xml" emacs other)
             ))
   #+END_SRC
 

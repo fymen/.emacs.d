@@ -1,6 +1,6 @@
- A simple emacs, window manager and tmux configuration.
+A simple Emacs, window manager and Tmux configuration.
 
-Tested both on ubuntu 18.04  and Mac 10.12.5.
+Tested both on Ubuntu 18.04 and Mac 10.12.5.
 
 #+attr_html: :width 800
 [[file:snapshot.png]]
@@ -10,7 +10,7 @@ Tested both on ubuntu 18.04  and Mac 10.12.5.
   git clone https://github.com/fymen/.emacs.d.git
 #+END_SRC
 
-You may want to store your personal infomation as =personal-info.org=, and it will be autoloaded:
+You may want to store your personal information as =personal-info.org=, and it will be auto-loaded:
 #+begin_src org
   ,#+BEGIN_SRC emacs-lisp
      (setq user-full-name "Tom Green")
@@ -18,7 +18,7 @@ You may want to store your personal infomation as =personal-info.org=, and it wi
   ,#+END_SRC
 #+end_src
 
-Then execute emacs, it will update all the dependent packages automaticly
+Then execute Emacs, it will update all the independent packages automatically
 
 Basic usage:
 | key   | function |
@@ -58,20 +58,20 @@ Basic usage:
 | C-l [ | View terminal history  |
 
 * Other usefull tools
-There is also a list maybe help for non-emacs user: [[https://www.wezm.net/technical/2019/10/useful-command-line-tools/][useful-command-line-tools]]
+There is also a list maybe help for non-Emacs user: [[https://www.wezm.net/technical/2019/10/useful-command-line-tools/][useful-command-line-tools]]
 ** [[https://syncthing.net/][syncthing]]
 A decentralized file synchronization program.
 ** [[https://wheremylife.cn/][Wheremylife]], [[https://kindle4rss.com/][kindle4rss]] or [[https://calibre-ebook.com][calibre]]
 RSS feeds delivery service.
-** zsh and [[https://github.com/robbyrussell/oh-my-zsh/][oh-my-zash]]
-zsh is another shell just like bash, and on-my-zash is a framework for managing the zsh configuration.
+** zsh and [[https://github.com/robbyrussell/oh-my-zsh/][oh-my-zsh]]
+Zsh is another shell just like bash, and oh-my-zsh is a framework for managing the zsh configuration.
 
 Install zsh and make it as default shell
 #+begin_src shell
 sudo apt install zsh && chsh -s $(which zsh)
 #+end_src
 
-Install oh-my-zash
+Install oh-my-zsh
 #+begin_src shell
 sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
 #+end_src
@@ -89,12 +89,13 @@ Install [[https://github.com/sharkdp/fd][fd]] and setup environment.
 export FZF_DEFAULT_COMMAND='fd --type f'
 #+end_src
 ** beorg
-** tridactyl
+** Tridactyl
 | key           | function                                                      |
 |---------------+---------------------------------------------------------------|
 | C-c u         | recover recently closed tab                                   |
 | / (C-g & C-G) | search in page, C-g to search forward, C-G to search backward |
-** wqy and [[https://github.com/tonsky/FiraCode][FiraCode]] or Inconsolata
+** Fonts
+wqy and [[https://github.com/tonsky/FiraCode][FiraCode]] or Inconsolata
 #+begin_src emacs-lisp
   sudo apt install fonts-firacode fonts-wqy-microhei fonts-inconsolata
 #+end_src
