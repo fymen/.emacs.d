@@ -179,15 +179,16 @@
           (set-frame-font "Inconsolata 20")
           (set-fontset-font (frame-parameter nil 'font)
                             charset (font-spec :family "WenQuanYi Micro Hei Mono"
-                                               :size 16))))
-    ;; Default Browser
-    (setq browse-url-browser-function 'browse-url-generic
-          browse-url-generic-program "firefox"
-          browse-url-new-window-flag t)
-    (menu-bar-mode -1)
-    ;; enable pdf-tools
-    (require-package 'pdf-tools)
-    (pdf-tools-install))
+                                               :size 16))
+          ;; Default Browser
+          (setq browse-url-browser-function 'browse-url-generic
+                browse-url-generic-program "firefox"
+                browse-url-new-window-flag t)
+          ;; enable pdf-tools
+          (require-package 'pdf-tools)
+          (pdf-tools-install))
+      ))
+
 #+END_SRC
 *** Chinese relative
 #+BEGIN_SRC emacs-lisp
