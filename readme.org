@@ -30,7 +30,7 @@ Please Refer to [[file:emacs.org][emacs.org]] for more.
 * i3-wm(recommend)
 sawfish is obselet, i3-wm is better.
 #+BEGIN_SRC sh
-sudo apt-get install i3-wm i3status i3lock
+sudo apt-get install i3-wm i3status i3lock i3blocks dmenu j4-dmenu-desktop
 #+END_SRC
 
 Use configuration in =.emacs.d/other-conf/=
@@ -45,8 +45,7 @@ i3-gaps has more features.
 
 * tmux
 #+BEGIN_SRC sh
-sudo apt-get install tmux
-ln -s ~/.emacs.d/other-conf/tmux.conf ~/.tmux.conf
+sudo apt-get install tmux && ln -s ~/.emacs.d/other-conf/tmux.conf ~/.tmux.conf
 #+END_SRC
 
 Basic usage:
@@ -99,3 +98,6 @@ wqy and [[https://github.com/tonsky/FiraCode][FiraCode]] or Inconsolata
 #+begin_src emacs-lisp
   sudo apt install fonts-firacode fonts-wqy-microhei fonts-inconsolata
 #+end_src
+** [[https://github.com/IBBoard/cawbird][cawbird]]
+** [[https://github.com/sundowndev/PhoneInfoga][PhoneInfoga]]
+** [[http://photivo.org][photivo]]
