@@ -270,8 +270,8 @@
        ;; Cut/copy the current line if no region is active
        ;;----------------------------------------------------------------------------
        (maybe-require-package 'whole-line-or-region)
-       (whole-line-or-region-mode t)
-       (make-variable-buffer-local 'whole-line-or-region-mode)
+;       (whole-line-or-region-mode t)
+;       (make-variable-buffer-local 'whole-line-or-region-mode)
 
        (defun suspend-mode-during-cua-rect-selection (mode-name)
          "Add an advice to suspend `MODE-NAME' while selecting a CUA rectangle."
@@ -730,7 +730,7 @@
              ((derived-mode-p 'prog-mode) (narrow-to-defun))
              (t (error "Please select a region to narrow to"))))
 
-     (global-set-key (kbd "C-x n") 'narrow-or-widen-dwim)
+     (global-set-key (kbd "C-x n n") 'narrow-or-widen-dwim)
 
    #+END_SRC
 ** god-mode
@@ -1118,10 +1118,8 @@ your project root:
    #+BEGIN_SRC emacs-lisp
      (require-package 'helm)
      (require-package 'helm-flx)
-     (require-package 'helm-fuzzier)
      (require 'helm)
 
-     (require 'helm-config)
      ;; The default "C-x c" is quite close to "C-x C-c", which quits Emacs.
      ;; Changed to "C-c h". Note: We must set "C-c h" globally, because we
      ;; cannot change `helm-command-prefix-key' once `helm-config' is loaded.
@@ -1142,9 +1140,7 @@ your project root:
            helm-ff-file-name-history-use-recentf t)
 
      (helm-mode 1)
-
      (helm-flx-mode +1)
-     (helm-fuzzier-mode 1)
 
      (setq helm-M-x-fuzzy-match t) ;; optional fuzzy matching for helm-M-x
      (setq helm-buffers-fuzzy-matching t
@@ -1726,7 +1722,7 @@ sudo snap install ripgrep --classic
 
     (global-set-key (kbd "C-c d") 'sdcv-search-input)
   #+END_SRC
-** Ispell
+** COMMENT Ispell
 #+begin_src emacs-lisp
   (setq ispell-program-name (executable-find "hunspell")
         ispell-dictionary "en_US")
