@@ -476,6 +476,28 @@ Only in elisp and c mode.
    (use-package comment-dwim-2
      :bind ("M-;" . comment-dwim-2))
    #+end_src
+** Auto completion
+#+begin_src emacs-lisp
+;; Modular text completion framework
+(use-package corfu
+  :init
+  (global-corfu-mode 1)
+  (corfu-popupinfo-mode 1)
+  :config
+  (setq corfu-cycle t
+        corfu-auto t
+        corfu-auto-delay 0
+        corfu-auto-prefix 2
+        corfu-popupinfo-delay 0.5))
+;; Emacs completion style that matches multiple regexps in any order
+(use-package orderless
+  :ensure t
+  :config
+  (setq completion-styles '(orderless basic partial-completion)
+        completion-category-overrides '((file (styles basic partial-completion)))
+        orderless-component-separator "[ |]"))
+#+end_src
+
 * Programe
 ** cc-mode
 #+begin_src emacs-lisp
@@ -515,6 +537,59 @@ Only in elisp and c mode.
     :config
     (add-hook 'c-mode-hook 'color-identifiers-mode)
     (add-hook 'c++-mode-hook 'color-identifiers-mode))
+#+end_src
+** Makefile
+#+BEGIN_SRC emacs-lisp
+(add-to-list 'auto-mode-alist '("[Mm]akefile*" . makefile-gmake-mode))
+(defun prelude-makefile-mode-defaults ()
+  (setq indent-tabs-mode t ))
+
+(setq prelude-makefile-mode-hook 'prelude-makefile-mode-defaults)
+
+(add-hook 'makefile-mode-hook (lambda ()
+                                (run-hooks 'prelude-makefile-mode-hook)))
+#+END_SRC
+
+** Markdown
+#+begin_src emacs-lisp
+;; Emacs Major mode for Markdown-formatted files
+(use-package markdown-mode
+  :defer t)
+#+end_src
+** dtrt-indent
+#+BEGIN_SRC emacs-lisp
+(use-package dtrt-indent)
+(add-hook 'c-mode-common-hook
+          (lambda()
+            (require 'dtrt-indent)
+            ;; (setq dtrt-indent-verbosity 0)
+            (dtrt-indent-mode t)))
+#+END_SRC
+
+** Fly spell
+#+begin_src emacs-lisp
+(defun cycle-languages ()
+  "Changes the ispell dictionary to the first element in
+ISPELL-LANGUAGES, and returns an interactive function that cycles
+the languages in ISPELL-LANGUAGES when invoked."
+  (let ((ispell-languages (list "american" "norsk")))
+    (lambda ()
+      (interactive)
+      ;; Rotates the languages cycle and changes the ispell dictionary.
+      (let ((rotated (nconc (cdr ispell-languages) (list (car ispell-languages)))))
+        (ispell-change-dictionary (car (setq ispell-languages rotated)))))))
+
+(use-package flyspell
+  :defer t
+  :if (executable-find "aspell")
+  :hook ((text-mode . flyspell-mode)
+         (prog-mode . flyspell-prog-mode)
+         (flyspell-mode . (lambda ()
+                            (local-set-key
+                             (kbd "C-c l")
+                             (cycle-languages)))))
+  :config
+  (ispell-change-dictionary "american" t))
 #+end_src
 ** Magit
 #+begin_src emacs-lisp
@@ -589,6 +664,7 @@ Only in elisp and c mode.
 
 (setq projectile-enable-caching t)
 #+end_src
+
 * Org mode
 ** Basic
 #+begin_src emacs-lisp
@@ -621,12 +697,19 @@ Only in elisp and c mode.
 (setq org-plantuml-jar-path "/usr/share/plantuml/plantuml.jar")
 (setq puml-plantuml-jar-path "/usr/share/plantuml/plantuml.jar")
 #+end_src
-** org-bullets
+** Org bullets & modern
 #+begin_src emacs-lisp
 (use-package org-bullets
   :init
   (add-hook 'org-mode-hook (lambda () (org-bullets-mode t)))
   (add-hook 'org-mode-hook (lambda () (org-indent-mode t))))
+
+;; Modern looks for Org
+(use-package org-modern
+  :after org
+  :hook (org-mode . org-modern-mode)
+  :config
+  (setq org-modern-block-fringe nil))
 #+end_src
 ** org-journal
 #+begin_src emacs-lisp
@@ -634,4 +717,112 @@ Only in elisp and c mode.
   :init
   (setq org-journal-dir "~/org/journal/")
   (setq org-journal-date-format "%A, %d %B %Y"))
+#+end_src
+** org-ai
+#+begin_src emacs-lisp
+(use-package org-ai
+  :ensure t
+  :commands (org-ai-mode
+             org-ai-global-mode)
+  :init
+  (add-hook 'org-mode-hook #'org-ai-mode) ; enable org-ai in org-mode
+  (org-ai-global-mode) ; installs global keybindings on C-c M-a
+  :config
+  (setq org-ai-default-chat-model "gpt-3.5-turbo") ; if you are on the gpt-4 beta:
+  (setq org-ai-openai-api-token "xxx")
+  (org-ai-install-yasnippets)) ; if you are using yasnippet and want `ai` snippets
+#+end_src
+** Latex
+#+begin_src emacs-lisp
+(require 'ox-latex)
+(require 'ox-beamer)
+(setq org-latex-images-centered 't)
+
+(setq org-latex-coding-system 'utf-8)
+
+(setf org-latex-default-packages-alist
+      (remove '("AUTO" "inputenc" t) org-latex-default-packages-alist))
+(setf org-latex-default-packages-alist
+      (remove '("T1" "fontenc" t) org-latex-default-packages-alist))
+
+(setq org-latex-pdf-process '("xelatex -8bit -shell-escape  %f"
+                              "xelatex -8bit -shell-escape  %f"))
+(setq org-latex-packages-alist
+      '("
+        \\hypersetup{ colorlinks,% 
+                linkcolor=blue,% 
+                citecolor=black,%
+                urlcolor=black,%
+                filecolor=black
+               }
+
+        \\usepackage{array}
+        \\usepackage{xcolor}
+        \\definecolor{bg}{rgb}{0.95,0.95,0.95}"))
+
+(add-to-list 'org-latex-packages-alist '("" "minted"))
+(setq org-latex-listings 'minted)
+(setq org-latex-minted-options
+      '(
+        ("bgcolor" "bg")
+        ("frame" "lines")
+        ("linenos" "")
+        ("fontsize" "\\scriptsize")
+        ))
+
+(add-to-list 'org-latex-classes
+             '("article-cn"
+              "\\documentclass[11pt]{article}
+                [DEFAULT-PACKAGES]
+                [PACKAGES]
+                \\usepackage{fontspec}
+
+                \\XeTeXlinebreaklocale ``zh''
+                \\XeTeXlinebreakskip = 0pt plus 1pt minus 0.1pt
+                \\newcommand\\fontnamehei{WenQuanYi Zen Hei}
+                \\newcommand\\fontnamesong{AR PL UMing CN}
+                \\newcommand\\fontnamekai{AR PL KaitiM GB}
+                \\newcommand\\fontnamemono{FreeMono}
+                \\newcommand\\fontnameroman{FreeSans}
+                \\setmainfont[BoldFont=\\fontnamehei]{\\fontnamesong}
+                \\setsansfont[BoldFont=\\fontnamehei]{\\fontnamekai}
+                \\setmonofont{\\fontnamemono}
+                \\setromanfont[BoldFont=\\fontnamehei]{\\fontnamesong}
+                \\makeatletter
+                \\def\\verbatim@font{\\rmfamily\\small} %verbatim中使用roman字体族
+                \\makeatother"
+
+              ("\\section{%s}" . "\\section*{%s}")
+              ("\\subsection{%s}" . "\\subsection*{%s}")
+              ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+              ("\\paragraph{%s}" . "\\paragraph*{%s}")
+              ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
+
+(add-to-list 'org-latex-classes
+             '("article-img"
+              "\\documentclass[11pt]{article}
+                [DEFAULT-PACKAGES]
+                [PACKAGES]
+                \\usepackage{geometry}
+                \\geometry{left=1.5cm,right=1.5cm,top=1.5cm,bottom=1.5cm}"
+              ("\\section{%s}" . "\\section*{%s}")
+              ("\\subsection{%s}" . "\\subsection*{%s}")
+              ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+              ("\\paragraph{%s}" . "\\paragraph*{%s}")
+              ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
+#+end_src
+* Other tools
+** Dictionary
+#+begin_src emacs-lisp
+;; display the definition of word at point
+(use-package define-word
+  :defer t
+  :bind ("C-c d" . define-word-at-point))
+#+end_src
+** Which key (show available keybindings)
+#+begin_src emacs-lisp
+;; Display available keybindings in popup
+(use-package which-key
+  :config
+  (which-key-mode 1))
 #+end_src
