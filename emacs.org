@@ -24,6 +24,7 @@
                (setq paradox-execute-asynchronously t))
 #+end_src
 * Defaults
+** Basics
 #+begin_src emacs-lisp
   (setq auto-revert-interval 1            ; Refresh buffers fast
       default-input-method "TeX"        ; Use TeX when toggling input method
@@ -44,7 +45,7 @@
 #+end_src
 
 #+begin_src emacs-lisp
-  (setq-default tab-width 4                       ; Smaller tabs
+(setq-default tab-width 4                       ; Smaller tabs
               fill-column 79                    ; Maximum line width
               truncate-lines t                  ; Don't fold lines
               indent-tabs-mode nil              ; Use spaces instead of tabs
@@ -55,38 +56,33 @@
               x-select-enable-clipboard t
               x-select-enable-primary t
               auto-fill-function 'do-auto-fill) ; Auto-fill-mode everywhere
-
-  (defvar custom-bindings-map (make-keymap)
-  "A keymap for custom bindings.")
 #+end_src
+
 #+begin_src emacs-lisp
-  (global-set-key (kbd "C-w") 'backward-kill-word)
-  (global-set-key (kbd "C-x C-k") 'kill-region)
-  (global-set-key (kbd "C-x C-b") 'ibuffer-list-buffers)
-  (global-set-key (kbd "C--") 'mark-sexp)
+(global-set-key (kbd "C-w") 'backward-kill-word)
+(global-set-key (kbd "C-x C-k") 'kill-region)
+(global-set-key (kbd "C-x C-b") 'ibuffer-list-buffers)
 
-  (global-set-key (kbd "<f8>") 'eshell)
-
-  (setq superword-mode t)
+(global-set-key (kbd "<f8>") 'eshell)
 #+end_src
 ** GUI
 #+begin_src emacs-lisp
-  (when (functionp 'menu-bar-mode)
-    (menu-bar-mode -1))
-  (when (functionp 'set-scroll-bar-mode)
-    (set-scroll-bar-mode 'nil))
-  (when (functionp 'mouse-wheel-mode)
-    (mouse-wheel-mode -1))
-  (when (functionp 'tooltip-mode)
-    (tooltip-mode -1))
-  (when (functionp 'tool-bar-mode)
-    (tool-bar-mode -1))
-  (when (functionp 'blink-cursor-mode)
-    (blink-cursor-mode -1))
-  (when (functionp 'column-number-mode)
-    (column-number-mode 1))
-  (when (functionp 'line-number-mode)
-      (line-number-mode 1))
+(when (functionp 'menu-bar-mode)
+  (menu-bar-mode -1))
+(when (functionp 'set-scroll-bar-mode)
+  (set-scroll-bar-mode 'nil))
+(when (functionp 'mouse-wheel-mode)
+  (mouse-wheel-mode -1))
+(when (functionp 'tooltip-mode)
+  (tooltip-mode -1))
+(when (functionp 'tool-bar-mode)
+  (tool-bar-mode -1))
+(when (functionp 'blink-cursor-mode)
+  (blink-cursor-mode -1))
+(when (functionp 'column-number-mode)
+  (column-number-mode 1))
+(when (functionp 'line-number-mode)
+    (line-number-mode 1))
 #+end_src
 ** Prettify symbols
 #+begin_src emacs-lisp
@@ -133,25 +129,37 @@
     (global-set-key [remap query-replace-regexp] 'anzu-query-replace-regexp)
     (global-set-key [remap query-replace] 'anzu-query-replace))
 #+end_src
-** TODO Meow (modal editing)
-** TODO Modeline
+** Modeline
 #+begin_src emacs-lisp
+(use-package smart-mode-line
+  :init
+  (setq sml/no-confirm-load-theme t
+        powerline-arrow-shape 'curve
+        powerline-default-separator-dir '(right . left)
+        sml/mode-width 0
+        sml/name-width 20
+        sml/theme 'powerline)
+  :config
+  (use-package smart-mode-line-powerline-theme)
+  (sml/setup)
+  (display-time-mode 1))
 #+end_src
 ** Extra settings
 #+begin_src emacs-lisp
-  (global-hl-line-mode 1)
-  (fset 'yes-or-no-p 'y-or-n-p)
+(global-hl-line-mode 1)
+(fset 'yes-or-no-p 'y-or-n-p)
 
-  (dolist (mode
-         '(abbrev-mode                  ; E.g. sopl -> System.out.println
-           column-number-mode           ; Show column number in mode line
-           delete-selection-mode        ; Replace selected text
-           dirtrack-mode                ; directory tracking in *shell*
-           global-so-long-mode          ; Mitigate performance for long lines
-           recentf-mode                 ; Recently opened files
-           winner-mode					; “undo” and “redo” changes in WindowConfiguration
-           show-paren-mode))            ; Highlight matching parentheses
-  (funcall mode 1))
+(dolist (mode
+       '(abbrev-mode                  ; E.g. sopl -> System.out.println
+         column-number-mode           ; Show column number in mode line
+         delete-selection-mode        ; Replace selected text
+         dirtrack-mode                ; directory tracking in *shell*
+         global-so-long-mode          ; Mitigate performance for long lines
+         recentf-mode                 ; Recently opened files
+         winner-mode					; “undo” and “redo” changes in WindowConfiguration
+         superword-mode
+         show-paren-mode))            ; Highlight matching parentheses
+(funcall mode 1))
 #+end_src
 * General
 ** Key strokes
@@ -457,11 +465,11 @@ Only in elisp and c mode.
 #+end_src
 ** Multiple cursors
 #+begin_src emacs-lisp
-  (use-package multiple-cursors
-    :bind (("C-m" . mc/edit-lines)
-           ("C->" . mc/mark-next-like-this)
-           ("C-<" . mc/mark-previous-like-this)
-           ("C-c C-<" . mc/mark-all-like-this)))
+(use-package multiple-cursors
+  :bind (;("C-M" . mc/edit-lines)
+         ("C->" . mc/mark-next-like-this)
+         ("C-<" . mc/mark-previous-like-this)
+         ("C-c C-<" . mc/mark-all-like-this)))
 #+end_src
 ** Smart comment
    #+begin_src emacs-lisp
@@ -524,65 +532,67 @@ Only in elisp and c mode.
 ** Helm
 *** Basic setting
 #+begin_src emacs-lisp
-  (use-package helm
-    :config
-    (setq helm-split-window-in-side-p           t ; open helm buffer inside current window, not occupy whole other window
-          helm-move-to-line-cycle-in-source     t ; move to end or beginning of source when reaching top or bottom of source.
-          helm-ff-search-library-in-sexp        t ; search for library in `require' and `declare-function' sexp.
-          helm-scroll-amount                    8 ; scroll 8 lines other window using M-<next>/M-<prior>
-          helm-ff-file-name-history-use-recentf t)
+(use-package helm
+  :ensure t
+  :config
+  (setq helm-split-window-in-side-p           t ; open helm buffer inside current window, not occupy whole other window
+        helm-move-to-line-cycle-in-source     t ; move to end or beginning of source when reaching top or bottom of source.
+        helm-ff-search-library-in-sexp        t ; search for library in `require' and `declare-function' sexp.
+        helm-scroll-amount                    8 ; scroll 8 lines other window using M-<next>/M-<prior>
+        helm-ff-file-name-history-use-recentf t)
 
-    :bind (("C-c h" . helm-command-prefix)
-           ("M-x" . helm-M-x)
-           ("C-x y" . helm-show-kill-ring)
-           ("C-x b" . helm-mini)
-           ("C-x C-f" . helm-find-files)
-           ("M-i" . helm-occur)
-           :map helm-command-map
-           ("C-i" . helm-execute-persistent-action)
-           ("C-i" . helm-select-action)
-           ("<tab>" . helm-execute-persistent-action))
-    )
+  :bind (("C-c h" . helm-command-prefix)
+         ("M-x" . helm-M-x)
+         ("C-x y" . helm-show-kill-ring)
+         ("C-x b" . helm-mini)
+         ("C-x C-f" . helm-find-files)
+         ("M-i" . helm-occur)
+         :map helm-command-map
+         ("C-i" . helm-execute-persistent-action)
+         ("C-i" . helm-select-action)
+         ("<tab>" . helm-execute-persistent-action))
+  )
 
-  (global-unset-key (kbd "C-x c"))
+(global-unset-key (kbd "C-x c"))
 #+end_src
 *** Helm gtags
 #+begin_src emacs-lisp
-  (use-package helm-gtags
-    :after helm                      
-    :config ((setq helm-gtags-auto-update t)
-             (setq helm-gtags-update-interval-second 60))
-    :bind (:map helm-gtags-mode-map
-                ("M-t" . helm-gtags-find-tag)
-                ("M-r" . helm-gtags-find-rtag)
-                ("M-s" . helm-gtags-find-symbol)
-                ("M-g M-p" . helm-gtags-parse-file)
-                ("C-c <" . helm-gtags-previous-history)
-                ("C-c >" . helm-gtags-next-history)
-                ("M-," . helm-gtags-pop-stack))
-    :hook ((c-mode-hook . helm-gtags-mode)
-           (c++-mode-hook . helm-gtags-mode)
-           (asm-mode-hook . helm-gtags-mode)))
+(use-package helm-gtags
+  :after helm                      
+  :config
+  (setq helm-gtags-auto-update t)
+  (setq helm-gtags-update-interval-second 60)
+  :bind (:map helm-gtags-mode-map
+              ("M-t" . helm-gtags-find-tag)
+              ("M-r" . helm-gtags-find-rtag)
+              ("M-s" . helm-gtags-find-symbol)
+              ("M-g M-p" . helm-gtags-parse-file)
+              ("C-c <" . helm-gtags-previous-history)
+              ("C-c >" . helm-gtags-next-history)
+              ("M-," . helm-gtags-pop-stack))
+  :hook ((c-mode-hook . helm-gtags-mode)
+         (c++-mode-hook . helm-gtags-mode)
+         (asm-mode-hook . helm-gtags-mode)))
 #+end_src
 *** Helm projectile
 #+begin_src emacs-lisp
-    (use-package helm-projectile
-      :after helm
-      :bind (("C-c p f" . helm-projectile-find-file-dwim)
-             ("C-c p p" . helm-projectile-switch-project)
-             ("C-c p b" . helm-projectile-switch-to-buffer)
-             ("C-c p g" . helm-projectile-grep)))
+(use-package helm-projectile
+  :after helm
+  :bind (("C-c p f" . helm-projectile-find-file-dwim)
+         ("C-c p p" . helm-projectile-switch-project)
+         ("C-c p b" . helm-projectile-switch-to-buffer)
+         ("C-c p g" . helm-projectile-grep)))
 
-    (projectile-global-mode)
-    (setq projectile-completion-system 'helm)
-    (helm-projectile-on)
+(projectile-global-mode)
+(setq projectile-completion-system 'helm)
+(helm-projectile-on)
 
-    (setq projectile-enable-caching t)
+(setq projectile-enable-caching t)
 #+end_src
 * Org mode
 ** Basic
 #+begin_src emacs-lisp
-  (use-package org
+(use-package org
   :defer t
   :config
   (setq org-adapt-indentation t
@@ -592,9 +602,36 @@ Only in elisp and c mode.
         org-src-fontify-natively t
         org-edit-src-content-indentation 0))
 #+end_src
+** org-babel
+#+begin_src emacs-lisp
+(use-package gnuplot)
+(use-package plantuml-mode)
+;; active Babel languages
+(org-babel-do-load-languages
+ 'org-babel-load-languages
+ '((shell . t)
+   (dot . t)
+   (ditaa . t)
+   (python . t)
+   (gnuplot . t)
+   (plantuml . t)
+   (emacs-lisp . t)
+   ))
+;; Install plantuml.jar by: sudo apt install plantuml
+(setq org-plantuml-jar-path "/usr/share/plantuml/plantuml.jar")
+(setq puml-plantuml-jar-path "/usr/share/plantuml/plantuml.jar")
+#+end_src
 ** org-bullets
-   #+begin_src emacs-lisp
-   (use-package org-bullets)
-   (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
-   (add-hook 'org-mode-hook (lambda () (org-indent-mode t)))
-   #+end_src
+#+begin_src emacs-lisp
+(use-package org-bullets
+  :init
+  (add-hook 'org-mode-hook (lambda () (org-bullets-mode t)))
+  (add-hook 'org-mode-hook (lambda () (org-indent-mode t))))
+#+end_src
+** org-journal
+#+begin_src emacs-lisp
+(use-package org-journal
+  :init
+  (setq org-journal-dir "~/org/journal/")
+  (setq org-journal-date-format "%A, %d %B %Y"))
+#+end_src
