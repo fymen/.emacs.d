@@ -488,6 +488,7 @@ Only in elisp and c mode.
         corfu-auto t
         corfu-auto-delay 0
         corfu-auto-prefix 2
+        corfu-quit-at-boundary 'separator
         corfu-popupinfo-delay 0.5))
 ;; Emacs completion style that matches multiple regexps in any order
 (use-package orderless
@@ -498,7 +499,7 @@ Only in elisp and c mode.
         orderless-component-separator "[ |]"))
 #+end_src
 
-* Programe
+* Program
 ** cc-mode
 #+begin_src emacs-lisp
   (defun linux-c-mode()
@@ -605,7 +606,8 @@ the languages in ISPELL-LANGUAGES when invoked."
     (editorconfig-mode 1))
 #+end_src
 ** Helm
-*** Basic setting
+*** Basic
+***  setting
 #+begin_src emacs-lisp
 (use-package helm
   :ensure t
@@ -652,6 +654,7 @@ the languages in ISPELL-LANGUAGES when invoked."
 *** Helm projectile
 #+begin_src emacs-lisp
 (use-package helm-projectile
+  :diminish t
   :after helm
   :bind (("C-c p f" . helm-projectile-find-file-dwim)
          ("C-c p p" . helm-projectile-switch-project)
@@ -664,12 +667,46 @@ the languages in ISPELL-LANGUAGES when invoked."
 
 (setq projectile-enable-caching t)
 #+end_src
+** Yasnippet
+#+begin_src emacs-lisp
+(use-package yasnippet
+  :diminish t
+  :init
+  (setq helm-yas-space-match-any-greedy t)
+  (setq yas-prompt-functions '(yas-dropdown-prompt
+                               yas-ido-prompt
+                               yas-completing-prompt))
+  :config
+  (use-package helm-c-yasnippet)
+  (yas-global-mode 1)
+  (add-hook 'term-mode-hook (lambda()
+                              (yas-minor-mode -1))))
+#+end_src
 
+** Compilation
+#+begin_src emacs-lisp
+(defun prelude-colorize-compilation-buffer ()
+  "Colorize a compilation mode buffer."
+  (interactive)
+  ;; we don't want to mess with child modes such as grep-mode, ack, ag, etc
+  (when (eq major-mode 'compilation-mode)
+    (let ((inhibit-read-only t))
+      (ansi-color-apply-on-region (point-min) (point-max)))))
+(setq compilation-ask-about-save nil          ; Just save before compiling
+      compilation-always-kill t               ; Just kill old compile processes before starting the new one
+      compilation-scroll-output 'first-error) ; Automatically scroll to first
+(use-package cd-compile
+  :bind ("<f5>" . cd-compile))
+#+end_src
+
+** TODO Eglot
 * Org mode
-** Basic
+** Basics
 #+begin_src emacs-lisp
 (use-package org
   :defer t
+  :bind (:map org-mode-map
+         ("M-;" . org-comment-dwim))
   :config
   (setq org-adapt-indentation t
         org-hide-leading-stars t
