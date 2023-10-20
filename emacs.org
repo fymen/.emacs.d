@@ -676,7 +676,8 @@ the languages in ISPELL-LANGUAGES when invoked."
         org-hide-emphasis-markers t
         org-pretty-entities t
         org-src-fontify-natively t
-        org-edit-src-content-indentation 0))
+        org-edit-src-content-indentation 0
+        org-ellipsis "⤵"))
 #+end_src
 ** org-babel
 #+begin_src emacs-lisp
