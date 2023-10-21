@@ -23,10 +23,21 @@
                :config
                (setq paradox-execute-asynchronously t))
 #+end_src
-* Defaults
+* General
 ** Basics
 #+begin_src emacs-lisp
-  (setq auto-revert-interval 1            ; Refresh buffers fast
+(setq-default tab-width 4                       ; Smaller tabs
+              fill-column 79                    ; Maximum line width
+              truncate-lines t                  ; Don't fold lines
+              indent-tabs-mode nil              ; Use spaces instead of tabs
+              split-width-threshold 80           ; Split Horizontally by default
+              split-height-threshold 80        ; Split Horizontally by default
+              frame-resize-pixelwise t          ; Fine-grained frame resize
+              frame-title-format "%f %4 %b %Z %* %10 %I"
+              x-select-enable-clipboard t
+              x-select-enable-primary t
+              auto-fill-function 'do-auto-fill) ; Auto-fill-mode everywhere
+(setq auto-revert-interval 1            ; Refresh buffers fast
       default-input-method "TeX"        ; Use TeX when toggling input method
       echo-keystrokes 0.1               ; Show keystrokes asap
       enable-recursive-minibuffers t    ; Allow recursive minibuffers
@@ -39,26 +50,7 @@
       sentence-end-double-space nil     ; No double space
       custom-file                       ; Customizations in a separate file
       (concat user-emacs-directory "custom.el"))
-;; Some mac-bindings interfere with Emacs bindings.
-(when (boundp 'mac-pass-command-to-system)
-  (setq mac-pass-command-to-system nil))
-#+end_src
 
-#+begin_src emacs-lisp
-(setq-default tab-width 4                       ; Smaller tabs
-              fill-column 79                    ; Maximum line width
-              truncate-lines t                  ; Don't fold lines
-              indent-tabs-mode nil              ; Use spaces instead of tabs
-              split-width-threshold 160         ; Split verticly by default
-              split-height-threshold nil        ; Split verticly by default
-              frame-resize-pixelwise t          ; Fine-grained frame resize
-              frame-title-format "%f %4 %b %Z %* %10 %I"
-              x-select-enable-clipboard t
-              x-select-enable-primary t
-              auto-fill-function 'do-auto-fill) ; Auto-fill-mode everywhere
-#+end_src
-
-#+begin_src emacs-lisp
 (global-set-key (kbd "C-w") 'backward-kill-word)
 (global-set-key (kbd "C-x C-k") 'kill-region)
 (global-set-key (kbd "C-x C-b") 'ibuffer-list-buffers)
@@ -86,7 +78,7 @@
 #+end_src
 ** Prettify symbols
 #+begin_src emacs-lisp
-  (when (boundp 'global-prettify-symbols-mode)
+(when (boundp 'global-prettify-symbols-mode)
   (add-hook 'emacs-lisp-mode-hook
             (lambda ()
               (push '("lambda" . ?λ) prettify-symbols-alist)))
@@ -161,11 +153,27 @@
          show-paren-mode))            ; Highlight matching parentheses
 (funcall mode 1))
 #+end_src
-* General
-** Key strokes
+** COMMENT Evil mode
 #+begin_src emacs-lisp
-  
+(use-package evil
+  :demand t
+  :bind (("<escape>" . keyboard-escape-quit))
+  :init
+  ;; allows for using cgn
+  ;; (setq evil-search-module 'evil-search)
+  (setq evil-want-keybinding nil)
+  ;; no vim insert bindings
+  (setq evil-undo-system 'undo-fu)
+  :config
+  (evil-mode 1))
+
+(use-package evil-collection
+  :after evil
+  :ensure t
+  :config
+  (evil-collection-init))
 #+end_src
+* Enhancement
 ** Ediff
 #+begin_src emacs-lisp
   (setq ediff-window-setup-function 'ediff-setup-windows-plain
@@ -225,93 +233,78 @@ Only in elisp and c mode.
 #+end_src
 ** Smart move to the beginning of line
 #+BEGIN_SRC emacs-lisp
-  (defun my/smarter-move-beginning-of-line (arg)
-    "Move point back to indentation of beginning of line.
+(defun my/smarter-move-beginning-of-line (arg)
+  "Move point back to indentation of beginning of line.
 
-  Move point to the first non-whitespace character on this line.
-  If point is already there, move to the beginning of the line.
-  Effectively toggle between the first non-whitespace character and
-  the beginning of the line.
+Move point to the first non-whitespace character on this line.
+If point is already there, move to the beginning of the line.
+Effectively toggle between the first non-whitespace character and
+the beginning of the line.
 
-  If ARG is not nil or 1, move forward ARG - 1 lines first.  If
-  point reaches the beginning or end of the buffer, stop there."
-    (interactive "^p")
-    (setq arg (or arg 1))
+If ARG is not nil or 1, move forward ARG - 1 lines first.  If
+point reaches the beginning or end of the buffer, stop there."
+  (interactive "^p")
+  (setq arg (or arg 1))
 
-    ;; Move lines first
-    (when (/= arg 1)
-      (let ((line-move-visual nil))
-        (forward-line (1- arg))))
+  ;; Move lines first
+  (when (/= arg 1)
+    (let ((line-move-visual nil))
+      (forward-line (1- arg))))
 
-    (let ((orig-point (point)))
-      (back-to-indentation)
-      (when (= orig-point (point))
-        (move-beginning-of-line 1))))
+  (let ((orig-point (point)))
+    (back-to-indentation)
+    (when (= orig-point (point))
+      (move-beginning-of-line 1))))
 
-  ;; remap C-a to `smarter-move-beginning-of-line'
-  (global-set-key [remap move-beginning-of-line]
-                  'my/smarter-move-beginning-of-line)
+;; remap C-a to `smarter-move-beginning-of-line'
+(global-set-key [remap move-beginning-of-line]
+                'my/smarter-move-beginning-of-line)
 #+END_SRC
 ** Window operation
 #+BEGIN_SRC emacs-lisp
-  (defun my/vsplit-last-buffer (prefix)
-    "Split the window vertically and display the previous buffer."
+(defun my/vsplit-last-buffer (prefix)
+  "Split the window vertically and display the previous buffer."
+  (interactive "p")
+  (split-window-vertically)
+  (other-window 1 nil)
+  (if (= prefix 1)
+      (switch-to-next-buffer)))
+(defun my/hsplit-last-buffer (prefix)
+  "Split the window horizontally and display the previous buffer."
+  (interactive "p")
+  (split-window-horizontally)
+  (other-window 1 nil)
+  (if (= prefix 1) (switch-to-next-buffer)))
+
+(global-set-key (kbd "C-x 2") 'my/vsplit-last-buffer)
+(global-set-key (kbd "C-x 3") 'my/hsplit-last-buffer)
+
+(defun sanityinc/toggle-delete-other-windows ()
+  "Delete other windows in frame if any, or restore previous window config."
+  (interactive)
+  (if (and winner-mode
+           (equal (selected-window) (next-window)))
+      (winner-undo)
+    (delete-other-windows)))
+
+(global-set-key (kbd "C-x 1") 'sanityinc/toggle-delete-other-windows)
+
+(defun split-window-horizontally-instead (prefix)
     (interactive "p")
-    (split-window-vertically)
-    (other-window 1 nil)
-    (if (= prefix 1)
-        (switch-to-next-buffer)))
-  (defun my/hsplit-last-buffer (prefix)
-    "Split the window horizontally and display the previous buffer."
-    (interactive "p")
+    (delete-other-windows)
     (split-window-horizontally)
-    (other-window 1 nil)
-    (if (= prefix 1) (switch-to-next-buffer)))
+    (let ((target-window (next-window)))
+                   (set-window-buffer target-window (other-buffer))))
 
-  (global-set-key (kbd "C-x 2") 'my/vsplit-last-buffer)
-  (global-set-key (kbd "C-x 3") 'my/hsplit-last-buffer)
+(defun split-window-vertically-instead (prefix)
+    (interactive "p")
+    (delete-other-windows)
+    (split-window-vertically)
+    (let ((target-window (next-window)))
+                   (set-window-buffer target-window (other-buffer))))
 
-  (defun sanityinc/toggle-delete-other-windows ()
-    "Delete other windows in frame if any, or restore previous window config."
-    (interactive)
-    (if (and winner-mode
-             (equal (selected-window) (next-window)))
-        (winner-undo)
-      (delete-other-windows)))
-
-  (global-set-key "\C-x1" 'sanityinc/toggle-delete-other-windows)
-
-  ;;----------------------------------------------------------------------------
-  ;; Rearrange split windows
-  ;;----------------------------------------------------------------------------
-  ;;----------------------------------------------------------------------------
-  ;; When splitting window, show (other-buffer) in the new window
-  ;;----------------------------------------------------------------------------
-  (defun split-window-func-with-other-buffer (split-function)
-    (lexical-let ((s-f split-function))
-                 (lambda (&optional arg)
-                   "Split this window and switch to the new window unless ARG is provided."
-                   (interactive "P")
-                   (funcall s-f)
-                   (let ((target-window (next-window)))
-                     (set-window-buffer target-window (other-buffer))
-                     (unless arg
-                       (select-window target-window))))))
-
-  (defun split-window-horizontally-instead ()
-    (interactive)
-    (save-excursion
-      (delete-other-windows)
-      (funcall (split-window-func-with-other-buffer 'split-window-horizontally))))
-
-  (defun split-window-vertically-instead ()
-    (interactive)
-    (save-excursion
-      (delete-other-windows)
-      (funcall (split-window-func-with-other-buffer 'split-window-vertically))))
-
-  (global-set-key "\C-x|" 'split-window-horizontally-instead)
-  (global-set-key "\C-x_" 'split-window-vertically-instead)
+(global-set-key (kbd "C-x |") 'split-window-horizontally-instead)
+(global-set-key (kbd "C-x _") 'split-window-vertically-instead)
 #+END_SRC
 ** Smart copy/kill-line
 #+begin_src emacs-lisp
@@ -445,12 +438,12 @@ Only in elisp and c mode.
 #+end_src
 ** Olivetti (for prose writing)
 #+begin_src emacs-lisp
-  ;; Minor mode for a nice writing environment
-  (use-package olivetti
-    :defer t
-    :bind ("C-c o" . olivetti-mode)
-    :config
-    (setq-default olivetti-body-width (+ fill-column 3)))
+;; Minor mode for a nice writing environment
+(use-package olivetti
+  :defer t
+  :bind ("C-c o" . olivetti-mode)
+  :config
+  (setq-default olivetti-body-width (+ fill-column 3)))
 #+end_src
 ** Focus (dim surounding texts)
 #+begin_src emacs-lisp
@@ -598,13 +591,6 @@ the languages in ISPELL-LANGUAGES when invoked."
   (use-package magit
     :bind ("C-x g" . magit-status))
 #+end_src
-** TODO Editor config
-#+begin_src emacs-lisp
-  ;; EditorConfig Emacs Plugin
-  (use-package editorconfig
-    :config
-    (editorconfig-mode 1))
-#+end_src
 ** Helm
 *** Basic
 ***  setting
@@ -699,6 +685,22 @@ the languages in ISPELL-LANGUAGES when invoked."
   :bind ("<f5>" . cd-compile))
 #+end_src
 
+** Smartparens
+#+begin_src emacs-lisp
+(use-package smartparens-mode
+  :ensure smartparens  ;; install the package
+  :hook (prog-mode text-mode markdown-mode) ;; add `smartparens-mode` to these hooks
+  :config
+  ;; load default config
+  (require 'smartparens-config))
+#+end_src
+** TODO Editor config
+#+begin_src emacs-lisp
+  ;; EditorConfig Emacs Plugin
+  (use-package editorconfig
+    :config
+    (editorconfig-mode 1))
+#+end_src
 ** TODO Eglot
 * Org mode
 ** Basics
@@ -737,11 +739,6 @@ the languages in ISPELL-LANGUAGES when invoked."
 #+end_src
 ** Org bullets & modern
 #+begin_src emacs-lisp
-(use-package org-bullets
-  :init
-  (add-hook 'org-mode-hook (lambda () (org-bullets-mode t)))
-  (add-hook 'org-mode-hook (lambda () (org-indent-mode t))))
-
 ;; Modern looks for Org
 (use-package org-modern
   :after org
