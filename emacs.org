@@ -391,7 +391,7 @@ point reaches the beginning or end of the buffer, stop there."
 ** ace-window
 #+begin_src emacs-lisp
   (use-package ace-window
-    :bind ("C-=" . ace-window))
+    :bind ("C-x o" . ace-window))
 #+end_src
 ** beacon-mode
 #+begin_src emacs-lisp
