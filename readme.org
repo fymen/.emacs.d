@@ -30,7 +30,8 @@ Please Refer to [[file:emacs.org][emacs.org]] for more.
 * i3-wm(recommend)
 sawfish is obselet, i3-wm is better.
 #+BEGIN_SRC sh
-sudo apt-get install i3-wm i3status i3lock i3blocks dmenu j4-dmenu-desktop
+sudo apt-get install i3-wm i3status i3lock i3blocks dmenu j4-dmenu-desktop \
+     feh flameshot
 #+END_SRC
 
 Use configuration in =.emacs.d/other-conf/=

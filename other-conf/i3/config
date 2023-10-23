@@ -24,8 +24,10 @@ font pango:DejaVu Sans Mono 10
 
 # Set static color as desktop
 # exec --no-startup-id xsetroot -solid "DimGray"
+
 exec --no-startup-id xrandr --output eDP --mode 1920x1200
-exec --no-startup-id feh --bg-scale ~/images/Fantastic-House-Painting-Wallpapers.jpg
+
+exec --no-startup-id feh --bg-scale ~/Pictures/wp2774740-nacher-wallpaper-3d.jpg
 
 # Use Mouse+$mod to drag floating windows to their wanted position
 floating_modifier $mod

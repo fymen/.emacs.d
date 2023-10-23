@@ -707,7 +707,8 @@ the languages in ISPELL-LANGUAGES when invoked."
 #+begin_src emacs-lisp
 (use-package org
   :defer t
-  :bind (:map org-mode-map
+  :bind (("C-c c" . org-capture)
+         :map org-mode-map
          ("M-;" . org-comment-dwim))
   :config
   (setq org-adapt-indentation t
@@ -759,13 +760,68 @@ the languages in ISPELL-LANGUAGES when invoked."
   :ensure t
   :commands (org-ai-mode
              org-ai-global-mode)
+  :load-path (lambda () "~/org/org-ai")
   :init
   (add-hook 'org-mode-hook #'org-ai-mode) ; enable org-ai in org-mode
   (org-ai-global-mode) ; installs global keybindings on C-c M-a
   :config
-  (setq org-ai-default-chat-model "gpt-3.5-turbo") ; if you are on the gpt-4 beta:
-  (setq org-ai-openai-api-token "xxx")
+  ;; (setq org-ai-default-chat-model "gpt-4") ; if you are on the gpt-4 beta:
   (org-ai-install-yasnippets)) ; if you are using yasnippet and want `ai` snippets
+#+end_src
+
+** org-download
+#+begin_src emacs-lisp
+(use-package org-download
+    :after org
+    :bind
+    (:map org-mode-map
+    (("s-Y" . org-download-screenshot)
+        ("s-y" . org-download-yank)))
+    :config
+    (if (memq window-system '(mac ns))
+        (setq org-download-screenshot-method "screencapture -i %s")
+        (setq org-download-screenshot-method "flameshot gui --raw > %s")
+        )
+    (defun my-org-download-method (link)
+        "This is a helper function for org-download.
+    It creates a folder in the root directory (~/.org/img/) named after the
+    org filename (sans extension) and puts all images from that file in there.
+    Inspired by https://github.com/daviderestivo/emacs-config/blob/6086a7013020e19c0bc532770e9533b4fc549438/init.el#L701"
+        (let ((filename
+            (file-name-nondirectory
+                (car (url-path-and-query
+                    (url-generic-parse-url link)))))
+            ;; Create folder name with current buffer name, and place in root dir
+            (dirname (concat "./images/"
+                            (replace-regexp-in-string " " "_" (downcase (file-name-base buffer-file-name))))))
+
+        ;; Add timestamp to filename
+        (setq filename-with-timestamp (format "%s%s.%s"
+                                                (file-name-sans-extension filename)
+                                                (format-time-string org-download-timestamp)
+                                                (file-name-extension filename)))
+        ;; Create folder if necessary
+        (unless (file-exists-p dirname)
+            (make-directory dirname t))
+        (expand-file-name filename-with-timestamp dirname)))
+    (setq org-download-method 'my-org-download-method))
+#+end_src
+
+** org-capture
+#+begin_src emacs-lisp
+;; Org-capture templates
+(setq org-my-anki-file "~/org/capture/anki.org")
+
+(setq org-capture-templates
+      '(
+        ("a" "Anki basic"
+         entry
+         (file+headline org-my-anki-file "Dispatch Shelf")
+         "* %<%H:%M>   %^g\n:PROPERTIES:\n:ANKI_NOTE_TYPE: Basic\n:ANKI_DECK: Mega\n:END:\n** Front\n%?\n** Back\n%x\n")
+        ("A" "Anki cloze"
+         entry
+         (file+headline org-my-anki-file "Dispatch Shelf")
+         "* %<%H:%M>   %^g\n:PROPERTIES:\n:ANKI_NOTE_TYPE: Cloze\n:ANKI_DECK: Mega\n:END:\n** Text\n%x\n** Extra\n")))
 #+end_src
 ** Latex
 #+begin_src emacs-lisp
