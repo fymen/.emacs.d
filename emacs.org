@@ -738,6 +738,12 @@ the languages in ISPELL-LANGUAGES when invoked."
 (setq org-plantuml-jar-path "/usr/share/plantuml/plantuml.jar")
 (setq puml-plantuml-jar-path "/usr/share/plantuml/plantuml.jar")
 #+end_src
+** COMMENT Org auto tangle
+#+begin_src emacs-lisp
+(use-package org-auto-tangle
+  :defer t
+  :hook (org-mode . org-auto-tangle-mode))
+#+end_src
 ** Org bullets & modern
 #+begin_src emacs-lisp
 ;; Modern looks for Org
@@ -751,8 +757,9 @@ the languages in ISPELL-LANGUAGES when invoked."
 #+begin_src emacs-lisp
 (use-package org-journal
   :init
-  (setq org-journal-dir "~/org/journal/")
-  (setq org-journal-date-format "%A, %d %B %Y"))
+  (setq org-journal-dir "~/org/journal/"
+        org-journal-date-format "%A, %d %B %Y"
+        org-journal-file-type 'weekly))
 #+end_src
 ** org-ai
 #+begin_src emacs-lisp
@@ -760,12 +767,11 @@ the languages in ISPELL-LANGUAGES when invoked."
   :ensure t
   :commands (org-ai-mode
              org-ai-global-mode)
-  :load-path (lambda () "~/org/org-ai")
   :init
   (add-hook 'org-mode-hook #'org-ai-mode) ; enable org-ai in org-mode
   (org-ai-global-mode) ; installs global keybindings on C-c M-a
   :config
-  ;; (setq org-ai-default-chat-model "gpt-4") ; if you are on the gpt-4 beta:
+  (setq org-ai-default-chat-model "gpt-4") ; if you are on the gpt-4 beta:
   (org-ai-install-yasnippets)) ; if you are using yasnippet and want `ai` snippets
 #+end_src
 
@@ -901,6 +907,12 @@ the languages in ISPELL-LANGUAGES when invoked."
               ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
               ("\\paragraph{%s}" . "\\paragraph*{%s}")
               ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
+#+end_src
+* Shells
+** Eshell
+#+begin_src emacs-lisp
+(setq eshell-scroll-to-bottom-on-input t) ; press any key to jump back to the prompt:
+(setq eshell-prefer-lisp-functions nil)
 #+end_src
 * Other tools
 ** Dictionary
