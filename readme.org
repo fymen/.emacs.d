@@ -21,3 +21,16 @@ Some other interesting tools:
 | [[https://github.com/sundowndev/PhoneInfoga][PhoneInfoga]] | International phone number search              |
 | [[http://photivo.org][photivo]]     | Photo processor                                |
 
+To active =Exwm= on Ubuntu 22, create =/usr/share/xsessions/emacs.desktop= as:
+#+begin_src shell
+[Desktop Entry]
+Name=emacs
+Comment=emacs manager
+Exec=emacs --with-exwm
+TryExec=emacs
+Type=Application
+X-LightDM-DesktopName=exwm
+DesktopNames=exwm
+Keywords=tiling;wm;windowmanager;window;manager;
+#+end_src
+

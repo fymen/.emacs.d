@@ -22,6 +22,16 @@
                :ensure t
                :config
                (setq paradox-execute-asynchronously t))
+
+#+end_src
+** Auto compile
+#+begin_src emacs-lisp
+(setq load-prefer-newer t)
+(use-package auto-compile
+ :ensure t
+ :config
+  (auto-compile-on-load-mode 1)
+  (auto-compile-on-save-mode 1))
 #+end_src
 * General
 ** Basics
@@ -121,7 +131,7 @@
     (global-set-key [remap query-replace-regexp] 'anzu-query-replace-regexp)
     (global-set-key [remap query-replace] 'anzu-query-replace))
 #+end_src
-** Modeline
+** Mode line
 #+begin_src emacs-lisp
 (use-package smart-mode-line
   :init
@@ -135,6 +145,20 @@
   (use-package smart-mode-line-powerline-theme)
   (sml/setup)
   (display-time-mode 1))
+
+#+end_src
+
+#+begin_src emacs-lisp :tangle no
+(use-package telephone-line
+  :init
+  (setq telephone-line-primary-left-separator 'telephone-line-cubed-left
+      telephone-line-secondary-left-separator 'telephone-line-cubed-hollow-left
+      telephone-line-primary-right-separator 'telephone-line-cubed-right
+      telephone-line-secondary-right-separator 'telephone-line-cubed-hollow-right)
+  (setq telephone-line-height 24
+        telephone-line-evil-use-short-tag t)
+  :config
+ (telephone-line-mode 1))
 #+end_src
 ** Extra settings
 #+begin_src emacs-lisp
@@ -406,7 +430,7 @@ point reaches the beginning or end of the buffer, stop there."
 ** ace-window
 #+begin_src emacs-lisp
 (use-package ace-window
-  :bind ("C-x o" . ace-window))
+  :bind ("C-x O" . ace-window))
 #+end_src
 ** beacon-mode
 Never to lose your cursor again.
@@ -666,6 +690,18 @@ the languages in ISPELL-LANGUAGES when invoked."
 (helm-projectile-on)
 
 (setq projectile-enable-caching t)
+#+end_src
+*** Helm exwm
+#+begin_src emacs-lisp
+(use-package helm-exwm
+  :ensure t
+  :bind ("C-x B" . helm-exwm)
+  :config
+  (setq helm-exwm-emacs-buffers-source (helm-exwm-build-emacs-buffers-source))
+  (setq helm-exwm-source (helm-exwm-build-source))
+  (setq helm-mini-default-sources `(helm-exwm-emacs-buffers-source
+                                    helm-exwm-source
+                                    helm-source-recentf)))
 #+end_src
 ** Yasnippet
 #+begin_src emacs-lisp
@@ -999,6 +1035,74 @@ https://www.youtube.com/watch?v=AyhPmypHDEw
 #+begin_src emacs-lisp
 (setq eshell-scroll-to-bottom-on-input t) ; press any key to jump back to the prompt:
 (setq eshell-prefer-lisp-functions nil)
+#+end_src
+* Exwm
+#+begin_src emacs-lisp
+(defun exwm/run-in-background (command &optional once)
+  (let ((command-parts (split-string command " +")))
+    (apply #'call-process `(,(car command-parts) nil 0 nil ,@(cdr command-parts)))))
+
+(use-package exwm
+  :if (seq-contains-p command-line-args "--with-exwm")
+  :init
+  (use-package dmenu)
+  :bind ("<f6>" . dmenu)
+  :config
+  (set-frame-parameter (selected-frame) 'alpha-background 0.7)
+  (require 'exwm-randr)
+  ;; (exwm/run-in-background "feh --bg-scale \"${cat $HOME/Pictures/wall-paper.jpg}\"")
+  (start-process-shell-command
+   "xrandr" nil "xrandr --output eDP --mode 1920x1200")
+
+  ;; Emacs server is not required to run EXWM but it has some interesting uses
+  (server-start)
+
+  (require 'exwm-config)
+  ;; Set the initial workspace number.
+  (unless (get 'exwm-workspace-number 'saved-value)
+    (setq exwm-workspace-number 2))
+  ;; Make class name the buffer name
+  (add-hook 'exwm-update-class-hook
+            (lambda ()
+              (exwm-workspace-rename-buffer exwm-class-name)))
+  ;; Global keybindings.
+  (unless (get 'exwm-input-global-keys 'saved-value)
+    (setq exwm-input-global-keys
+          `(
+            ;; 's-r': Reset (to line-mode).
+            ([?\s-R] . exwm-restart)
+            ;; 's-w': Switch workspace.
+            ([?\s-w] . exwm-workspace-switch)
+            ;; 's-1': Switch workspace.
+            ([?\s-1] . (exwm-workspace-switch 0))
+            ;; 's-d': Launch application.
+            ([?\s-d] . dmenu))))
+
+            ;; ;; 's-N': Switch to certain workspace.
+            ;; ,@(mapcar (lambda (i)
+            ;;             `(,(kbd (format "s-%d" i)) .
+            ;;               (lambda ()
+            ;;                 (interactive)
+            ;;                 (exwm-workspace-switch-create ,i))))
+            ;;           (number-sequence 0 9))))
+  ;; Line-editing shortcuts
+  (unless (get 'exwm-input-simulation-keys 'saved-value)
+    (setq exwm-input-simulation-keys
+          '(([?\C-b] . [left])
+            ([?\C-f] . [right])
+            ([?\C-p] . [up])
+            ([?\C-n] . [down])
+            ([?\C-a] . [home])
+            ([?\C-e] . [end])
+            ([?\M-v] . [prior])
+            ([?\C-v] . [next])
+            ([?\C-d] . [delete])
+            ([?\C-k] . [S-end delete]))))
+  ;; Enable EXWM
+  (exwm-enable)
+  (exwm-randr-enable)
+  (exwm-config-ido)
+  (exwm-config-misc))
 #+end_src
 * Other tools
 ** Dictionary
