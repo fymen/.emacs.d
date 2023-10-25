@@ -386,14 +386,30 @@ point reaches the beginning or end of the buffer, stop there."
 #+begin_src emacs-lisp
   (desktop-save-mode 1)
 #+end_src
+** Dired
+#+begin_src emacs-lisp
+(setq
+ dired-dwim-target t            ; if another Dired buffer is visibpple in another window, use that directory as target for Rename/Copy
+ dired-recursive-copies 'always         ; "always" means no asking
+ dired-recursive-deletes 'top           ; "top" means ask once for top level directory
+ dired-listing-switches "-lha"          ; human-readable listing
+ ls-lisp-dirs-first t
+ )
+(use-package dired-filetype-face)
 
+;; auto refresh dired when file changes
+(add-hook 'dired-mode-hook 'auto-revert-mode)
+
+(with-eval-after-load 'dired  (require 'dired-filetype-face))
+#+end_src
 * Extensions
 ** ace-window
 #+begin_src emacs-lisp
-  (use-package ace-window
-    :bind ("C-x o" . ace-window))
+(use-package ace-window
+  :bind ("C-x o" . ace-window))
 #+end_src
 ** beacon-mode
+Never to lose your cursor again.
 #+begin_src emacs-lisp
   (use-package beacon
     :diminish beacon-mode
@@ -404,11 +420,9 @@ point reaches the beginning or end of the buffer, stop there."
 #+end_src
 ** Rainbow delimiters
 #+begin_src emacs-lisp
-  (use-package rainbow-mode)
-  (use-package rainbow-delimiters
-    :config
-    (add-hook 'emacs-lisp-mode-hook 'rainbow-delimiters-mode)
-    (add-hook 'c-mode-hook 'rainbow-delimiters-mode))
+(use-package rainbow-delimiters
+  :defer t
+  :hook (prog-mode . rainbow-delimiters-mode))
 #+end_src
 ** Expand region
 #+begin_src emacs-lisp
@@ -694,14 +708,48 @@ the languages in ISPELL-LANGUAGES when invoked."
   ;; load default config
   (require 'smartparens-config))
 #+end_src
-** TODO Editor config
+** TODO COMMENT Treesitter
+#+begin_src emacs-lisp
+(use-package treesit
+  :defer t
+  :hook ((bash-ts-mode c-ts-mode c++-ts-mode
+          html-ts-mode js-ts-mode typescript-ts-mode
+          json-ts-mode rust-ts-mode tsx-ts-mode python-ts-mode
+          css-ts-mode yaml-ts-mode) . lsp-deferred)
+  :init
+  (setq treesit-language-source-alist
+   '((bash "https://github.com/tree-sitter/tree-sitter-bash")
+     (c "https://github.com/tree-sitter/tree-sitter-c")
+     (cmake "https://github.com/uyha/tree-sitter-cmake")
+     (common-lisp "https://github.com/theHamsta/tree-sitter-commonlisp")
+     (cpp "https://github.com/tree-sitter/tree-sitter-cpp")
+     (css "https://github.com/tree-sitter/tree-sitter-css")
+     (csharp "https://github.com/tree-sitter/tree-sitter-c-sharp")
+     (elisp "https://github.com/Wilfred/tree-sitter-elisp")
+     (go "https://github.com/tree-sitter/tree-sitter-go")
+     (go-mod "https://github.com/camdencheek/tree-sitter-go-mod")
+     (html "https://github.com/tree-sitter/tree-sitter-html")
+     (js . ("https://github.com/tree-sitter/tree-sitter-javascript" "master" "src"))
+     (json "https://github.com/tree-sitter/tree-sitter-json")
+     (lua "https://github.com/Azganoth/tree-sitter-lua")
+     (make "https://github.com/alemuller/tree-sitter-make")
+     (markdown "https://github.com/ikatyang/tree-sitter-markdown")
+     (python "https://github.com/tree-sitter/tree-sitter-python")
+     (r "https://github.com/r-lib/tree-sitter-r")
+     (rust "https://github.com/tree-sitter/tree-sitter-rust")
+     (toml "https://github.com/tree-sitter/tree-sitter-toml")
+     (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src"))
+     (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src"))
+     (yaml "https://github.com/ikatyang/tree-sitter-yaml"))))
+#+end_src
+** TODO COMMENT Editor config
 #+begin_src emacs-lisp
   ;; EditorConfig Emacs Plugin
   (use-package editorconfig
     :config
     (editorconfig-mode 1))
 #+end_src
-** TODO Eglot
+** TODO COMMENT Eglot
 * Org mode
 ** Basics
 #+begin_src emacs-lisp
@@ -737,6 +785,41 @@ the languages in ISPELL-LANGUAGES when invoked."
 ;; Install plantuml.jar by: sudo apt install plantuml
 (setq org-plantuml-jar-path "/usr/share/plantuml/plantuml.jar")
 (setq puml-plantuml-jar-path "/usr/share/plantuml/plantuml.jar")
+#+end_src
+** Plantuml
+#+begin_src emacs-lisp
+(use-package plantuml-mode
+  :defer t
+  :mode ("\\.\\(pum\\|puml\\)\\'" . plantuml-mode)
+  :after ob
+  :init
+  (add-to-list 'org-babel-load-languages '(plantuml . t))
+  :config
+  (setq plantuml-default-exec-mode 'jar
+        plantuml-jar-path "~/.local/bin/plantuml.jar"
+        org-plantuml-jar-path "~/.local/bin/plantuml.jar"))
+#+end_src
+** Graphviz(dot)
+#+begin_src emacs-lisp
+(use-package graphviz-dot-mode
+  :defer t
+  :after org
+  :mode (("\\.diag\\'"      . graphviz-dot-mode)
+         ("\\.blockdiag\\'" . graphviz-dot-mode)
+         ("\\.nwdiag\\'"    . graphviz-dot-mode)
+         ("\\.rackdiag\\'"  . graphviz-dot-mode)
+         ("\\.dot\\'"       . graphviz-dot-mode)
+         ("\\.gv\\'"        . graphviz-dot-mode))
+  :init
+  (setq graphviz-dot-indent-width tab-width)
+  (with-eval-after-load 'org
+      (defalias 'org-babel-execute:graphviz-dot #'org-babel-execute:dot)
+      (add-to-list 'org-babel-load-languages '(dot . t))
+      (require 'ob-dot)
+      (setq org-src-lang-modes
+            (append '(("dot" . graphviz-dot))
+                    (delete '("dot" . fundamental) org-src-lang-modes)))))
+
 #+end_src
 ** COMMENT Org auto tangle
 #+begin_src emacs-lisp
@@ -829,6 +912,9 @@ the languages in ISPELL-LANGUAGES when invoked."
          (file+headline org-my-anki-file "Dispatch Shelf")
          "* %<%H:%M>   %^g\n:PROPERTIES:\n:ANKI_NOTE_TYPE: Cloze\n:ANKI_DECK: Mega\n:END:\n** Text\n%x\n** Extra\n")))
 #+end_src
+** TODO org-roam
+https://www.youtube.com/watch?v=AyhPmypHDEw
+
 ** Latex
 #+begin_src emacs-lisp
 (require 'ox-latex)

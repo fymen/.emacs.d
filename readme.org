@@ -1,104 +1,23 @@
 A simple Emacs, window manager and Tmux configuration.
 
-Tested both on Ubuntu 18.04 and Mac 10.12.5.
+#+begin_src sh
+git clone https://github.com/fymen/.emacs.d.git
 
-#+attr_html: :width 800
-[[file:snapshot.png]]
+sudo apt install emacs texlive-xelatex gnuplot plantuml feh flameshot curl fonts-firacode fonts-wqy-microhei fonts-inconsolata
+pip install pygmentize-faster
 
-* emacs
-#+BEGIN_SRC sh
-  git clone https://github.com/fymen/.emacs.d.git
-#+END_SRC
+sudo apt-get install i3-wm i3status i3lock i3blocks dmenu j4-dmenu-desktop
+ln -s ~/.emacs.d/other-conf/i3/config ~/.config/i3/config
 
-You may want to store your personal information as =personal-info.org=, and it will be auto-loaded:
-#+begin_src org
-  ,#+BEGIN_SRC emacs-lisp
-     (setq user-full-name "Tom Green")
-     (setq user-mail-address "Tom.Green@gmail.com")
-  ,#+END_SRC
-#+end_src
-
-Then execute Emacs, it will update all the independent packages automatically
-
-Basic usage:
-| key   | function |
-|-------+----------|
-| C-x g | magit    |
-
-Please Refer to [[file:emacs.org][emacs.org]] for more.
-
-* i3-wm(recommend)
-sawfish is obselet, i3-wm is better.
-#+BEGIN_SRC sh
-sudo apt-get install i3-wm i3status i3lock i3blocks dmenu j4-dmenu-desktop \
-     feh flameshot
-#+END_SRC
-
-Use configuration in =.emacs.d/other-conf/=
-#+BEGIN_SRC sh
-ln -s ~/.emacs.d/other-conf/i3/ ~/.i3
-#+END_SRC
-
-You shall find a Cheatsheet here:
-https://i3wm.org/docs/refcard.html
-
-i3-gaps has more features.
-
-* tmux
-#+BEGIN_SRC sh
 sudo apt-get install tmux && ln -s ~/.emacs.d/other-conf/tmux.conf ~/.tmux.conf
-#+END_SRC
-
-Basic usage:
-| key   | function               |
-|-------+------------------------|
-| C-l c | Create a new tab       |
-| C-l n | Switch to next tab     |
-| C-l p | Switch to previous tab |
-| C-l [ | View terminal history  |
-
-* Other usefull tools
-There is also a list maybe help for non-Emacs user: [[https://www.wezm.net/technical/2019/10/useful-command-line-tools/][useful-command-line-tools]]
-** [[https://syncthing.net/][syncthing]]
-A decentralized file synchronization program.
-** [[https://wheremylife.cn/][Wheremylife]], [[https://kindle4rss.com/][kindle4rss]] or [[https://calibre-ebook.com][calibre]]
-RSS feeds delivery service.
-** zsh and [[https://github.com/robbyrussell/oh-my-zsh/][oh-my-zsh]]
-Zsh is another shell just like bash, and oh-my-zsh is a framework for managing the zsh configuration.
-
-Install zsh and make it as default shell
-#+begin_src shell
-sudo apt install zsh && chsh -s $(which zsh)
 #+end_src
 
-Install oh-my-zsh
-#+begin_src shell
-sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
-#+end_src
+Some other interesting tools:
+| Tools       | Brief                                          |
+|-------------+------------------------------------------------|
+| [[https://calibre-ebook.com/][calibre]]     | E-book management                              |
+| [[https://github.com/robbyrussell/oh-my-zsh/][oh-my-zsh]]   | Zsh configure package                          |
+| [[https://beorgapp.com/][beorg]]       | Org compatible agenda management in your Phone |
+| [[https://github.com/sundowndev/PhoneInfoga][PhoneInfoga]] | International phone number search              |
+| [[http://photivo.org][photivo]]     | Photo processor                                |
 
-Adjust theme of plugins in =.zshrc= :
-#+begin_src shell
-plugins=(git
-	 tmux
-	fzf)
-#+end_src
-** [[https://github.com/junegunn/fzf][fzf]]
-Install [[https://github.com/sharkdp/fd][fd]] and setup environment.
-
-#+begin_src shell
-export FZF_DEFAULT_COMMAND='fd --type f'
-#+end_src
-** beorg
-** Tridactyl
-| key           | function                                                      |
-|---------------+---------------------------------------------------------------|
-| C-c u         | recover recently closed tab                                   |
-| / (C-g & C-G) | search in page, C-g to search forward, C-G to search backward |
-** Fonts
-wqy and [[https://github.com/tonsky/FiraCode][FiraCode]] or Inconsolata
-#+begin_src emacs-lisp
-  sudo apt install fonts-firacode fonts-wqy-microhei fonts-inconsolata
-#+end_src
-** [[https://github.com/IBBoard/cawbird][cawbird]]
-** [[https://github.com/sundowndev/PhoneInfoga][PhoneInfoga]]
-** [[http://photivo.org][photivo]]
