@@ -16,12 +16,14 @@
 #+end_src
 ** Paradox
 #+begin_src emacs-lisp
-  (use-package async
-               :ensure t)
-  (use-package paradox
-               :ensure t
-               :config
-               (setq paradox-execute-asynchronously t))
+(use-package async
+             :ensure t)
+(use-package paradox
+             :ensure t
+             :config
+             (setq paradox-execute-asynchronously t
+                   ;; Avoid being ask for the token
+                   paradox-github-token 0))
 
 #+end_src
 ** Auto compile
@@ -703,6 +705,19 @@ the languages in ISPELL-LANGUAGES when invoked."
                                     helm-exwm-source
                                     helm-source-recentf)))
 #+end_src
+*** helm-ag
+    Rely on =ripgrep=, install it firstly.
+ #+begin_src emacs-lisp
+ (use-package helm-ag
+   :init
+   (setq helm-ag-base-command "rg"
+         helm-ag-command-option "--no-heading"
+         helm-ag-insert-at-point 'symbol)
+   :bind
+   ("C-c h g" . helm-do-ag)
+ )
+ #+end_src
+
 ** Yasnippet
 #+begin_src emacs-lisp
 (use-package yasnippet
@@ -878,7 +893,9 @@ the languages in ISPELL-LANGUAGES when invoked."
   :init
   (setq org-journal-dir "~/org/journal/"
         org-journal-date-format "%A, %d %B %Y"
-        org-journal-file-type 'weekly))
+        org-journal-file-type 'weekly)
+  :bind
+  ("<f6>" . org-journal-new-entry))
 #+end_src
 ** org-ai
 #+begin_src emacs-lisp
@@ -1044,9 +1061,6 @@ https://www.youtube.com/watch?v=AyhPmypHDEw
 
 (use-package exwm
   :if (seq-contains-p command-line-args "--with-exwm")
-  :init
-  (use-package dmenu)
-  :bind ("<f6>" . dmenu)
   :config
   (set-frame-parameter (selected-frame) 'alpha-background 0.7)
   (require 'exwm-randr)
