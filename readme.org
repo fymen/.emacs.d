@@ -3,7 +3,10 @@ A simple Emacs, window manager and Tmux configuration.
 #+begin_src sh
 git clone https://github.com/fymen/.emacs.d.git
 
-sudo apt install emacs texlive-xelatex gnuplot plantuml feh flameshot curl fonts-firacode fonts-wqy-microhei fonts-inconsolata
+sudo apt install emacs texlive-xelatex gnuplot plantuml feh flameshot curl \
+     fonts-firacode fonts-wqy-microhei fonts-inconsolata
+sudo apt install sdcv silversearcher-ag ripgrep
+
 pip install pygmentize-faster
 
 sudo apt-get install i3-wm i3status i3lock i3blocks dmenu j4-dmenu-desktop

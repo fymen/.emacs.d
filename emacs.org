@@ -107,24 +107,99 @@
 #+end_src
 ** OS related && fonts
 #+begin_src emacs-lisp
-  (when (eq system-type 'darwin)
-    (set-face-attribute 'default nil) 
-    (set-face-attribute 'default nil :height 150))
+(when (eq system-type 'darwin)
+  (set-face-attribute 'default nil)
+  (set-face-attribute 'default nil :height 150))
 
-  (when (eq system-type 'gnu/linux)
-    (if window-system
-        ;; Chinese Font
-        (dolist (charset '(kana han symbol cjk-misc bopomofo))
-          (set-frame-font "Inconsolata 18")
-          (set-fontset-font (frame-parameter nil 'font)
-                            charset (font-spec :family "WenQuanYi Micro Hei Mono"
-                                               :size 16))
-          ;; Default Browser
-          (setq browse-url-browser-function 'browse-url-generic
-                browse-url-generic-program "firefox"
-                browse-url-new-window-flag t)
-          )))
+(when (eq system-type 'gnu/linux)
+  (if window-system
+      ;; Chinese Font
+      (dolist (charset '(kana han symbol cjk-misc bopomofo))
+        (set-frame-font "Inconsolata 18")
+        ;; (set-frame-font "CascadiaCode 16")
+        ;; (set-frame-font "Firacode 15")
+        (set-fontset-font (frame-parameter nil 'font)
+                          charset (font-spec :family "WenQuanYi Micro Hei Mono"
+                                             :size 16))
+        ;; Default Browser
+        (setq browse-url-browser-function 'browse-url-generic
+              browse-url-generic-program "firefox"
+              browse-url-new-window-flag t)
+        )))
 #+end_src
+*** COMMENT Ligature
+    #+begin_src emacs-lisp
+    (use-package ligature
+      :config
+      ;; Enable the "www" ligature in every possible major mode
+      (ligature-set-ligatures 't '("www"))
+      ;; Enable traditional ligature support in eww-mode, if the
+      ;; `variable-pitch' face supports it
+      (ligature-set-ligatures 'eww-mode '("ff" "fi" "ffi"))
+      ;; Enable all Cascadia and Fira Code ligatures in programming modes
+      (ligature-set-ligatures 'prog-mode
+                            '(;; == === ==== => =| =>>=>=|=>==>> ==< =/=//=// =~
+                              ;; =:= =!=
+                              ("=" (rx (+ (or ">" "<" "|" "/" "~" ":" "!" "="))))
+                              ;; ;; ;;;
+                              (";" (rx (+ ";")))
+                              ;; && &&&
+                              ("&" (rx (+ "&")))
+                              ;; !! !!! !. !: !!. != !== !~
+                              ("!" (rx (+ (or "=" "!" "\." ":" "~"))))
+                              ;; ?? ??? ?:  ?=  ?.
+                              ("?" (rx (or ":" "=" "\." (+ "?"))))
+                              ;; %% %%%
+                              ("%" (rx (+ "%")))
+                              ;; |> ||> |||> ||||> |] |} || ||| |-> ||-||
+                              ;; |->>-||-<<-| |- |== ||=||
+                              ;; |==>>==<<==<=>==//==/=!==:===>
+                              ("|" (rx (+ (or ">" "<" "|" "/" ":" "!" "}" "\]"
+                                              "-" "=" ))))
+                              ;; \\ \\\ \/
+                              ("\\" (rx (or "/" (+ "\\"))))
+                              ;; ++ +++ ++++ +>
+                              ("+" (rx (or ">" (+ "+"))))
+                              ;; :: ::: :::: :> :< := :// ::=
+                              (":" (rx (or ">" "<" "=" "//" ":=" (+ ":"))))
+                              ;; // /// //// /\ /* /> /===:===!=//===>>==>==/
+                              ("/" (rx (+ (or ">"  "<" "|" "/" "\\" "\*" ":" "!"
+                                              "="))))
+                              ;; .. ... .... .= .- .? ..= ..<
+                              ("\." (rx (or "=" "-" "\?" "\.=" "\.<" (+ "\."))))
+                              ;; -- --- ---- -~ -> ->> -| -|->-->>->--<<-|
+                              ("-" (rx (+ (or ">" "<" "|" "~" "-"))))
+                              ;; *> */ *)  ** *** ****
+                              ("*" (rx (or ">" "/" ")" (+ "*"))))
+                              ;; www wwww
+                              ("w" (rx (+ "w")))
+                              ;; <> <!-- <|> <: <~ <~> <~~ <+ <* <$ </  <+> <*>
+                              ;; <$> </> <|  <||  <||| <|||| <- <-| <-<<-|-> <->>
+                              ;; <<-> <= <=> <<==<<==>=|=>==/==//=!==:=>
+                              ;; << <<< <<<<
+                              ("<" (rx (+ (or "\+" "\*" "\$" "<" ">" ":" "~"  "!"
+                                              "-"  "/" "|" "="))))
+                              ;; >: >- >>- >--|-> >>-|-> >= >== >>== >=|=:=>>
+                              ;; >> >>> >>>>
+                              (">" (rx (+ (or ">" "<" "|" "/" ":" "=" "-"))))
+                              ;; #: #= #! #( #? #[ #{ #_ #_( ## ### #####
+                              ("#" (rx (or ":" "=" "!" "(" "\?" "\[" "{" "_(" "_"
+                                           (+ "#"))))
+                              ;; ~~ ~~~ ~=  ~-  ~@ ~> ~~>
+                              ("~" (rx (or ">" "=" "-" "@" "~>" (+ "~"))))
+                              ;; __ ___ ____ _|_ __|____|_
+                              ("_" (rx (+ (or "_" "|"))))
+                              ;; Fira code: 0xFF 0x12
+                              ("0" (rx (and "x" (+ (in "A-F" "a-f" "0-9")))))
+                              ;; Fira code:
+                              "Fl"  "Tl"  "fi"  "fj"  "fl"  "ft"
+                              ;; The few not covered by the regexps.
+                              "{|"  "[|"  "]#"  "(*"  "}#"  "$>"  "^="))
+      ;; Enables ligature checks globally in all buffers. You can also do it
+      ;; per mode with `ligature-mode'.
+      (global-ligature-mode t))
+    #+end_src
+
 ** Anzu mode (query & replace highlight)
 #+begin_src emacs-lisp
   (use-package anzu
@@ -599,7 +674,13 @@ Never to lose your cursor again.
             ;; (setq dtrt-indent-verbosity 0)
             (dtrt-indent-mode t)))
 #+END_SRC
-
+** Aggressive indent
+   #+begin_src emacs-lisp
+   (use-package aggressive-indent
+     :config
+     (add-hook 'emacs-lisp-mode-hook #'aggressive-indent-mode)
+     (add-hook 'css-mode-hook #'aggressive-indent-mode))
+   #+end_src
 ** Fly spell
 #+begin_src emacs-lisp
 (defun cycle-languages ()
@@ -631,6 +712,19 @@ the languages in ISPELL-LANGUAGES when invoked."
   (use-package magit
     :bind ("C-x g" . magit-status))
 #+end_src
+** Git gutter
+   #+begin_src emacs-lisp
+   (use-package git-gutter
+     :config
+     (setq git-gutter:update-interval 0.02)
+     (global-git-gutter-mode +1))
+
+   (use-package git-gutter-fringe
+     :config
+     (define-fringe-bitmap 'git-gutter-fr:added [224] nil nil '(center repeated))
+     (define-fringe-bitmap 'git-gutter-fr:modified [224] nil nil '(center repeated))
+     (define-fringe-bitmap 'git-gutter-fr:deleted [128 192 224 240] nil nil 'bottom))
+   #+end_src
 ** Helm
 *** Basic
 ***  setting
@@ -1122,9 +1216,9 @@ https://www.youtube.com/watch?v=AyhPmypHDEw
 ** Dictionary
 #+begin_src emacs-lisp
 ;; display the definition of word at point
-(use-package define-word
+(use-package sdcv
   :defer t
-  :bind ("C-c d" . define-word-at-point))
+  :bind ("C-c d" . sdcv-search-input))
 #+end_src
 ** Which key (show available keybindings)
 #+begin_src emacs-lisp
