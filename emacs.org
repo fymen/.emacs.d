@@ -407,32 +407,55 @@ point reaches the beginning or end of the buffer, stop there."
 (global-set-key (kbd "C-x |") 'split-window-horizontally-instead)
 (global-set-key (kbd "C-x _") 'split-window-vertically-instead)
 #+END_SRC
-** Smart copy/kill-line
+** Smart copy/kill
 #+begin_src emacs-lisp
-  ;; Smart copy, if no region active, it simply copy the current whole line
-  (defadvice kill-line (before check-position activate)
-    (if (member major-mode
-                '(emacs-lisp-mode scheme-mode lisp-mode
-                                  c-mode c++-mode objc-mode js-mode
-                                  latex-mode plain-tex-mode))
-        (if (and (eolp) (not (bolp)))
-            (progn (forward-char 1)
-                   (just-one-space 0)
-                   (backward-char 1)))))
+;; Smart copy, if no region active, it simply copy the current whole line
+(defadvice kill-line (before check-position activate)
+  (if (member major-mode
+              '(emacs-lisp-mode scheme-mode lisp-mode
+                                c-mode c++-mode objc-mode js-mode
+                                latex-mode plain-tex-mode))
+      (if (and (eolp) (not (bolp)))
+          (progn (forward-char 1)
+                 (just-one-space 0)
+                 (backward-char 1)))))
 
-  (defadvice kill-ring-save (before slick-copy activate compile)
-    "When called interactively with no active region, copy a single line instead."
-    (interactive (if mark-active (list (region-beginning) (region-end))
-                   (message "Copied line")
-                   (list (line-beginning-position)
-                         (line-beginning-position 2)))))
+(defadvice kill-ring-save (before slick-copy activate compile)
+  "When called interactively with no active region, copy a single line instead."
+  (interactive (if mark-active (list (region-beginning) (region-end))
+                 (message "Copied line")
+                 (list (line-beginning-position)
+                       (line-beginning-position 2)))))
 
-  (defadvice kill-region (before slick-cut activate compile)
-    "When called interactively with no active region, kill a single line instead."
-    (interactive
-     (if mark-active (list (region-beginning) (region-end))
-       (list (line-beginning-position)
-             (line-beginning-position 2)))))
+(defadvice kill-region (before slick-cut activate compile)
+  "When called interactively with no active region, kill a single line instead."
+  (interactive
+   (if mark-active (list (region-beginning) (region-end))
+     (list (line-beginning-position)
+           (line-beginning-position 2)))))
+
+(defun get-point (symbol &optional arg)
+  "get the point"
+  (funcall symbol arg)
+  (point)
+  )
+
+(defun copy-thing (begin-of-thing end-of-thing &optional arg)
+  "copy thing between beg & end into kill ring"
+  (save-excursion
+    (let ((beg (get-point begin-of-thing 1))
+          (end (get-point end-of-thing arg)))
+      (copy-region-as-kill beg end)))
+  )
+
+(defun copy-word (&optional arg)
+  "Copy words at point into kill-ring"
+  (interactive "P")
+  (copy-thing 'subword-backward 'subword-forward arg)
+  ;;(paste-to-mark arg)
+  )
+
+(global-set-key (kbd "C-c w") (quote copy-word))
 #+end_src
 ** ibuffer-vc
 #+begin_src emacs-lisp
@@ -910,7 +933,8 @@ the languages in ISPELL-LANGUAGES when invoked."
         org-pretty-entities t
         org-src-fontify-natively t
         org-edit-src-content-indentation 0
-        org-ellipsis "⤵"))
+        org-ellipsis "⤵")
+  (add-hook 'org-mode-hook (lambda () (org-indent-mode t))))
 #+end_src
 ** org-babel
 #+begin_src emacs-lisp
@@ -972,12 +996,13 @@ the languages in ISPELL-LANGUAGES when invoked."
   :defer t
   :hook (org-mode . org-auto-tangle-mode))
 #+end_src
-** Org bullets & modern
+** Org modern
 #+begin_src emacs-lisp
 ;; Modern looks for Org
 (use-package org-modern
   :after org
-  :hook (org-mode . org-modern-mode)
+  :hook
+  (org-mode . org-modern-mode)
   :config
   (setq org-modern-block-fringe nil))
 #+end_src
@@ -1059,9 +1084,40 @@ the languages in ISPELL-LANGUAGES when invoked."
          (file+headline org-my-anki-file "Dispatch Shelf")
          "* %<%H:%M>   %^g\n:PROPERTIES:\n:ANKI_NOTE_TYPE: Cloze\n:ANKI_DECK: Mega\n:END:\n** Text\n%x\n** Extra\n")))
 #+end_src
-** TODO org-roam
-https://www.youtube.com/watch?v=AyhPmypHDEw
+** org-roam
+   #+begin_src emacs-lisp
+   (use-package org-roam
+     :ensure t
+     :custom
+     (org-roam-directory (file-truename "~/org/roam/"))
+     :bind (("C-c n l" . org-roam-buffer-toggle)
+            ("C-c n f" . org-roam-node-find)
+            ("C-c n g" . org-roam-graph)
+            ("C-c n i" . org-roam-node-insert)
+            ("C-c n c" . org-roam-capture)
+            ;; Dailies
+            ("C-c n j" . org-roam-dailies-capture-today))
+     :config
+     ;; If you're using a vertical completion framework, you might want a more informative completion interface
+     (setq org-roam-node-display-template (concat "${title:*} " (propertize "${tags:10}" 'face 'org-tag)))
+     (org-roam-db-autosync-mode)
+     ;; If using org-roam-protocol
+     (require 'org-roam-protocol))
 
+   #+end_src
+#+begin_src emacs-lisp
+(use-package org-roam-ui
+  :after org-roam
+  ;;         normally we'd recommend hooking orui after org-roam, but since org-roam does not have
+  ;;         a hookable mode anymore, you're advised to pick something yourself
+  ;;         if you don't care about startup time, use
+  ;;  :hook (after-init . org-roam-ui-mode)
+  :config
+  (setq org-roam-ui-sync-theme t
+        org-roam-ui-follow t
+        org-roam-ui-update-on-save t
+        org-roam-ui-open-on-start t))
+#+end_src
 ** Latex
 #+begin_src emacs-lisp
 (require 'ox-latex)
@@ -1227,3 +1283,10 @@ https://www.youtube.com/watch?v=AyhPmypHDEw
   :config
   (which-key-mode 1))
 #+end_src
+** Pdf tools
+   #+begin_src emacs-lisp
+   (use-package pdf-tools
+     :config
+     (pdf-tools-install))
+   (use-package org-noter)
+   #+end_src
