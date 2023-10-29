@@ -1,4 +1,4 @@
-A simple Emacs, window manager and Tmux configuration.
+A simple Emacs, window manager and some other configurations.
 * Emacs
 #+begin_src sh
 git clone https://github.com/fymen/.emacs.d.git
@@ -8,21 +8,7 @@ sudo apt install emacs texlive-xelatex gnuplot plantuml feh flameshot curl \
 sudo apt install sdcv silversearcher-ag ripgrep
 
 pip install pygmentize-faster
-
-sudo apt-get install i3-wm i3status i3lock i3blocks dmenu j4-dmenu-desktop
-ln -s ~/.emacs.d/other-conf/i3/config ~/.config/i3/config
-
-sudo apt-get install tmux && ln -s ~/.emacs.d/other-conf/tmux.conf ~/.tmux.conf
 #+end_src
-
-Some other interesting tools:
-| Tools       | Brief                                          |
-|-------------+------------------------------------------------|
-| [[https://calibre-ebook.com/][calibre]]     | E-book management                              |
-| [[https://github.com/robbyrussell/oh-my-zsh/][oh-my-zsh]]   | Zsh configure package                          |
-| [[https://beorgapp.com/][beorg]]       | Org compatible agenda management in your Phone |
-| [[https://github.com/sundowndev/PhoneInfoga][PhoneInfoga]] | International phone number search              |
-| [[http://photivo.org][photivo]]     | Photo processor                                |
 
 To active =Exwm= on Ubuntu 22, create =/usr/share/xsessions/emacs.desktop= as:
 #+begin_src shell
@@ -39,7 +25,17 @@ Keywords=tiling;wm;windowmanager;window;manager;
 * Other dot files
 To use other dot files:
 #+begin_src shell
+sudo apt-get install i3-wm i3status i3lock i3blocks dmenu j4-dmenu-desktop tmux
+
 ln -s ~/.emacs.d/other-dot-files/tmux.conf ~/.tmux.conf
 ln -s ~/.emacs.d/other-dot-files/i3 ~/.config/i3
 ln -s ~/.emacs.d/other-dot-files/zshrc ~/.zshrc
 #+end_src
+* Some other interesting tools
+| Tools       | Brief                                          |
+|-------------+------------------------------------------------|
+| [[https://calibre-ebook.com/][calibre]]     | E-book management                              |
+| [[https://github.com/robbyrussell/oh-my-zsh/][oh-my-zsh]]   | Zsh configure package                          |
+| [[https://beorgapp.com/][beorg]]       | Org compatible agenda management in your Phone |
+| [[https://github.com/sundowndev/PhoneInfoga][PhoneInfoga]] | International phone number search              |
+| [[http://photivo.org][photivo]]     | Photo processor                                |
