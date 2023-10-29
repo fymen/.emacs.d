@@ -580,8 +580,7 @@ Never to lose your cursor again.
 (use-package olivetti
   :defer t
   :bind ("C-c o" . olivetti-mode)
-  :config
-  (setq-default olivetti-body-width (+ fill-column 3)))
+  :config)
 #+end_src
 ** Focus (dim surounding texts)
 #+begin_src emacs-lisp

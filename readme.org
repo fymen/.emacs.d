@@ -1,5 +1,5 @@
 A simple Emacs, window manager and Tmux configuration.
-
+* Emacs
 #+begin_src sh
 git clone https://github.com/fymen/.emacs.d.git
 
@@ -36,4 +36,10 @@ X-LightDM-DesktopName=exwm
 DesktopNames=exwm
 Keywords=tiling;wm;windowmanager;window;manager;
 #+end_src
-
+* Other dot files
+To use other dot files:
+#+begin_src shell
+ln -s ~/.emacs.d/other-dot-files/tmux.conf ~/.tmux.conf
+ln -s ~/.emacs.d/other-dot-files/i3 ~/.config/i3
+ln -s ~/.emacs.d/other-dot-files/zshrc ~/.zshrc
+#+end_src
