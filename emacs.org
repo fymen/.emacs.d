@@ -731,9 +731,11 @@ the languages in ISPELL-LANGUAGES when invoked."
 #+end_src
 ** Magit
 #+begin_src emacs-lisp
-  ;; A Git porcelain inside Emacs.
-  (use-package magit
-    :bind ("C-x g" . magit-status))
+;; A Git porcelain inside Emacs.
+(use-package magit
+  :bind ("C-x g" . magit-status))
+
+(use-package git-timemachine)
 #+end_src
 ** Git gutter
    #+begin_src emacs-lisp
@@ -1085,26 +1087,113 @@ the languages in ISPELL-LANGUAGES when invoked."
          "* %<%H:%M>   %^g\n:PROPERTIES:\n:ANKI_NOTE_TYPE: Cloze\n:ANKI_DECK: Mega\n:END:\n** Text\n%x\n** Extra\n")))
 #+end_src
 ** org-roam
-   #+begin_src emacs-lisp
-   (use-package org-roam
-     :ensure t
-     :custom
-     (org-roam-directory (file-truename "~/org/roam/"))
-     :bind (("C-c n l" . org-roam-buffer-toggle)
-            ("C-c n f" . org-roam-node-find)
-            ("C-c n g" . org-roam-graph)
-            ("C-c n i" . org-roam-node-insert)
-            ("C-c n c" . org-roam-capture)
-            ;; Dailies
-            ("C-c n j" . org-roam-dailies-capture-today))
-     :config
-     ;; If you're using a vertical completion framework, you might want a more informative completion interface
-     (setq org-roam-node-display-template (concat "${title:*} " (propertize "${tags:10}" 'face 'org-tag)))
-     (org-roam-db-autosync-mode)
-     ;; If using org-roam-protocol
-     (require 'org-roam-protocol))
+#+begin_src emacs-lisp
+;; Copy from https://ag91.github.io/blog/2022/02/05/an-helm-source-for-org-roam-v2/
+(defun helm-org-roam (&optional input candidates)
+  (interactive)
+  (require 'org-roam)
+  (helm
+   :input input
+   :sources (list
+             (helm-build-sync-source "Roam: "
+               :must-match nil
+               :fuzzy-match t
+               :candidates (or candidates (org-roam--get-titles))
+               :action
+               '(("Find File" . (lambda (x)
+                                  (--> x
+                                       org-roam-node-from-title-or-alias
+                                       (org-roam-node-visit it t))))
+                 ("Insert link" . (lambda (x)
+                                    (--> x
+                                         org-roam-node-from-title-or-alias
+                                         (insert
+                                          (format
+                                           "[[id:%s][%s]]"
+                                           (org-roam-node-id it)
+                                           (org-roam-node-title it))))))
+                 ("Follow backlinks" . (lambda (x)
+                                         (let ((candidates
+                                                (--> x
+                                                     org-roam-node-from-title-or-alias
+                                                     org-roam-backlinks-get
+                                                     (--map
+                                                      (org-roam-node-title
+                                                       (org-roam-backlink-source-node it))
+                                                      it))))
+                                           (helm-org-roam nil (or candidates (list x))))))))
+             (helm-build-dummy-source
+                 "Create note"
+               :action '(("Capture note" . (lambda (candidate)
+                                             (org-roam-capture-
+                                              :node (org-roam-node-create :title candidate)
+                                              :props '(:finalize find-file)))))))))
 
-   #+end_src
+(defun org-roam-tag-add-non-interactive (tags)
+  "Add TAGS to the node at point."
+  (let ((node (org-roam-node-at-point 'assert)))
+    (goto-char (org-roam-node-point node))
+    (if (= (org-outline-level) 0)
+        (let ((current-tags (split-string (or (cadr (assoc "FILETAGS"
+                                                           (org-collect-keywords '("filetags"))))
+                                              "")
+                                          ":" 'omit-nulls)))
+          (org-roam-set-keyword "filetags" (org-make-tag-string (seq-uniq (append tags current-tags)))))
+      (org-set-tags (seq-uniq (append tags (org-get-tags)))))))
+
+(defun helm-org-roam-tag (&optional input candidates)
+  (interactive)
+  (require 'org-roam)
+  (helm
+   :input input
+   :sources (list
+             (helm-build-sync-source "Roam: "
+               :must-match nil
+               :fuzzy-match t
+               :candidates (or candidates (org-roam-tag-completions))
+               :action
+               '(("Add tag" . (lambda (candidate)
+                                (org-roam-tag-add-non-interactive (list candidate))
+                                ))))
+             (helm-build-dummy-source
+                 "Create tag"
+               :action '(("New tag" . (lambda (candidate)
+                                        (org-roam-tag-add-non-interactive (list candidate))
+                                        )))))))
+
+(use-package org-roam
+  :ensure t
+  :custom
+  (org-roam-directory (file-truename "~/org/roam/"))
+  :bind (("C-c n l" . org-roam-buffer-toggle)
+         ("C-c n f" . org-roam-node-find)
+         ("C-c n g" . org-roam-graph)
+         ("C-c n i" . org-roam-node-insert)
+         ("C-c n c" . org-roam-capture)
+         ("C-c n t" . helm-org-roam-tag)
+         ("C-c n T" . org-roam-tag-remove)
+         ("C-c n o" . helm-org-roam)
+         ;; Dailies
+         ("C-c n j" . org-roam-dailies-capture-today))
+  :config
+  ;; If you're using a vertical completion framework, you might want a more informative completion interface
+  (setq org-roam-node-display-template (concat "${title:*} " (propertize "${tags:10}" 'face 'org-tag)))
+  (org-roam-db-autosync-mode)
+  ;; If using org-roam-protocol
+  (require 'org-roam-protocol))
+#+end_src
+*** Deft
+#+begin_src emacs-lisp
+(use-package deft
+  :bind ("<f6>" . deft)
+  :config
+  (setq deft-directory org-roam-directory
+        deft-recursive t
+        deft-strip-summary-regexp ":PROPERTIES:\n\\(.+\n\\)+:END:\n"
+        deft-extensions '("md" "org")
+        deft-use-filename-as-title t))
+#+end_src
+*** org-roam-ui
 #+begin_src emacs-lisp
 (use-package org-roam-ui
   :after org-roam
