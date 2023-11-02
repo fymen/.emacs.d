@@ -209,7 +209,7 @@
     (global-set-key [remap query-replace] 'anzu-query-replace))
 #+end_src
 ** Mode line
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
 (use-package smart-mode-line
   :init
   (setq sml/no-confirm-load-theme t
@@ -225,7 +225,7 @@
 
 #+end_src
 
-#+begin_src emacs-lisp :tangle no
+#+begin_src emacs-lisp :tangle t
 (use-package telephone-line
   :init
   (setq telephone-line-primary-left-separator 'telephone-line-cubed-left
@@ -553,7 +553,7 @@ Never to lose your cursor again.
   (use-package expand-region
     :bind ("C-=" . er/expand-region))
 #+end_src
-** nyan cat
+** COMMENT nyan cat
 #+begin_src emacs-lisp
   (use-package nyan-mode
     :config
@@ -1186,7 +1186,7 @@ the languages in ISPELL-LANGUAGES when invoked."
 (use-package deft
   :bind ("<f6>" . deft)
   :config
-  (setq deft-directory org-roam-directory
+  (setq deft-directory "~/org/roam/"
         deft-recursive t
         deft-strip-summary-regexp ":PROPERTIES:\n\\(.+\n\\)+:END:\n"
         deft-extensions '("md" "org")
