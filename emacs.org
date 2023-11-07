@@ -2,17 +2,38 @@
 #+TITLE: Emacs init configuration
 * Package management
 #+begin_src emacs-lisp
-  (require 'use-package)
-  (setq use-package-always-ensure t)
+(require 'use-package)
+(setq use-package-always-ensure t)
 
-  (setq package-archives
-      '(("GNU ELPA"     . "https://elpa.gnu.org/packages/")
-        ("MELPA Stable" . "https://stable.melpa.org/packages/")
-        ("MELPA"        . "https://melpa.org/packages/"))
-      package-archive-priorities
-      '(("GNU ELPA"     . 10)
-        ("MELPA"        . 5)
-        ("MELPA Stable" . 0)))
+(setq package-archives
+    '(("GNU ELPA"     . "https://elpa.gnu.org/packages/")
+      ("MELPA Stable" . "https://stable.melpa.org/packages/")
+      ("MELPA"        . "https://melpa.org/packages/"))
+    package-archive-priorities
+    '(("GNU ELPA"     . 10)
+      ("MELPA"        . 5)
+      ("MELPA Stable" . 0)))
+#+end_src
+** Straight
+#+begin_src emacs-lisp :lexical no
+;; bootstrap straight
+(defvar bootstrap-version)
+(let ((bootstrap-file
+       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+      (bootstrap-version 6))
+  (unless (file-exists-p bootstrap-file)
+    (with-current-buffer
+        (url-retrieve-synchronously
+         "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
+         'silent 'inhibit-cookies)
+      (goto-char (point-max))
+      (eval-print-last-sexp)))
+  (load bootstrap-file nil 'nomessage))
+
+;; use use-package
+(straight-use-package 'use-package)
+;; automatically ensure every package exists (like :ensure or :straight)
+;; (setq straight-use-package-by-default t)
 #+end_src
 ** Paradox
 #+begin_src emacs-lisp
@@ -63,11 +84,30 @@
       custom-file                       ; Customizations in a separate file
       (concat user-emacs-directory "custom.el"))
 
+
 (global-set-key (kbd "C-w") 'backward-kill-word)
 (global-set-key (kbd "C-x C-k") 'kill-region)
 (global-set-key (kbd "C-x C-b") 'ibuffer-list-buffers)
 
 (global-set-key (kbd "<f8>") 'eshell)
+#+end_src
+
+** Auto save
+The aim is save =C-x C-s=, the most frequently used key.
+An alternative: https://github.com/manateelazycat/auto-save/tree/master
+#+begin_src emacs-lisp
+(use-package real-auto-save
+  :config
+  (setq real-auto-save-interval 2)
+  (add-hook 'org-mode-hook 'real-auto-save-mode)
+  (add-hook 'prog-mode-hook 'real-auto-save-mode)
+  (add-hook 'text-mode-hook 'real-auto-save-mode)
+  (add-hook 'conf-mode-hook 'real-auto-save-mode)
+  )
+#+end_src
+** Desktop save
+#+begin_src emacs-lisp
+  (desktop-save-mode 1)
 #+end_src
 ** GUI
 #+begin_src emacs-lisp
@@ -101,9 +141,17 @@
 #+end_src
 ** Color theme
 #+begin_src emacs-lisp
-  (use-package zenburn-theme
-    :init)
-  (load-theme 'zenburn t)
+(use-package zenburn-theme
+  :init
+  :config
+  (load-theme 'zenburn t))
+
+;; (use-package nord-theme)
+;; (load-theme 'nord t)
+
+;; (load-theme 'solarized-dark t)
+
+
 #+end_src
 ** OS related && fonts
 #+begin_src emacs-lisp
@@ -209,6 +257,31 @@
     (global-set-key [remap query-replace] 'anzu-query-replace))
 #+end_src
 ** Mode line
+#+begin_src emacs-lisp :lexical no
+(defun find-color (name)
+  "Find the color associated with a name in a given color list."
+  (cdr (assoc name zenburn-default-colors-alist)))
+
+(use-package awesome-tray
+  :straight (:host github :repo "manateelazycat/awesome-tray"
+                   :branch "master")
+  :after zenburn-theme
+  :init
+  (setq awesome-tray-mode-line-active-color "DarkGray")
+  :config
+  (awesome-tray-mode 1)
+  (eval-after-load "zenburn-theme"
+    '(progn
+       ;; change mode-line color
+       (set-face-attribute 'awesome-tray-green-face  nil  :foreground (find-color "zenburn-green"))
+       (set-face-attribute 'awesome-tray-green-path-face  nil  :foreground (find-color "zenburn-green+4"))
+       (set-face-attribute 'awesome-tray-orange-face  nil  :foreground (find-color "zenburn-orange"))
+       (set-face-attribute 'awesome-tray-cyan-face  nil  :foreground (find-color "zenburn-cyan"))
+       (set-face-attribute 'awesome-tray-yellow-face  nil  :foreground (find-color "zenburn-yellow"))
+       (set-face-attribute 'awesome-tray-pink-face  nil  :foreground (find-color "zenburn-magenta"))
+       )))
+#+end_src
+
 #+begin_src emacs-lisp :tangle no
 (use-package smart-mode-line
   :init
@@ -225,7 +298,7 @@
 
 #+end_src
 
-#+begin_src emacs-lisp :tangle t
+#+begin_src emacs-lisp :tangle no
 (use-package telephone-line
   :init
   (setq telephone-line-primary-left-separator 'telephone-line-cubed-left
@@ -237,22 +310,87 @@
   :config
  (telephone-line-mode 1))
 #+end_src
+** Open newline & move text
+#+begin_src emacs-lisp :lexical no
+(use-package move-text
+  :straight (:host github :repo "manateelazycat/move-text"))
+
+(defun scroll-up-one-line()
+  "Scroll up one line."
+  (interactive)
+  (scroll-up 1))
+
+(defun scroll-down-one-line()
+  "Scroll down one line."
+  (interactive)
+  (scroll-down 1))
+(global-set-key (kbd "s-p") 'scroll-up-one-line)
+(global-set-key (kbd "s-n") 'scroll-down-one-line)
+(global-set-key (kbd "s-P") 'move-text-up)
+(global-set-key (kbd "s-N") 'move-text-down)
+
+(defun open-newline-below (arg)
+  "Move to the next line (like vi) and then opens a line."
+  (interactive "p")
+  (end-of-line)
+  (open-line arg)
+  (call-interactively 'next-line arg)
+  (if (not (member major-mode '(haskell-mode org-mode literate-haskell-mode)))
+      (indent-according-to-mode)
+    (beginning-of-line)))
+(defun open-newline-above (arg)
+  "Move to the previous line (like vi) and then opens a line."
+  (interactive "p")
+  (beginning-of-line)
+  (open-line arg)
+  (if (not (member major-mode '(haskell-mode org-mode literate-haskell-mode)))
+      (indent-according-to-mode)
+    (beginning-of-line)))
+
+(global-set-key (kbd "C-l") 'open-newline-below)
+(global-set-key (kbd "C-o") 'open-newline-above)
+(global-set-key (kbd "M-,") 'goto-last-change)
+#+end_src
 ** Extra settings
 #+begin_src emacs-lisp
 (global-hl-line-mode 1)
 (fset 'yes-or-no-p 'y-or-n-p)
 
 (dolist (mode
-       '(abbrev-mode                  ; E.g. sopl -> System.out.println
-         column-number-mode           ; Show column number in mode line
-         delete-selection-mode        ; Replace selected text
-         dirtrack-mode                ; directory tracking in *shell*
-         global-so-long-mode          ; Mitigate performance for long lines
-         recentf-mode                 ; Recently opened files
-         winner-mode					; “undo” and “redo” changes in WindowConfiguration
-         superword-mode
-         show-paren-mode))            ; Highlight matching parentheses
-(funcall mode 1))
+         '(abbrev-mode                  ; E.g. sopl -> System.out.println
+           column-number-mode           ; Show column number in mode line
+           delete-selection-mode        ; Replace selected text
+           dirtrack-mode                ; directory tracking in *shell*
+           global-so-long-mode          ; Mitigate performance for long lines
+           recentf-mode                 ; Recently opened files
+           winner-mode					; “undo” and “redo” changes in WindowConfiguration
+           superword-mode
+           show-paren-mode))            ; Highlight matching parentheses
+  (funcall mode 1))
+
+(use-package goto-line-preview
+  :config
+  (global-set-key [remap goto-line] 'goto-line-preview))
+
+(use-package browse-kill-ring
+  :bind (("M-y" . browse-kill-ring)))
+;; (use-package vundo)
+
+(use-package winpoint
+  ;; Keep cursor while opening two buffers for a file.
+  :load-path "~/.emacs.d/extension"
+  :config
+  (add-hook 'prog-mode-hook 'winpoint-mode)
+    (add-hook 'org-mode-hook 'winpoint-mode))
+
+(use-package cursor-chg
+  ;; make cursor terser
+  :load-path "~/.emacs.d/extension"
+  :config
+  (setq curchg-default-cursor-color "White")
+  (change-cursor-mode 1)
+  (toggle-cursor-type-when-idle 1))
+
 #+end_src
 ** COMMENT Evil mode
 #+begin_src emacs-lisp
@@ -506,10 +644,8 @@ point reaches the beginning or end of the buffer, stop there."
      (global-set-key (kbd "C-x n n") 'narrow-or-widen-dwim)
 
    #+END_SRC
-** Desktop save
-#+begin_src emacs-lisp
-  (desktop-save-mode 1)
-#+end_src
+
+
 ** Dired
 #+begin_src emacs-lisp
 (setq
@@ -526,11 +662,12 @@ point reaches the beginning or end of the buffer, stop there."
 
 (with-eval-after-load 'dired  (require 'dired-filetype-face))
 #+end_src
+
 * Extensions
 ** ace-window
 #+begin_src emacs-lisp
 (use-package ace-window
-  :bind ("C-x O" . ace-window))
+  :bind ("C-x o" . ace-window))
 #+end_src
 ** beacon-mode
 Never to lose your cursor again.
@@ -607,7 +744,53 @@ Never to lose your cursor again.
      :bind ("M-;" . comment-dwim-2))
    #+end_src
 ** Auto completion
+
 #+begin_src emacs-lisp
+(use-package company
+  :ensure t
+  :diminish company-mode
+  :init
+  (use-package company-flx)
+  (global-company-mode 1)
+  (setq company-backends (delete 'company-semantic company-backends))
+  (add-to-list 'company-backends 'company-c-headers)
+  (add-to-list 'company-backends 'company-clang)
+  (with-eval-after-load 'company
+    (company-flx-mode +1))
+  
+  :config
+  (bind-keys :map company-active-map
+             ("C-n" . company-select-next)
+             ("C-p" . company-select-previous)
+             ("C-d" . company-show-doc-buffer)
+             ("<tab>" . company-complete)))
+
+(use-package company-org-block
+  :ensure t
+  :custom
+  (company-org-block-edit-style 'auto) ;; 'auto, 'prompt, or 'inline
+  :hook ((org-mode . (lambda ()
+                       (setq-local company-backends '(company-org-block))
+                       (company-mode +1)))))
+
+
+#+end_src
+
+To retrive candidates for your projects, you will have to tell Clang
+where your include paths are, create a file named =.dir-local.el= at
+your project root:
+#+BEGIN_SRC emacs-lisp :tangle no
+  ((nil . ((company-clang-arguments . ("-I/home/<user>/project_root/include1/"
+                                       "-I/home/<user>/project_root/include2/")))))
+#+END_SRC
+
+#+begin_src emacs-lisp :lexical no
+(use-package company-english-helper
+  :straight (:host github :repo "manateelazycat/company-english-helper")
+  :config (setq company-english-helper-fuzz-search-p t))
+#+end_src
+
+#+begin_src emacs-lisp :tangle no
 ;; Modular text completion framework
 (use-package corfu
   :init
@@ -628,7 +811,12 @@ Never to lose your cursor again.
         completion-category-overrides '((file (styles basic partial-completion)))
         orderless-component-separator "[ |]"))
 #+end_src
-
+** COMMENT Input method
+#+begin_src emacs-lisp :lexical no
+(use-package rime
+  :custom
+  (default-input-method "rime"))
+#+end_src
 * Program
 ** cc-mode
 #+begin_src emacs-lisp
@@ -701,6 +889,7 @@ Never to lose your cursor again.
    (use-package aggressive-indent
      :config
      (add-hook 'emacs-lisp-mode-hook #'aggressive-indent-mode)
+     (add-hook 'prog-mode-hook #'aggressive-indent-mode)
      (add-hook 'css-mode-hook #'aggressive-indent-mode))
    #+end_src
 ** Fly spell
@@ -750,8 +939,7 @@ the languages in ISPELL-LANGUAGES when invoked."
      (define-fringe-bitmap 'git-gutter-fr:deleted [128 192 224 240] nil nil 'bottom))
    #+end_src
 ** Helm
-*** Basic
-***  setting
+*** Basic settings
 #+begin_src emacs-lisp
 (use-package helm
   :ensure t
@@ -795,6 +983,10 @@ the languages in ISPELL-LANGUAGES when invoked."
          (c++-mode-hook . helm-gtags-mode)
          (asm-mode-hook . helm-gtags-mode)))
 #+end_src
+*** Helm rtags
+#+begin_src emacs-lisp
+(use-package helm-rtags)
+#+end_src
 *** Helm projectile
 #+begin_src emacs-lisp
 (use-package helm-projectile
@@ -835,7 +1027,28 @@ the languages in ISPELL-LANGUAGES when invoked."
    ("C-c h g" . helm-do-ag)
  )
  #+end_src
-
+** COMMENT Ivy
+#+begin_src emacs-lisp :lexical no
+(use-package ivy :ensure t
+  :diminish (ivy-mode . "")
+  :bind
+  (:map ivy-mode-map
+        ("C-'" . ivy-avy))
+  :config
+  (ivy-mode 1)
+  ;; add ‘recentf-mode’ and bookmarks to ‘ivy-switch-buffer’.
+  (setq ivy-use-virtual-buffers t)
+  ;; number of result lines to display
+  (setq ivy-height 10)
+  ;; does not count candidates
+  (setq ivy-count-format "")
+  ;; no regexp by default
+  (setq ivy-initial-inputs-alist nil)
+  ;; configure regexp engine.
+  (setq ivy-re-builders-alist
+	    ;; allow input not in order
+        '((t   . ivy--regex-ignore-order))))
+#+end_src
 ** Yasnippet
 #+begin_src emacs-lisp
 (use-package yasnippet
@@ -1069,7 +1282,7 @@ the languages in ISPELL-LANGUAGES when invoked."
     (setq org-download-method 'my-org-download-method))
 #+end_src
 
-** org-capture
+** COMMENT org-capture
 #+begin_src emacs-lisp
 ;; Org-capture templates
 (setq org-my-anki-file "~/org/capture/anki.org")
@@ -1206,6 +1419,11 @@ the languages in ISPELL-LANGUAGES when invoked."
         org-roam-ui-update-on-save t
         org-roam-ui-open-on-start t))
 #+end_src
+** Org hugo
+#+begin_src emacs-lisp
+(use-package ox-hugo
+  :after ox)
+#+end_src
 ** Latex
 #+begin_src emacs-lisp
 (require 'ox-latex)
@@ -1220,7 +1438,7 @@ the languages in ISPELL-LANGUAGES when invoked."
       (remove '("T1" "fontenc" t) org-latex-default-packages-alist))
 (setf org-latex-default-packages-alist
       (remove '("" "hyperref" nil) org-latex-default-packages-alist))
-
+(setq org-latex-with-hyperref nil)
 
 (setq org-latex-pdf-process '("xelatex -8bit -shell-escape  %f"
                               "xelatex -8bit -shell-escape  %f"))
@@ -1367,13 +1585,7 @@ the languages in ISPELL-LANGUAGES when invoked."
   (exwm-config-misc))
 #+end_src
 * Other tools
-** Dictionary
-#+begin_src emacs-lisp
-;; display the definition of word at point
-(use-package sdcv
-  :defer t
-  :bind ("C-c d" . sdcv-search-input))
-#+end_src
+
 ** Which key (show available keybindings)
 #+begin_src emacs-lisp
 ;; Display available keybindings in popup
@@ -1388,6 +1600,61 @@ the languages in ISPELL-LANGUAGES when invoked."
      (pdf-tools-install))
    (use-package org-noter)
    #+end_src
-#+begin_src emacs-lisp
-(setq org-latex-with-hyperref nil)
+
+** Dictionary
+#+begin_src emacs-lisp :lexical no
+(use-package popweb
+  :straight (:host github :repo "manateelazycat/popweb"
+                   :branch "main"))
+
+(use-package popweb-dict
+  :load-path "~/.emacs.d/extension/popweb/extension/dict"
+  :bind ("C-c d" . popweb-dict-collins-pointer)
+
+  :config
+  (popweb-dict-create "collins"
+                      "https://www.collinsdictionary.com/dictionary/english/%s"
+                      (concat
+                       "window.scrollTo(0, 320); "
+                       "document.getElementsByClassName('navigation')[0].style.display = 'none'; "
+                       "document.getElementsByTagName('body')[0].style.margin = '0'; "
+                       "document.getElementsByTagName('header')[0].style.display = 'none'; "
+                       "document.getElementsByTagName('footer')[0].style.display = 'none'; "
+                       "document.getElementsByClassName('search')[0].style.display = 'none'; "
+                       "document.getElementsByClassName('page')[0].style.visibility = 'visible' ; "
+                       "document.getElementsByClassName('page')[0].style.margin = '0' ; "
+                       "document.getElementsByClassName('padding-hub')[0].style.visibility = 'hidden' ; "
+                       "document.getElementsByClassName('padding-hub')[0].style.margin = '0' ; "
+
+                       "Array.from(document.querySelectorAll('ins')).forEach(e => { e.style.display = 'none' }); "
+                       "Array.from(document.querySelectorAll('iframe:not(#player)')).forEach(e => { e.style.display = 'none' }); "
+                       )))
 #+end_src
+
+#+begin_src emacs-lisp :tangle no
+;; display the definition of word at point
+(use-package sdcv
+  :defer t
+  :bind ("C-c d" . sdcv-search-input))
+#+end_src
+
+* EAF
+#+begin_src emacs-lisp :tangle no
+(use-package eaf
+  :load-path "~/.emacs.d/extension/emacs-application-framework"
+  :custom
+  (eaf-browser-continue-where-left-off t)
+  (eaf-browser-enable-adblocker t)
+  (browse-url-browser-function 'eaf-open-browser)
+  :config
+  (defalias 'browse-web #'eaf-open-browser)
+  (eaf-bind-key scroll_up "C-n" eaf-pdf-viewer-keybinding)
+  (eaf-bind-key scroll_down "C-p" eaf-pdf-viewer-keybinding)
+  (eaf-bind-key take_photo "p" eaf-camera-keybinding)
+  (eaf-bind-key nil "M-q" eaf-browser-keybinding))
+(require 'eaf-pyqterminal)
+(require 'eaf-pdf-viewer)
+#+end_src
+
+
+
