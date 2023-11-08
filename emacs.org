@@ -81,6 +81,8 @@
       ring-bell-function 'ignore        ; Quiet
       scroll-margin 1                   ; Space between cursor and top/bottom
       sentence-end-double-space nil     ; No double space
+      local-elisp-directory             ; Customization of local elisp codes
+      (concat user-emacs-directory "extension/")
       custom-file                       ; Customizations in a separate file
       (concat user-emacs-directory "custom.el"))
 
@@ -364,7 +366,7 @@ An alternative: https://github.com/manateelazycat/auto-save/tree/master
            global-so-long-mode          ; Mitigate performance for long lines
            recentf-mode                 ; Recently opened files
            winner-mode					; “undo” and “redo” changes in WindowConfiguration
-           superword-mode
+           global-superword-mode        ;
            show-paren-mode))            ; Highlight matching parentheses
   (funcall mode 1))
 
@@ -378,19 +380,24 @@ An alternative: https://github.com/manateelazycat/auto-save/tree/master
 
 (use-package winpoint
   ;; Keep cursor while opening two buffers for a file.
-  :load-path "~/.emacs.d/extension"
+  ;; https://raw.githubusercontent.com/manateelazycat/lazycat-emacs/47ed27a317c9d81b9ae4727a62c43bccc585b8b1/site-lisp/extensions/lazycat/winpoint.el
+  :if (file-exists-p
+       (expand-file-name "winpoint.el" local-elisp-directory))
+  :load-path local-elisp-directory
   :config
   (add-hook 'prog-mode-hook 'winpoint-mode)
-    (add-hook 'org-mode-hook 'winpoint-mode))
+  (add-hook 'org-mode-hook 'winpoint-mode))
 
 (use-package cursor-chg
   ;; make cursor terser
-  :load-path "~/.emacs.d/extension"
+  ;; https://raw.githubusercontent.com/emacsmirror/emacswiki.org/master/cursor-chg.el
+  :if (file-exists-p
+       (expand-file-name "cursor-chg.el" local-elisp-directory))
+  :load-path local-elisp-directory
   :config
   (setq curchg-default-cursor-color "White")
   (change-cursor-mode 1)
   (toggle-cursor-type-when-idle 1))
-
 #+end_src
 ** COMMENT Evil mode
 #+begin_src emacs-lisp
@@ -1608,7 +1615,7 @@ the languages in ISPELL-LANGUAGES when invoked."
                    :branch "main"))
 
 (use-package popweb-dict
-  :load-path "~/.emacs.d/extension/popweb/extension/dict"
+  :load-path "extension/popweb/extension/dict"
   :bind ("C-c d" . popweb-dict-collins-pointer)
 
   :config

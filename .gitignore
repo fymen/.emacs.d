@@ -27,3 +27,5 @@ projectile*
 /private.el
 /dmenu-items
 /org-roam.db
+/extension/
+/straight/
