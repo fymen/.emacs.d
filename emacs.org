@@ -86,6 +86,19 @@
       custom-file                       ; Customizations in a separate file
       (concat user-emacs-directory "custom.el"))
 
+;; Vertical Scroll
+(setq scroll-step 1
+      scroll-margin 5
+      scroll-conservatively 101
+      scroll-up-aggressively 0.01
+      scroll-down-aggressively 0.01
+      auto-window-vscroll nil
+      fast-but-imprecise-scrolling nil
+      mouse-wheel-scroll-amount '(1 ((shift) . 1))
+      mouse-wheel-progressive-speed nil
+      ;; Horizontal Scroll
+      hscroll-step 1
+      hscroll-margin 1)
 
 (global-set-key (kbd "C-w") 'backward-kill-word)
 (global-set-key (kbd "C-x C-k") 'kill-region)
@@ -146,7 +159,10 @@ An alternative: https://github.com/manateelazycat/auto-save/tree/master
 (use-package zenburn-theme
   :init
   :config
-  (load-theme 'zenburn t))
+  (load-theme 'zenburn t)
+  :custom-face
+  (font-lock-comment-face ((t (:foreground "#828282"))))
+  )
 
 ;; (use-package nord-theme)
 ;; (load-theme 'nord t)
@@ -258,7 +274,7 @@ An alternative: https://github.com/manateelazycat/auto-save/tree/master
     (global-set-key [remap query-replace-regexp] 'anzu-query-replace-regexp)
     (global-set-key [remap query-replace] 'anzu-query-replace))
 #+end_src
-** Mode line
+** Mode line & awesome-tray
 #+begin_src emacs-lisp :lexical no
 (defun find-color (name)
   "Find the color associated with a name in a given color list."
@@ -270,6 +286,7 @@ An alternative: https://github.com/manateelazycat/auto-save/tree/master
   :after zenburn-theme
   :init
   (setq awesome-tray-mode-line-active-color "DarkGray")
+  (setq awesome-tray-file-path-show-filename t)
   :config
   (awesome-tray-mode 1)
   (eval-after-load "zenburn-theme"
@@ -726,13 +743,7 @@ Never to lose your cursor again.
   :bind ("C-c o" . olivetti-mode)
   :config)
 #+end_src
-** Focus (dim surounding texts)
-#+begin_src emacs-lisp
-  ;; Dim color of text in surrounding sections
-  (use-package focus
-    :defer t
-    :bind ("C-c f" . focus-mode))
-#+end_src
+
 ** Word count
 #+begin_src emacs-lisp
   (use-package wc-mode)
@@ -783,6 +794,11 @@ Never to lose your cursor again.
 
 #+end_src
 
+#+begin_src emacs-lisp :lexical no
+(use-package company-c-headers
+  :config
+  (add-to-list 'company-backends 'company-c-headers))
+#+end_src
 To retrive candidates for your projects, you will have to tell Clang
 where your include paths are, create a file named =.dir-local.el= at
 your project root:
@@ -864,6 +880,30 @@ your project root:
     (add-hook 'c-mode-hook 'color-identifiers-mode)
     (add-hook 'c++-mode-hook 'color-identifiers-mode))
 #+end_src
+
+#+begin_src emacs-lisp :lexical no
+(use-package modern-cpp-font-lock
+  :diminish t
+  :init (modern-c++-font-lock-global-mode t))
+#+end_src
+** Cmake
+#+begin_src emacs-lisp :lexical no
+(use-package cmake-mode :defer t)
+#+end_src
+** Web mode
+#+begin_src emacs-lisp :lexical no
+(use-package web-mode
+  :custom-face
+  (css-selector ((t (:inherit default :foreground "#66CCFF"))))
+  :mode
+  ("\\.phtml\\'" "\\.tpl\\.php\\'" "\\.[agj]sp\\'" "\\.as[cp]x\\'"
+   "\\.erb\\'" "\\.mustache\\'" "\\.djhtml\\'" "\\.[t]?html?\\'"))
+#+end_src
+** Json mode
+#+begin_src emacs-lisp :lexical no
+(use-package json-mode
+  :mode "\\.json\\'")
+#+end_src
 ** Makefile
 #+BEGIN_SRC emacs-lisp
 (add-to-list 'auto-mode-alist '("[Mm]akefile*" . makefile-gmake-mode))
@@ -899,6 +939,14 @@ your project root:
      (add-hook 'prog-mode-hook #'aggressive-indent-mode)
      (add-hook 'css-mode-hook #'aggressive-indent-mode))
    #+end_src
+   #+begin_src emacs-lisp :lexical no
+   (use-package indent-guide
+     :config
+     (indent-guide-global-mode)
+     (set-face-background 'indent-guide-face "dimgray")
+     (setq indent-guide-char " ")
+     )
+   #+end_src
 ** Fly spell
 #+begin_src emacs-lisp
 (defun cycle-languages ()
@@ -919,7 +967,7 @@ the languages in ISPELL-LANGUAGES when invoked."
          (prog-mode . flyspell-prog-mode)
          (flyspell-mode . (lambda ()
                             (local-set-key
-                             (kbd "C-c l")
+                             (kbd "C-c f")
                              (cycle-languages)))))
   :config
   (ispell-change-dictionary "american" t))
@@ -974,7 +1022,7 @@ the languages in ISPELL-LANGUAGES when invoked."
 *** Helm gtags
 #+begin_src emacs-lisp
 (use-package helm-gtags
-  :after helm                      
+  :after helm
   :config
   (setq helm-gtags-auto-update t)
   (setq helm-gtags-update-interval-second 60)
@@ -1097,6 +1145,32 @@ the languages in ISPELL-LANGUAGES when invoked."
   ;; load default config
   (require 'smartparens-config))
 #+end_src
+
+** TODO COMMENT Lsp mode
+#+begin_src emacs-lisp :lexical no
+(use-package lsp-mode
+  :defer t
+  :commands lsp
+  :custom
+  (lsp-keymap-prefix "C-x l")
+  (lsp-auto-guess-root nil)
+  (lsp-prefer-flymake nil) ; Use flycheck instead of flymake
+  (lsp-enable-file-watchers nil)
+  (lsp-enable-folding nil)
+  (read-process-output-max (* 1024 1024))
+  (lsp-keep-workspace-alive nil)
+  (lsp-eldoc-hook nil)
+  :bind (:map lsp-mode-map ("C-c C-f" . lsp-format-buffer))
+  :hook ((java-mode python-mode go-mode rust-mode
+                    js-mode js2-mode typescript-mode web-mode
+                    c-mode c++-mode objc-mode) . lsp-deferred)
+  :config
+  (defun lsp-update-server ()
+    "Update LSP server."
+    (interactive)
+    ;; Equals to `C-u M-x lsp-install-server'
+    (lsp-install-server t)))
+#+end_src
 ** TODO COMMENT Treesitter
 #+begin_src emacs-lisp
 (use-package treesit
@@ -1144,7 +1218,9 @@ the languages in ISPELL-LANGUAGES when invoked."
 #+begin_src emacs-lisp
 (use-package org
   :defer t
-  :bind (("C-c c" . org-capture)
+  :bind (("C-c l" . org-store-link)
+         ("C-c a" . org-agenda)
+         ("C-c c" . org-capture)
          :map org-mode-map
          ("M-;" . org-comment-dwim))
   :config
@@ -1383,7 +1459,8 @@ the languages in ISPELL-LANGUAGES when invoked."
 (use-package org-roam
   :ensure t
   :custom
-  (org-roam-directory (file-truename "~/org/roam/"))
+  (when (file-directory-p "~/org/roam/")
+    (setq org-roam-directory (file-truename "~/org/roam")))
   :bind (("C-c n l" . org-roam-buffer-toggle)
          ("C-c n f" . org-roam-node-find)
          ("C-c n g" . org-roam-graph)
@@ -1520,11 +1597,47 @@ the languages in ISPELL-LANGUAGES when invoked."
                ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
                ))
 #+end_src
+** auctex
+#+begin_src emacs-lisp :lexical no
+(use-package tex
+  :ensure auctex
+  :defer t
+  :custom
+  (TeX-auto-save t)
+  (TeX-parse-self t)
+  (TeX-master nil)
+  ;; to use pdfview with auctex
+  (TeX-view-program-selection '((output-pdf "pdf-tools"))
+                              TeX-source-correlate-start-server t)
+  (TeX-view-program-list '(("pdf-tools" "TeX-pdf-tools-sync-view")))
+  (TeX-after-compilation-finished-functions #'TeX-revert-document-buffer)
+  :hook
+  (LaTeX-mode . (lambda ()
+                  (turn-on-reftex)
+                  (setq reftex-plug-into-AUCTeX t)
+                  (reftex-isearch-minor-mode)
+                  (setq TeX-PDF-mode t)
+                  (setq TeX-source-correlate-method 'synctex)
+                  (setq TeX-source-correlate-start-server t)))
+  :config
+  (when (version< emacs-version "26")
+    (add-hook LaTeX-mode-hook #'display-line-numbers-mode)))
+#+end_src
 * Shells
 ** Eshell
 #+begin_src emacs-lisp
 (setq eshell-scroll-to-bottom-on-input t) ; press any key to jump back to the prompt:
 (setq eshell-prefer-lisp-functions nil)
+#+end_src
+** Exec-path-from-shell
+#+begin_src emacs-lisp :lexical no
+(use-package exec-path-from-shell
+  :if (memq window-system '(mac ns x))
+  :config
+  (exec-path-from-shell-initialize))
+
+
+
 #+end_src
 * Exwm
 #+begin_src emacs-lisp
@@ -1611,8 +1724,10 @@ the languages in ISPELL-LANGUAGES when invoked."
 ** Dictionary
 #+begin_src emacs-lisp :lexical no
 (use-package popweb
-  :straight (:host github :repo "manateelazycat/popweb"
-                   :branch "main"))
+  ;; :straight (:host github :repo "manateelazycat/popweb"
+                   ;; :branch "main")
+  :load-path (lambda () (expand-file-name "extension/popweb" user-emacs-directory))
+  )
 
 (use-package popweb-dict
   :load-path "extension/popweb/extension/dict"
@@ -1622,7 +1737,7 @@ the languages in ISPELL-LANGUAGES when invoked."
   (popweb-dict-create "collins"
                       "https://www.collinsdictionary.com/dictionary/english/%s"
                       (concat
-                       "window.scrollTo(0, 320); "
+                       "window.scrollTo(0, 360); "
                        "document.getElementsByClassName('navigation')[0].style.display = 'none'; "
                        "document.getElementsByTagName('body')[0].style.margin = '0'; "
                        "document.getElementsByTagName('header')[0].style.display = 'none'; "
@@ -1645,23 +1760,76 @@ the languages in ISPELL-LANGUAGES when invoked."
   :bind ("C-c d" . sdcv-search-input))
 #+end_src
 
-* EAF
-#+begin_src emacs-lisp :tangle no
+* COMMENT EAF
+#+begin_src emacs-lisp
 (use-package eaf
-  :load-path "~/.emacs.d/extension/emacs-application-framework"
+  :load-path (lambda () (expand-file-name "extension/emacs-application-framework" user-emacs-directory))
   :custom
-  (eaf-browser-continue-where-left-off t)
+  (eaf-start-python-process-when-require nil)
+  (browse-url-browser-function #'eaf-open-browser) ;; Make EAF Browser my default browser
+  (eaf-start-python-process-when-require t)
+  (eaf-browser-dark-mode nil)
   (eaf-browser-enable-adblocker t)
-  (browse-url-browser-function 'eaf-open-browser)
+  (eaf-webengine-continue-where-left-off t)
+  (eaf-webengine-default-zoom 1.25)
+  (eaf-webengine-scroll-step 200)
+  (eaf-pdf-dark-mode "ignore")
+  :demand
+  :bind
+  (
+   ;; ("M-z r" . eaf-open-rss-reader)
+   ;; ("M-m r" . eaf-open-rss-reader)
+   ("M-#" . eaf-open-pyqterminal))
   :config
+  ;; Require all EAF apps unconditionally, change to apps you're interested in.
+  (require 'eaf-file-manager nil t)
+  (require 'eaf-music-player nil t)
+  (require 'eaf-image-viewer nil t)
+  (require 'eaf-camera nil t)
+  (require 'eaf-demo nil t)
+  (require 'eaf-airshare nil t)
+  (require 'eaf-markdown-previewer nil t)
+  (require 'eaf-video-player nil t)
+  (require 'eaf-vue-demo nil t)
+  (require 'eaf-file-sender nil t)
+  (require 'eaf-pdf-viewer nil t)
+  (require 'eaf-mindmap nil t)
+  (require 'eaf-netease-cloud-music nil t)
+  (require 'eaf-jupyter nil t)
+  (require 'eaf-org-previewer nil t)
+  (require 'eaf-system-monitor nil t)
+  (require 'eaf-rss-reader nil t)
+  (require 'eaf-pyqterminal nil t)
+  (require 'eaf-file-browser nil t)
+  (require 'eaf-browser nil t)
+  (require 'eaf-git nil t)
+  (when (display-graphic-p)
+    (require 'eaf-all-the-icons))
   (defalias 'browse-web #'eaf-open-browser)
-  (eaf-bind-key scroll_up "C-n" eaf-pdf-viewer-keybinding)
-  (eaf-bind-key scroll_down "C-p" eaf-pdf-viewer-keybinding)
-  (eaf-bind-key take_photo "p" eaf-camera-keybinding)
-  (eaf-bind-key nil "M-q" eaf-browser-keybinding))
-(require 'eaf-pyqterminal)
-(require 'eaf-pdf-viewer)
+  (eaf-bind-key nil "M-q" eaf-browser-keybinding)
+  ;; (eaf-bind-key nil "M-z" eaf-browser-keybinding)
+  (eaf-bind-key open_link "C-M-s" eaf-browser-keybinding)
+  (eaf-bind-key open_devtools "M-i" eaf-browser-keybinding)
+  (eaf-bind-key insert_or_recover_prev_close_page "X" eaf-browser-keybinding)
+  (eaf-bind-key scroll_up "RET" eaf-pdf-viewer-keybinding)
+  (eaf-bind-key delete_cookies "C-M-q" eaf-browser-keybinding)
+  (eaf-bind-key delete_all_cookies "C-M-Q" eaf-browser-keybinding)
+  (eaf-bind-key clear_history "C-M-p" eaf-browser-keybinding)
+  (eaf-bind-key scroll_down_page "DEL" eaf-pdf-viewer-keybinding)
+  (eaf-bind-key scroll_down_page "u" eaf-pdf-viewer-keybinding)
+  (eaf-bind-key scroll_up_page "d" eaf-pdf-viewer-keybinding)
+  (eaf-bind-key scroll_to_end "M->" eaf-pdf-viewer-keybinding)
+  (eaf-bind-key scroll_to_begin "M-<" eaf-pdf-viewer-keybinding)
+  (eaf-bind-key quit-window "q" eaf-pdf-viewer-keybinding)
+  (eaf-bind-key zoom_in "C-=" eaf-pdf-viewer-keybinding)
+  (eaf-bind-key zoom_out "C--" eaf-pdf-viewer-keybinding)
+  (eaf-bind-key take_photo "p" eaf-camera-keybinding))
 #+end_src
 
-
-
+** Hacker news
+#+begin_src emacs-lisp :lexical no
+(use-package hackernews
+  :commands (hackernews)
+  :bind
+  ("<f9>" . hackernews))
+#+end_src
