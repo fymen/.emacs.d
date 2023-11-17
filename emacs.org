@@ -1146,7 +1146,25 @@ the languages in ISPELL-LANGUAGES when invoked."
   (require 'smartparens-config))
 #+end_src
 
-** TODO COMMENT Lsp mode
+** Tree sit auto
+#+begin_src emacs-lisp :lexical no
+(use-package treesit-auto
+  :demand t
+  :config
+  (setq treesit-auto-install 'prompt)
+  (global-treesit-auto-mode))
+#+end_src
+
+** Eglot
+#+begin_src emacs-lisp :lexical no
+(use-package eglot
+  :defer t
+  :config
+  (add-hook 'c-ts-mode-hook #'eglot-ensure)
+  (add-hook 'c++-mode-hook #'eglot-ensure)
+  (add-hook 'c++-ts-mode-hook #'eglot-ensure))
+#+end_src
+** COMMENT Lsp mode
 #+begin_src emacs-lisp :lexical no
 (use-package lsp-mode
   :defer t
@@ -1171,40 +1189,7 @@ the languages in ISPELL-LANGUAGES when invoked."
     ;; Equals to `C-u M-x lsp-install-server'
     (lsp-install-server t)))
 #+end_src
-** TODO COMMENT Treesitter
-#+begin_src emacs-lisp
-(use-package treesit
-  :defer t
-  :hook ((bash-ts-mode c-ts-mode c++-ts-mode
-          html-ts-mode js-ts-mode typescript-ts-mode
-          json-ts-mode rust-ts-mode tsx-ts-mode python-ts-mode
-          css-ts-mode yaml-ts-mode) . lsp-deferred)
-  :init
-  (setq treesit-language-source-alist
-   '((bash "https://github.com/tree-sitter/tree-sitter-bash")
-     (c "https://github.com/tree-sitter/tree-sitter-c")
-     (cmake "https://github.com/uyha/tree-sitter-cmake")
-     (common-lisp "https://github.com/theHamsta/tree-sitter-commonlisp")
-     (cpp "https://github.com/tree-sitter/tree-sitter-cpp")
-     (css "https://github.com/tree-sitter/tree-sitter-css")
-     (csharp "https://github.com/tree-sitter/tree-sitter-c-sharp")
-     (elisp "https://github.com/Wilfred/tree-sitter-elisp")
-     (go "https://github.com/tree-sitter/tree-sitter-go")
-     (go-mod "https://github.com/camdencheek/tree-sitter-go-mod")
-     (html "https://github.com/tree-sitter/tree-sitter-html")
-     (js . ("https://github.com/tree-sitter/tree-sitter-javascript" "master" "src"))
-     (json "https://github.com/tree-sitter/tree-sitter-json")
-     (lua "https://github.com/Azganoth/tree-sitter-lua")
-     (make "https://github.com/alemuller/tree-sitter-make")
-     (markdown "https://github.com/ikatyang/tree-sitter-markdown")
-     (python "https://github.com/tree-sitter/tree-sitter-python")
-     (r "https://github.com/r-lib/tree-sitter-r")
-     (rust "https://github.com/tree-sitter/tree-sitter-rust")
-     (toml "https://github.com/tree-sitter/tree-sitter-toml")
-     (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src"))
-     (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src"))
-     (yaml "https://github.com/ikatyang/tree-sitter-yaml"))))
-#+end_src
+
 ** TODO COMMENT Editor config
 #+begin_src emacs-lisp
   ;; EditorConfig Emacs Plugin
@@ -1212,7 +1197,7 @@ the languages in ISPELL-LANGUAGES when invoked."
     :config
     (editorconfig-mode 1))
 #+end_src
-** TODO COMMENT Eglot
+
 * Org mode
 ** Basics
 #+begin_src emacs-lisp
@@ -1774,7 +1759,7 @@ the languages in ISPELL-LANGUAGES when invoked."
    (use-package org-noter)
    #+end_src
 
-** Dictionary
+** Dictionary & popweb
 #+begin_src emacs-lisp :lexical no
 (use-package popweb
   ;; :straight (:host github :repo "manateelazycat/popweb"
@@ -1790,7 +1775,7 @@ the languages in ISPELL-LANGUAGES when invoked."
   (popweb-dict-create "collins"
                       "https://www.collinsdictionary.com/dictionary/english/%s"
                       (concat
-                       "window.scrollTo(0, 360); "
+                       "window.scrollTo(0, 390); "
                        "document.getElementsByClassName('navigation')[0].style.display = 'none'; "
                        "document.getElementsByTagName('body')[0].style.margin = '0'; "
                        "document.getElementsByTagName('header')[0].style.display = 'none'; "
