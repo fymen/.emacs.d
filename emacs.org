@@ -159,10 +159,7 @@ An alternative: https://github.com/manateelazycat/auto-save/tree/master
 (use-package zenburn-theme
   :init
   :config
-  (load-theme 'zenburn t)
-  :custom-face
-  (font-lock-comment-face ((t (:foreground "#828282"))))
-  )
+  (load-theme 'zenburn t))
 
 ;; (use-package nord-theme)
 ;; (load-theme 'nord t)
@@ -298,6 +295,7 @@ An alternative: https://github.com/manateelazycat/auto-save/tree/master
        (set-face-attribute 'awesome-tray-cyan-face  nil  :foreground (find-color "zenburn-cyan"))
        (set-face-attribute 'awesome-tray-yellow-face  nil  :foreground (find-color "zenburn-yellow"))
        (set-face-attribute 'awesome-tray-pink-face  nil  :foreground (find-color "zenburn-magenta"))
+       (set-face-attribute 'awesome-tray-red-face  nil  :foreground (find-color "zenburn-red"))
        )))
 #+end_src
 
@@ -384,6 +382,8 @@ An alternative: https://github.com/manateelazycat/auto-save/tree/master
            recentf-mode                 ; Recently opened files
            winner-mode					; “undo” and “redo” changes in WindowConfiguration
            global-superword-mode        ;
+           global-auto-revert-mode
+           save-place-mode
            show-paren-mode))            ; Highlight matching parentheses
   (funcall mode 1))
 
@@ -469,10 +469,10 @@ An alternative: https://github.com/manateelazycat/auto-save/tree/master
 =M-n= to next symbol, and =M-p= to previous symbol.
 Only in elisp and c mode.
 #+begin_src emacs-lisp
-  (use-package smartscan
-    :config
-    (add-hook 'emacs-lisp-mode-hook 'smartscan-mode)
-    (add-hook 'c-mode-hook 'smartscan-mode))
+(use-package smartscan
+  :config
+  (add-hook 'emacs-lisp-mode-hook 'smartscan-mode)
+  (add-hook 'c-mode-hook 'smartscan-mode))
 #+end_src
 ** Hungry delete
 #+begin_src emacs-lisp
@@ -843,42 +843,44 @@ your project root:
 * Program
 ** cc-mode
 #+begin_src emacs-lisp
-  (defun linux-c-mode()
-    (define-key c-mode-map [return] 'newline-and-indent)
-    (interactive)
-    (c-set-style "K&R")
-    (c-toggle-auto-state)
-    (setq c-basic-offset 8)
-    (setq indent-tabs-mode nil)
-    (c-toggle-hungry-state)
-    (imenu-add-menubar-index)
-    (which-function-mode)
-    (c-toggle-auto-newline 1)
-    (c-set-offset 'inextern-lang 0)
-    )
+(defun linux-c-mode()
+  (define-key c-mode-map [return] 'newline-and-indent)
+  (interactive)
+  (c-set-style "K&R")
+  (c-toggle-auto-state)
+  (setq c-basic-offset 8)
+  (setq indent-tabs-mode nil)
+  (c-toggle-hungry-state)
+  (imenu-add-menubar-index)
+  (which-function-mode)
+  (c-toggle-auto-newline 1)
+  (c-set-offset 'inextern-lang 0)
+  )
 
-  (defun linux-cpp-mode()
-    (define-key c++-mode-map [return] 'newline-and-indent)
-    (define-key c++-mode-map [(control c) (c)] 'compile)
-    (interactive)
-    (c-set-style "K&R")
-    (c-toggle-auto-state)
-    (c-toggle-hungry-state)
+(defun linux-cpp-mode()
+  (define-key c++-mode-map [return] 'newline-and-indent)
+  (define-key c++-mode-map [(control c) (c)] 'compile)
+  (interactive)
+  (c-set-style "K&R")
+  (c-toggle-auto-state)
+  (c-toggle-hungry-state)
 
-    (setq c++-tab-always-indent t)
-        (setq c-basic-offset 3)
-        (setq indent-tabs-mode nil)
-        (imenu-add-menubar-index)
-        (which-function-mode)
-        (c-set-offset 'inextern-lang 0))
+  (setq c++-tab-always-indent t)
+  (setq c-basic-offset 4)
+  (setq indent-tabs-mode nil)
+  (imenu-add-menubar-index)
+  (which-function-mode)
+  (c-set-offset 'inextern-lang 0))
 
-  (add-hook 'c-mode-hook 'linux-c-mode)
-  (add-hook 'c++-mode-hook 'linux-cpp-mode)
+(add-hook 'c-mode-hook 'linux-c-mode)
+(add-hook 'c++-mode-hook 'linux-cpp-mode)
+(add-hook 'c++-ts-mode-hook 'linux-cpp-mode)
 
-  (use-package color-identifiers-mode
-    :config
-    (add-hook 'c-mode-hook 'color-identifiers-mode)
-    (add-hook 'c++-mode-hook 'color-identifiers-mode))
+(use-package color-identifiers-mode
+  :config
+  (add-hook 'c-mode-hook 'color-identifiers-mode)
+  (add-hook 'c++-mode-hook 'color-identifiers-mode)
+  (add-hook 'c++-ts-mode-hook 'color-identifiers-mode))
 #+end_src
 
 #+begin_src emacs-lisp :lexical no
@@ -936,7 +938,9 @@ your project root:
    (use-package aggressive-indent
      :config
      (add-hook 'emacs-lisp-mode-hook #'aggressive-indent-mode)
-     (add-hook 'prog-mode-hook #'aggressive-indent-mode)
+     (add-hook 'c-mode-hook #'aggressive-indent-mode)
+     (add-hook 'c++-mode-hook #'aggressive-indent-mode)
+     (add-hook 'c++-ts-mode-hook #'aggressive-indent-mode)
      (add-hook 'css-mode-hook #'aggressive-indent-mode))
    #+end_src
    #+begin_src emacs-lisp :lexical no
@@ -1036,6 +1040,7 @@ the languages in ISPELL-LANGUAGES when invoked."
               ("M-," . helm-gtags-pop-stack))
   :hook ((c-mode-hook . helm-gtags-mode)
          (c++-mode-hook . helm-gtags-mode)
+         (c++-ts-mode-hook . helm-gtags-mode)
          (asm-mode-hook . helm-gtags-mode)))
 #+end_src
 *** Helm rtags
@@ -1212,7 +1217,6 @@ the languages in ISPELL-LANGUAGES when invoked."
   (setq org-adapt-indentation t
         org-hide-leading-stars t
         org-hide-emphasis-markers t
-        org-pretty-entities t
         org-src-fontify-natively t
         org-edit-src-content-indentation 0
         org-ellipsis "⤵")
@@ -1308,7 +1312,7 @@ the languages in ISPELL-LANGUAGES when invoked."
   (add-hook 'org-mode-hook #'org-ai-mode) ; enable org-ai in org-mode
   (org-ai-global-mode) ; installs global keybindings on C-c M-a
   :config
-  (setq org-ai-default-chat-model "gpt-4") ; if you are on the gpt-4 beta:
+  (setq org-ai-default-chat-model "gpt-3.5-turbo") ; if you are on the gpt-4 beta:
   (org-ai-install-yasnippets)) ; if you are using yasnippet and want `ai` snippets
 #+end_src
 
@@ -1541,6 +1545,15 @@ the languages in ISPELL-LANGUAGES when invoked."
   (org-roam-slipbox-buffer-identification-mode +1)
   (org-roam-slipbox-tag-mode +1))
 #+end_src
+** Org transclusion
+#+begin_src emacs-lisp :lexical no
+(use-package org-transclusion
+  :after org
+  :bind
+  (:map org-mode-map
+        ("<f12>" . org-transclusion-mode)))
+#+end_src
+
 ** Org hugo
 #+begin_src emacs-lisp
 (use-package ox-hugo
@@ -1798,6 +1811,26 @@ the languages in ISPELL-LANGUAGES when invoked."
   :bind ("C-c d" . sdcv-search-input))
 #+end_src
 
+** Elfeed
+#+begin_src emacs-lisp :lexical no
+(use-package elfeed
+  :bind ("C-x w" . elfeed)
+  :config
+  (use-package elfeed-goodies)
+  ;; (setf url-queue-timeout 60)
+  ;; (setf elfeed-curl-extra-arguments '("--socks5-hostname" "127.0.0.1:1080"))
+  (elfeed-goodies/setup)
+  (setq elfeed-feeds
+        '(
+          ("https://catcoding.me/atom.xml" blog)
+          ("https://nullprogram.com/feed/" blog dev)
+          ("https://nullprogram.com/feed/" blog dev)
+          ("https://world.hey.com/dhh/feed.atom" blog)
+          ("https://jvns.ca/atom.xml" blog)
+          ("https://norvig.com/rss-feed.xml" blog)
+          ))
+  )
+#+end_src
 * COMMENT EAF
 #+begin_src emacs-lisp
 (use-package eaf
@@ -1862,4 +1895,58 @@ the languages in ISPELL-LANGUAGES when invoked."
   (eaf-bind-key zoom_in "C-=" eaf-pdf-viewer-keybinding)
   (eaf-bind-key zoom_out "C--" eaf-pdf-viewer-keybinding)
   (eaf-bind-key take_photo "p" eaf-camera-keybinding))
+#+end_src
+
+#+begin_src emacs-lisp :lexical no
+(use-package marginalia
+  :ensure t
+  :config
+  (marginalia-mode))
+
+(use-package embark
+  :ensure t
+  :bind
+  (("C-." . embark-act)         ;; pick some comfortable binding
+   ("C-;" . embark-dwim)        ;; good alternative: M-.
+   ("C-h B" . embark-bindings)) ;; alternative for `describe-bindings'
+
+  :init
+  ;; Optionally replace the key help with a completing-read interface
+  (setq prefix-help-command #'embark-prefix-help-command)
+
+  ;; Show the Embark target at point via Eldoc.  You may adjust the Eldoc
+  ;; strategy, if you want to see the documentation from multiple providers.
+  (add-hook 'eldoc-documentation-functions #'embark-eldoc-first-target)
+  ;; (setq eldoc-documentation-strategy #'eldoc-documentation-compose-eagerly)
+
+  :config
+  ;; Hide the mode line of the Embark live/completions buffers
+  (add-to-list 'display-buffer-alist
+               '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
+                 nil
+                 (window-parameters (mode-line-format . none)))))
+
+;; Consult users will also want the embark-consult package.
+(use-package embark-consult
+  :ensure t ; only need to install it, embark loads it after consult if found
+  :hook
+  (embark-collect-mode . consult-preview-at-point-mode))
+#+end_src
+#+begin_src emacs-lisp :lexical no
+(use-package ellama
+  :init
+  (setopt ellama-language "English")
+  ;;(setopt ellama-language "Portuguese")
+  (require 'llm-ollama)
+  (setopt ellama-provider
+          (make-llm-ollama
+           :chat-model "mistral" :embedding-model "mistral")))
+#+end_src
+** leetcode
+#+begin_src emacs-lisp :lexical no
+(use-package leetcode
+  :config
+  (setq leetcode-prefer-language "cpp")
+  (setq leetcode-save-solutions t)
+  (setq leetcode-directory "~/gitest/org-samples/C++/leetcode/"))
 #+end_src
