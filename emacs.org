@@ -714,12 +714,7 @@ Never to lose your cursor again.
   (use-package expand-region
     :bind ("C-=" . er/expand-region))
 #+end_src
-** COMMENT nyan cat
-#+begin_src emacs-lisp
-  (use-package nyan-mode
-    :config
-    (nyan-mode 1))
-#+end_src
+
 ** Key frequency
 #+begin_src emacs-lisp
   (use-package keyfreq
@@ -951,6 +946,12 @@ your project root:
      (setq indent-guide-char " ")
      )
    #+end_src
+** Clear trailing spaces automatically
+#+begin_src emacs-lisp :lexical no
+(use-package ws-butler
+  :config
+  (add-hook 'prog-mode-hook #'ws-butler-mode))
+#+end_src
 ** Fly spell
 #+begin_src emacs-lisp
 (defun cycle-languages ()
@@ -1220,7 +1221,10 @@ the languages in ISPELL-LANGUAGES when invoked."
         org-src-fontify-natively t
         org-edit-src-content-indentation 0
         org-ellipsis "⤵")
+
+  (setq org-format-latex-options (plist-put org-format-latex-options :scale 2.0))
   (add-hook 'org-mode-hook (lambda () (org-indent-mode t))))
+
 #+end_src
 ** org-babel
 #+begin_src emacs-lisp
@@ -1558,6 +1562,13 @@ the languages in ISPELL-LANGUAGES when invoked."
 #+begin_src emacs-lisp
 (use-package ox-hugo
   :after ox)
+#+end_src
+
+** org-fragtog(preview latex online)
+#+begin_src emacs-lisp :lexical no
+(use-package org-fragtog
+  :config
+  (add-hook 'org-mode-hook 'org-fragtog-mode))
 #+end_src
 ** Latex
 #+begin_src emacs-lisp
