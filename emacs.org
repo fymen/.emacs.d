@@ -1088,6 +1088,42 @@ the languages in ISPELL-LANGUAGES when invoked."
    ("C-c h g" . helm-do-ag)
  )
  #+end_src
+** Embark
+#+begin_src emacs-lisp :lexical no
+(use-package marginalia
+  :ensure t
+  :config
+  (marginalia-mode))
+
+(use-package embark
+  :ensure t
+  :bind
+  (("C-." . embark-act)         ;; pick some comfortable binding
+   ("C-;" . embark-dwim)        ;; good alternative: M-.
+   ("C-h B" . embark-bindings)) ;; alternative for `describe-bindings'
+
+  :init
+  ;; Optionally replace the key help with a completing-read interface
+  (setq prefix-help-command #'embark-prefix-help-command)
+
+  ;; Show the Embark target at point via Eldoc.  You may adjust the Eldoc
+  ;; strategy, if you want to see the documentation from multiple providers.
+  (add-hook 'eldoc-documentation-functions #'embark-eldoc-first-target)
+  ;; (setq eldoc-documentation-strategy #'eldoc-documentation-compose-eagerly)
+
+  :config
+  ;; Hide the mode line of the Embark live/completions buffers
+  (add-to-list 'display-buffer-alist
+               '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
+                 nil
+                 (window-parameters (mode-line-format . none)))))
+
+;; Consult users will also want the embark-consult package.
+(use-package embark-consult
+  :ensure t ; only need to install it, embark loads it after consult if found
+  :hook
+  (embark-collect-mode . consult-preview-at-point-mode))
+#+end_src
 ** COMMENT Ivy
 #+begin_src emacs-lisp :lexical no
 (use-package ivy :ensure t
@@ -1222,7 +1258,6 @@ the languages in ISPELL-LANGUAGES when invoked."
         org-edit-src-content-indentation 0
         org-ellipsis "⤵")
 
-  (setq org-format-latex-options (plist-put org-format-latex-options :scale 2.0))
   (add-hook 'org-mode-hook (lambda () (org-indent-mode t))))
 
 #+end_src
@@ -1239,6 +1274,7 @@ the languages in ISPELL-LANGUAGES when invoked."
    (python . t)
    (gnuplot . t)
    (plantuml . t)
+   (latex . t)
    (emacs-lisp . t)
    ))
 ;; Install plantuml.jar by: sudo apt install plantuml
@@ -1293,8 +1329,15 @@ the languages in ISPELL-LANGUAGES when invoked."
   :after org
   :hook
   (org-mode . org-modern-mode)
-  :config
-  (setq org-modern-block-fringe nil))
+  :custom
+  (org-modern-keyword nil)
+  (org-modern-checkbox nil)
+  (org-modern-table nil)
+  (org-modern-block-fringe nil))
+
+(use-package org-appear
+  :hook
+  (org-mode . org-appear-mode))
 #+end_src
 ** org-journal
 #+begin_src emacs-lisp
@@ -1567,8 +1610,16 @@ the languages in ISPELL-LANGUAGES when invoked."
 ** org-fragtog(preview latex online)
 #+begin_src emacs-lisp :lexical no
 (use-package org-fragtog
-  :config
-  (add-hook 'org-mode-hook 'org-fragtog-mode))
+  :after org
+  :custom
+  (org-startup-with-latex-preview t)
+  :hook
+  (org-mode . org-fragtog-mode)
+  :custom
+  (org-format-latex-options
+   (plist-put org-format-latex-options :scale 2)
+   (plist-put org-format-latex-options :foreground 'auto)
+   (plist-put org-format-latex-options :background 'auto)))
 #+end_src
 ** Latex
 #+begin_src emacs-lisp
@@ -1839,6 +1890,7 @@ the languages in ISPELL-LANGUAGES when invoked."
           ("https://world.hey.com/dhh/feed.atom" blog)
           ("https://jvns.ca/atom.xml" blog)
           ("https://norvig.com/rss-feed.xml" blog)
+          ("https://karthinks.com/software/index.xml", blog)
           ))
   )
 #+end_src
@@ -1908,41 +1960,7 @@ the languages in ISPELL-LANGUAGES when invoked."
   (eaf-bind-key take_photo "p" eaf-camera-keybinding))
 #+end_src
 
-#+begin_src emacs-lisp :lexical no
-(use-package marginalia
-  :ensure t
-  :config
-  (marginalia-mode))
-
-(use-package embark
-  :ensure t
-  :bind
-  (("C-." . embark-act)         ;; pick some comfortable binding
-   ("C-;" . embark-dwim)        ;; good alternative: M-.
-   ("C-h B" . embark-bindings)) ;; alternative for `describe-bindings'
-
-  :init
-  ;; Optionally replace the key help with a completing-read interface
-  (setq prefix-help-command #'embark-prefix-help-command)
-
-  ;; Show the Embark target at point via Eldoc.  You may adjust the Eldoc
-  ;; strategy, if you want to see the documentation from multiple providers.
-  (add-hook 'eldoc-documentation-functions #'embark-eldoc-first-target)
-  ;; (setq eldoc-documentation-strategy #'eldoc-documentation-compose-eagerly)
-
-  :config
-  ;; Hide the mode line of the Embark live/completions buffers
-  (add-to-list 'display-buffer-alist
-               '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
-                 nil
-                 (window-parameters (mode-line-format . none)))))
-
-;; Consult users will also want the embark-consult package.
-(use-package embark-consult
-  :ensure t ; only need to install it, embark loads it after consult if found
-  :hook
-  (embark-collect-mode . consult-preview-at-point-mode))
-#+end_src
+* AGI
 #+begin_src emacs-lisp :lexical no
 (use-package ellama
   :init
@@ -1960,4 +1978,14 @@ the languages in ISPELL-LANGUAGES when invoked."
   (setq leetcode-prefer-language "cpp")
   (setq leetcode-save-solutions t)
   (setq leetcode-directory "~/gitest/org-samples/C++/leetcode/"))
+#+end_src
+** epub
+#+begin_src emacs-lisp :lexical no
+(defun my-nov-font-setup ()
+  (face-remap-add-relative 'variable-pitch :family "Liberation Serif" :height 1.0))
+
+(use-package nov
+  :hook
+  (nov-mode-hook . my-nov-font-setup))
+
 #+end_src
