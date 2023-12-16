@@ -730,7 +730,6 @@ Never to lose your cursor again.
      :bind ("M-;" . comment-dwim-2))
    #+end_src
 ** Auto completion
-
 #+begin_src emacs-lisp
 (use-package company
   :ensure t
@@ -758,8 +757,6 @@ Never to lose your cursor again.
   :hook ((org-mode . (lambda ()
                        (setq-local company-backends '(company-org-block))
                        (company-mode +1)))))
-
-
 #+end_src
 
 #+begin_src emacs-lisp :lexical no
@@ -933,6 +930,9 @@ the languages in ISPELL-LANGUAGES when invoked."
 
 (use-package flyspell
   :defer t
+  :bind
+  (:map flyspell-mode-map
+        ("C-." . embark-act))
   :if (executable-find "aspell")
   :hook ((text-mode . flyspell-mode)
          (prog-mode . flyspell-prog-mode)
@@ -964,39 +964,23 @@ the languages in ISPELL-LANGUAGES when invoked."
      (define-fringe-bitmap 'git-gutter-fr:modified [224] nil nil '(center repeated))
      (define-fringe-bitmap 'git-gutter-fr:deleted [128 192 224 240] nil nil 'bottom))
    #+end_src
+** Marginalia
+#+begin_src emacs-lisp :lexical no
+(use-package marginalia
+  :ensure t
+  :custom
+  (marginalia-align 'right)
+  :config
+  (marginalia-mode))
+#+end_src
 ** Vertico
 #+begin_src emacs-lisp :lexical no
-(defun +minibuffer-file-highlight (cand)
-  (when (string-suffix-p "/" cand)
-    (add-face-text-property 0 (length cand) 'font-lock-function-name-face 'append cand))
-  cand)
-
-(defvar +minibuffer-category-highlight
-  `((file . ,#'+minibuffer-file-highlight))
-  "Custom highlight functions based on completion categories.")
-
-(advice-add #'vertico--format-candidates :around #'vertico-format-candidates+)
-
-(defun vertico-format-candidates+ (func metadata)
-  (let* ((cat (completion-metadata-get metadata 'category))
-         (hl-func (or (alist-get cat +minibuffer-category-highlight)
-                      (alist-get t +minibuffer-category-highlight)
-                      #'identity)))
-    (cl-letf* (((symbol-function 'actual-vertico-format-candidate)
-                (symbol-function #'vertico--format-candidate))
-               ((symbol-function #'vertico--format-candidate)
-                (lambda (cand prefix suffix index)
-                  (actual-vertico-format-candidate
-                   (funcall hl-func cand) prefix suffix index))))
-      (funcall func metadata))))
-
 (use-package vertico
   :init
   (vertico-mode)
   :config
   (keymap-set vertico-map "C-j" #'vertico-insert)
-  (keymap-set vertico-map "C-l" #'vertico-directory-delete-word)
-  )
+  (keymap-set vertico-map "C-l" #'vertico-directory-delete-word))
 
 (use-package savehist
   :init
@@ -1008,7 +992,6 @@ the languages in ISPELL-LANGUAGES when invoked."
   (setq completion-styles '(orderless basic partial-completion)
         completion-category-overrides '((file (styles basic partial-completion)))
         orderless-component-separator "[ |]"))
-
 #+end_src
 ** Consult
 #+begin_src emacs-lisp :lexical no
@@ -1125,17 +1108,17 @@ the languages in ISPELL-LANGUAGES when invoked."
 #+end_src
 ** Embark
 #+begin_src emacs-lisp :lexical no
-(use-package marginalia
-  :ensure t
-  :config
-  (marginalia-mode))
 
 (use-package embark
   :ensure t
   :bind
   (("C-." . embark-act)         ;; pick some comfortable binding
    ("C-;" . embark-dwim)        ;; good alternative: M-.
-   ("C-h B" . embark-bindings)) ;; alternative for `describe-bindings'
+   ("C-h B" . embark-bindings)  ;; alternative for `describe-bindings'
+   :map embark-file-map
+   ("S" . sudo-find-file)
+   :map embark-identifier-map
+   ("/" . org-emphasize))
 
   :init
   ;; Optionally replace the key help with a completing-read interface
@@ -1151,7 +1134,20 @@ the languages in ISPELL-LANGUAGES when invoked."
   (add-to-list 'display-buffer-alist
                '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
                  nil
-                 (window-parameters (mode-line-format . none)))))
+                 (window-parameters (mode-line-format . none))))
+
+  (defun sudo-find-file (file)
+    "Open FILE as root."
+    (interactive "FOpen file as root: ")
+    (when (file-writable-p file)
+      (user-error "File is user writeable, aborting sudo"))
+    (find-file (if (file-remote-p file)
+                   (concat "/" (file-remote-p file 'method) ":"
+                           (file-remote-p file 'user) "@" (file-remote-p file 'host)
+                           "|sudo:root@"
+                           (file-remote-p file 'host) ":" (file-remote-p file 'localname))
+                 (concat "/sudo:root@localhost:" file))))
+  )
 
 ;; Consult users will also want the embark-consult package.
 (use-package embark-consult
