@@ -387,14 +387,6 @@ An alternative: https://github.com/manateelazycat/auto-save/tree/master
            show-paren-mode))            ; Highlight matching parentheses
   (funcall mode 1))
 
-(use-package goto-line-preview
-  :config
-  (global-set-key [remap goto-line] 'goto-line-preview))
-
-(use-package browse-kill-ring
-  :bind (("M-y" . browse-kill-ring)))
-;; (use-package vundo)
-
 (use-package winpoint
   ;; Keep cursor while opening two buffers for a file.
   ;; https://raw.githubusercontent.com/manateelazycat/lazycat-emacs/47ed27a317c9d81b9ae4727a62c43bccc585b8b1/site-lisp/extensions/lazycat/winpoint.el
@@ -416,26 +408,7 @@ An alternative: https://github.com/manateelazycat/auto-save/tree/master
   (change-cursor-mode 1)
   (toggle-cursor-type-when-idle 1))
 #+end_src
-** COMMENT Evil mode
-#+begin_src emacs-lisp
-(use-package evil
-  :demand t
-  :bind (("<escape>" . keyboard-escape-quit))
-  :init
-  ;; allows for using cgn
-  ;; (setq evil-search-module 'evil-search)
-  (setq evil-want-keybinding nil)
-  ;; no vim insert bindings
-  (setq evil-undo-system 'undo-fu)
-  :config
-  (evil-mode 1))
 
-(use-package evil-collection
-  :after evil
-  :ensure t
-  :config
-  (evil-collection-init))
-#+end_src
 * Enhancement
 ** Ediff
 #+begin_src emacs-lisp
@@ -821,13 +794,6 @@ your project root:
         corfu-auto-prefix 2
         corfu-quit-at-boundary 'separator
         corfu-popupinfo-delay 0.5))
-;; Emacs completion style that matches multiple regexps in any order
-(use-package orderless
-  :ensure t
-  :config
-  (setq completion-styles '(orderless basic partial-completion)
-        completion-category-overrides '((file (styles basic partial-completion)))
-        orderless-component-separator "[ |]"))
 #+end_src
 ** COMMENT Input method
 #+begin_src emacs-lisp :lexical no
@@ -998,96 +964,165 @@ the languages in ISPELL-LANGUAGES when invoked."
      (define-fringe-bitmap 'git-gutter-fr:modified [224] nil nil '(center repeated))
      (define-fringe-bitmap 'git-gutter-fr:deleted [128 192 224 240] nil nil 'bottom))
    #+end_src
-** Helm
-*** Basic settings
-#+begin_src emacs-lisp
-(use-package helm
-  :ensure t
-  :config
-  (setq helm-split-window-in-side-p           t ; open helm buffer inside current window, not occupy whole other window
-        helm-move-to-line-cycle-in-source     t ; move to end or beginning of source when reaching top or bottom of source.
-        helm-ff-search-library-in-sexp        t ; search for library in `require' and `declare-function' sexp.
-        helm-scroll-amount                    8 ; scroll 8 lines other window using M-<next>/M-<prior>
-        helm-ff-file-name-history-use-recentf t)
+** Vertico
+#+begin_src emacs-lisp :lexical no
+(defun +minibuffer-file-highlight (cand)
+  (when (string-suffix-p "/" cand)
+    (add-face-text-property 0 (length cand) 'font-lock-function-name-face 'append cand))
+  cand)
 
-  :bind (("C-c h" . helm-command-prefix)
-         ("M-x" . helm-M-x)
-         ("C-x y" . helm-show-kill-ring)
-         ("C-x b" . helm-mini)
-         ("C-x C-f" . helm-find-files)
-         ("M-i" . helm-occur)
-         :map helm-command-map
-         ("C-i" . helm-execute-persistent-action)
-         ("C-i" . helm-select-action)
-         ("<tab>" . helm-execute-persistent-action))
+(defvar +minibuffer-category-highlight
+  `((file . ,#'+minibuffer-file-highlight))
+  "Custom highlight functions based on completion categories.")
+
+(advice-add #'vertico--format-candidates :around #'vertico-format-candidates+)
+
+(defun vertico-format-candidates+ (func metadata)
+  (let* ((cat (completion-metadata-get metadata 'category))
+         (hl-func (or (alist-get cat +minibuffer-category-highlight)
+                      (alist-get t +minibuffer-category-highlight)
+                      #'identity)))
+    (cl-letf* (((symbol-function 'actual-vertico-format-candidate)
+                (symbol-function #'vertico--format-candidate))
+               ((symbol-function #'vertico--format-candidate)
+                (lambda (cand prefix suffix index)
+                  (actual-vertico-format-candidate
+                   (funcall hl-func cand) prefix suffix index))))
+      (funcall func metadata))))
+
+(use-package vertico
+  :init
+  (vertico-mode)
+  :config
+  (keymap-set vertico-map "C-j" #'vertico-insert)
+  (keymap-set vertico-map "C-l" #'vertico-directory-delete-word)
   )
 
-(global-unset-key (kbd "C-x c"))
-#+end_src
-*** Helm gtags
-#+begin_src emacs-lisp
-(use-package helm-gtags
-  :after helm
-  :config
-  (setq helm-gtags-auto-update t)
-  (setq helm-gtags-update-interval-second 60)
-  :bind (:map helm-gtags-mode-map
-              ("M-t" . helm-gtags-find-tag)
-              ("M-r" . helm-gtags-find-rtag)
-              ("M-s" . helm-gtags-find-symbol)
-              ("M-g M-p" . helm-gtags-parse-file)
-              ("C-c <" . helm-gtags-previous-history)
-              ("C-c >" . helm-gtags-next-history)
-              ("M-," . helm-gtags-pop-stack))
-  :hook ((c-mode-hook . helm-gtags-mode)
-         (c++-mode-hook . helm-gtags-mode)
-         (c++-ts-mode-hook . helm-gtags-mode)
-         (asm-mode-hook . helm-gtags-mode)))
-#+end_src
-*** Helm rtags
-#+begin_src emacs-lisp
-(use-package helm-rtags)
-#+end_src
-*** Helm projectile
-#+begin_src emacs-lisp
-(use-package helm-projectile
-  :diminish t
-  :after helm
-  :bind (("C-c p f" . helm-projectile-find-file-dwim)
-         ("C-c p p" . helm-projectile-switch-project)
-         ("C-c p b" . helm-projectile-switch-to-buffer)
-         ("C-c p g" . helm-projectile-grep)))
-
-(projectile-global-mode)
-(setq projectile-completion-system 'helm)
-(helm-projectile-on)
-
-(setq projectile-enable-caching t)
-#+end_src
-*** Helm exwm
-#+begin_src emacs-lisp
-(use-package helm-exwm
+(use-package savehist
+  :init
+  (savehist-mode))
+;; Emacs completion style that matches multiple regexps in any order
+(use-package orderless
   :ensure t
-  :bind ("C-x B" . helm-exwm)
   :config
-  (setq helm-exwm-emacs-buffers-source (helm-exwm-build-emacs-buffers-source))
-  (setq helm-exwm-source (helm-exwm-build-source))
-  (setq helm-mini-default-sources `(helm-exwm-emacs-buffers-source
-                                    helm-exwm-source
-                                    helm-source-recentf)))
+  (setq completion-styles '(orderless basic partial-completion)
+        completion-category-overrides '((file (styles basic partial-completion)))
+        orderless-component-separator "[ |]"))
+
 #+end_src
-*** helm-ag
-    Rely on =ripgrep=, install it firstly.
- #+begin_src emacs-lisp
- (use-package helm-ag
-   :init
-   (setq helm-ag-base-command "rg"
-         helm-ag-command-option "--no-heading -i"
-         helm-ag-insert-at-point 'symbol)
-   :bind
-   ("C-c h g" . helm-do-ag)
- )
- #+end_src
+** Consult
+#+begin_src emacs-lisp :lexical no
+;; Example configuration for Consult
+(use-package consult
+  ;; Replace bindings. Lazily loaded due by `use-package'.
+  :bind (;; C-c bindings in `mode-specific-map'
+         ("C-c M-x" . consult-mode-command)
+         ("C-c h" . consult-history)
+         ("C-c k" . consult-kmacro)
+         ("C-c m" . consult-man)
+         ("C-c i" . consult-info)
+         ([remap Info-search] . consult-info)
+         ;; C-x bindings in `ctl-x-map'
+         ("C-x M-:" . consult-complex-command)     ;; orig. repeat-complex-command
+         ("C-x b" . consult-buffer)                ;; orig. switch-to-buffer
+         ("C-x 4 b" . consult-buffer-other-window) ;; orig. switch-to-buffer-other-window
+         ("C-x 5 b" . consult-buffer-other-frame)  ;; orig. switch-to-buffer-other-frame
+         ("C-x t b" . consult-buffer-other-tab)    ;; orig. switch-to-buffer-other-tab
+         ("C-x r b" . consult-bookmark)            ;; orig. bookmark-jump
+         ("C-x p b" . consult-project-buffer)      ;; orig. project-switch-to-buffer
+         ;; Custom M-# bindings for fast register access
+         ("M-#" . consult-register-load)
+         ("M-'" . consult-register-store)          ;; orig. abbrev-prefix-mark (unrelated)
+         ("C-M-#" . consult-register)
+         ;; Other custom bindings
+         ("M-y" . consult-yank-pop)                ;; orig. yank-pop
+         ;; M-g bindings in `goto-map'
+         ("M-g e" . consult-compile-error)
+         ("M-g f" . consult-flymake)               ;; Alternative: consult-flycheck
+         ("M-g g" . consult-goto-line)             ;; orig. goto-line
+         ("M-g M-g" . consult-goto-line)           ;; orig. goto-line
+         ("M-g o" . consult-outline)               ;; Alternative: consult-org-heading
+         ("M-g m" . consult-mark)
+         ("M-g k" . consult-global-mark)
+         ("M-g i" . consult-imenu)
+         ("M-g I" . consult-imenu-multi)
+         ;; M-s bindings in `search-map'
+         ("M-s d" . consult-find)                  ;; Alternative: consult-fd
+         ("M-s c" . consult-locate)
+         ("M-s g" . consult-grep)
+         ("M-s G" . consult-git-grep)
+         ("M-s r" . consult-ripgrep)
+         ("M-s l" . consult-line)
+         ("M-s L" . consult-line-multi)
+         ("M-s k" . consult-keep-lines)
+         ("M-s u" . consult-focus-lines)
+         ;; Isearch integration
+         ("M-s e" . consult-isearch-history)
+         :map isearch-mode-map
+         ("M-e" . consult-isearch-history)         ;; orig. isearch-edit-string
+         ("M-s e" . consult-isearch-history)       ;; orig. isearch-edit-string
+         ("M-s l" . consult-line)                  ;; needed by consult-line to detect isearch
+         ("M-s L" . consult-line-multi)            ;; needed by consult-line to detect isearch
+         ;; Minibuffer history
+         :map minibuffer-local-map
+         ("M-s" . consult-history)                 ;; orig. next-matching-history-element
+         ("M-r" . consult-history))               ;; orig. previous-matching-history-element
+
+  ;; Enable automatic preview at point in the *Completions* buffer. This is
+  ;; relevant when you use the default completion UI.
+  :hook (completion-list-mode . consult-preview-at-point-mode)
+
+  ;; The :init configuration is always executed (Not lazy)
+  :init
+
+  ;; Optionally configure the register formatting. This improves the register
+  ;; preview for `consult-register', `consult-register-load',
+  ;; `consult-register-store' and the Emacs built-ins.
+  (setq register-preview-delay 0.5
+        register-preview-function #'consult-register-format)
+
+  ;; Optionally tweak the register preview window.
+  ;; This adds thin lines, sorting and hides the mode line of the window.
+  (advice-add #'register-preview :override #'consult-register-window)
+
+  ;; Use Consult to select xref locations with preview
+  (setq xref-show-xrefs-function #'consult-xref
+        xref-show-definitions-function #'consult-xref)
+
+  ;; Configure other variables and modes in the :config section,
+  ;; after lazily loading the package.
+  :config
+
+  ;; Optionally configure preview. The default value
+  ;; is 'any, such that any key triggers the preview.
+  ;; (setq consult-preview-key 'any)
+  ;; (setq consult-preview-key "M-.")
+  ;; (setq consult-preview-key '("S-<down>" "S-<up>"))
+  ;; For some commands and buffer sources it is useful to configure the
+  ;; :preview-key on a per-command basis using the `consult-customize' macro.
+  (consult-customize
+   consult-theme :preview-key '(:debounce 0.2 any)
+   consult-ripgrep consult-git-grep consult-grep
+   consult-bookmark consult-recent-file consult-xref
+   consult--source-bookmark consult--source-file-register
+   consult--source-recent-file consult--source-project-recent-file
+   ;; :preview-key "M-."
+   :preview-key '(:debounce 0.4 any))
+
+  ;; Optionally configure the narrowing key.
+  ;; Both < and C-+ work reasonably well.
+  (setq consult-narrow-key "<") ;; "C-+"
+  )
+#+end_src
+*** consult-dir
+#+begin_src emacs-lisp :lexical no
+(use-package consult-dir
+  :ensure t
+  :bind (("C-x C-d" . consult-dir)
+         :map vertico-map
+         ("C-x C-d" . consult-dir)
+         ("C-x C-j" . consult-dir-jump-file)))
+#+end_src
 ** Embark
 #+begin_src emacs-lisp :lexical no
 (use-package marginalia
@@ -1124,6 +1159,15 @@ the languages in ISPELL-LANGUAGES when invoked."
   :hook
   (embark-collect-mode . consult-preview-at-point-mode))
 #+end_src
+** Projectile
+#+begin_src emacs-lisp :lexical no
+(use-package projectile
+  :config
+  (projectile-mode +1))
+
+(use-package consult-projectile
+  :bind ("C-c p" . consult-projectile))
+#+end_src
 ** COMMENT Ivy
 #+begin_src emacs-lisp :lexical no
 (use-package ivy :ensure t
@@ -1151,12 +1195,12 @@ the languages in ISPELL-LANGUAGES when invoked."
 (use-package yasnippet
   :diminish t
   :init
-  (setq helm-yas-space-match-any-greedy t)
+  ;; (setq helm-yas-space-match-any-greedy t)
   (setq yas-prompt-functions '(yas-dropdown-prompt
                                yas-ido-prompt
                                yas-completing-prompt))
   :config
-  (use-package helm-c-yasnippet)
+  ;; (use-package helm-c-yasnippet)
   (yas-global-mode 1)
   (add-hook 'term-mode-hook (lambda()
                               (yas-minor-mode -1))))
@@ -1419,92 +1463,19 @@ the languages in ISPELL-LANGUAGES when invoked."
 #+end_src
 ** org-roam
 #+begin_src emacs-lisp
-;; Copy from https://ag91.github.io/blog/2022/02/05/an-helm-source-for-org-roam-v2/
-(defun helm-org-roam (&optional input candidates)
-  (interactive)
-  (require 'org-roam)
-  (helm
-   :input input
-   :sources (list
-             (helm-build-sync-source "Roam: "
-               :must-match nil
-               :fuzzy-match t
-               :candidates (or candidates (org-roam--get-titles))
-               :action
-               '(("Find File" . (lambda (x)
-                                  (--> x
-                                       org-roam-node-from-title-or-alias
-                                       (org-roam-node-visit it t))))
-                 ("Insert link" . (lambda (x)
-                                    (--> x
-                                         org-roam-node-from-title-or-alias
-                                         (insert
-                                          (format
-                                           "[[id:%s][%s]]"
-                                           (org-roam-node-id it)
-                                           (org-roam-node-title it))))))
-                 ("Follow backlinks" . (lambda (x)
-                                         (let ((candidates
-                                                (--> x
-                                                     org-roam-node-from-title-or-alias
-                                                     org-roam-backlinks-get
-                                                     (--map
-                                                      (org-roam-node-title
-                                                       (org-roam-backlink-source-node it))
-                                                      it))))
-                                           (helm-org-roam nil (or candidates (list x))))))))
-             (helm-build-dummy-source
-                 "Create note"
-               :action '(("Capture note" . (lambda (candidate)
-                                             (org-roam-capture-
-                                              :node (org-roam-node-create :title candidate)
-                                              :props '(:finalize find-file)))))))))
-
-(defun org-roam-tag-add-non-interactive (tags)
-  "Add TAGS to the node at point."
-  (let ((node (org-roam-node-at-point 'assert)))
-    (goto-char (org-roam-node-point node))
-    (if (= (org-outline-level) 0)
-        (let ((current-tags (split-string (or (cadr (assoc "FILETAGS"
-                                                           (org-collect-keywords '("filetags"))))
-                                              "")
-                                          ":" 'omit-nulls)))
-          (org-roam-set-keyword "filetags" (org-make-tag-string (seq-uniq (append tags current-tags)))))
-      (org-set-tags (seq-uniq (append tags (org-get-tags)))))))
-
-(defun helm-org-roam-tag (&optional input candidates)
-  (interactive)
-  (require 'org-roam)
-  (helm
-   :input input
-   :sources (list
-             (helm-build-sync-source "Roam: "
-               :must-match nil
-               :fuzzy-match t
-               :candidates (or candidates (org-roam-tag-completions))
-               :action
-               '(("Add tag" . (lambda (candidate)
-                                (org-roam-tag-add-non-interactive (list candidate))
-                                ))))
-             (helm-build-dummy-source
-                 "Create tag"
-               :action '(("New tag" . (lambda (candidate)
-                                        (org-roam-tag-add-non-interactive (list candidate))
-                                        )))))))
-
 (use-package org-roam
   :ensure t
   :init
   (when (file-directory-p "~/org/roam/")
     (setq org-roam-directory (file-truename "~/org/roam")))
   :bind (("C-c n l" . org-roam-buffer-toggle)
-         ("C-c n f" . org-roam-node-find)
+         ("C-c n o" . org-roam-node-find)
          ("C-c n g" . org-roam-graph)
          ("C-c n i" . org-roam-node-insert)
          ("C-c n c" . org-roam-capture)
-         ("C-c n t" . helm-org-roam-tag)
+         ("C-c n t" . org-roam-tag-add)
          ("C-c n T" . org-roam-tag-remove)
-         ("C-c n o" . helm-org-roam)
+         ;; ("C-c n o" . helm-org-roam)
          ;; Dailies
          ("C-c n j" . org-roam-dailies-capture-today))
   :config
@@ -1513,17 +1484,33 @@ the languages in ISPELL-LANGUAGES when invoked."
   (org-roam-db-autosync-mode)
   ;; If using org-roam-protocol
   (require 'org-roam-protocol))
-#+end_src
-*** Deft
-#+begin_src emacs-lisp
-(use-package deft
-  :bind ("<f6>" . deft)
+
+(use-package consult-org-roam
+  :ensure t
+  :after org-roam
+  :init
+  (require 'consult-org-roam)
+  ;; Activate the minor mode
+  (consult-org-roam-mode 1)
+  :custom
+  ;; Use `ripgrep' for searching with `consult-org-roam-search'
+  (consult-org-roam-grep-func #'consult-ripgrep)
+  ;; Configure a custom narrow key for `consult-buffer'
+  (consult-org-roam-buffer-narrow-key ?r)
+  ;; Display org-roam buffers right after non-org-roam buffers
+  ;; in consult-buffer (and not down at the bottom)
+  (consult-org-roam-buffer-after-buffers t)
   :config
-  (setq deft-directory "~/org/roam/"
-        deft-recursive t
-        deft-strip-summary-regexp ":PROPERTIES:\n\\(.+\n\\)+:END:\n"
-        deft-extensions '("md" "org")
-        deft-use-filename-as-title t))
+  ;; Eventually suppress previewing for certain functions
+  (consult-customize
+   consult-org-roam-forward-links
+   :preview-key "M-.")
+  :bind
+  ;; Define some convenient keybindings as an addition
+  ("C-c n b" . consult-org-roam-backlinks)
+  ("C-c n l" . consult-org-roam-forward-links)
+  ("C-c n r" . consult-org-roam-search))
+
 #+end_src
 *** org-roam-ui
 #+begin_src emacs-lisp
