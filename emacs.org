@@ -425,7 +425,9 @@ An alternative: https://github.com/manateelazycat/auto-save/tree/master
 #+end_src
 ** Hippie expand
 #+begin_src emacs-lisp
-  ;; hippie expand is dabbrev expand on steroids
+(use-package hippie-exp
+  :bind ([remap dabbrev-expand]. hippie-expand)
+  :config
   (setq hippie-expand-try-functions-list '(try-expand-dabbrev
                                            try-expand-dabbrev-all-buffers
                                            try-expand-dabbrev-from-kill
@@ -435,8 +437,7 @@ An alternative: https://github.com/manateelazycat/auto-save/tree/master
                                            try-expand-list
                                            try-expand-line
                                            try-complete-lisp-symbol-partially
-                                           try-complete-lisp-symbol))
-  (global-set-key (kbd "M-/") 'hippie-expand)
+                                           try-complete-lisp-symbol)))
 #+end_src
 ** Smartscan
 =M-n= to next symbol, and =M-p= to previous symbol.
@@ -1204,18 +1205,17 @@ the languages in ISPELL-LANGUAGES when invoked."
 
 ** Compilation
 #+begin_src emacs-lisp
-(defun prelude-colorize-compilation-buffer ()
-  "Colorize a compilation mode buffer."
-  (interactive)
-  ;; we don't want to mess with child modes such as grep-mode, ack, ag, etc
-  (when (eq major-mode 'compilation-mode)
-    (let ((inhibit-read-only t))
-      (ansi-color-apply-on-region (point-min) (point-max)))))
 (setq compilation-ask-about-save nil          ; Just save before compiling
       compilation-always-kill t               ; Just kill old compile processes before starting the new one
       compilation-scroll-output 'first-error) ; Automatically scroll to first
-(use-package cd-compile
-  :bind ("<f5>" . cd-compile))
+
+
+(use-package smart-compile
+  :bind ("<f5>" . smart-compile)
+  :config
+  (add-to-list 'smart-compile-alist '("\\.c\\'"          . "gcc -O2 %f -lm -o %n && ./%n"))
+  (add-to-list 'smart-compile-alist '("\\.[Cc]+[Pp]*\\'" . "g++ -O2 %f -lm -o %n && ./%n"))
+  )
 #+end_src
 
 ** Smartparens
