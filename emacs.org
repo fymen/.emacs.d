@@ -60,7 +60,7 @@
 ** Basics
 #+begin_src emacs-lisp
 (setq-default tab-width 4                       ; Smaller tabs
-              fill-column 80                    ; Maximum line width
+              ;; fill-column 80                    ; Maximum line width
               ;; auto-fill-function 'do-auto-fill  ; Auto-fill-mode everywhere
               sentence-end-double-space nil           ; Use a single space after dots
               bidi-paragraph-direction 'left-to-right ; Faster
@@ -649,7 +649,6 @@ point reaches the beginning or end of the buffer, stop there."
 
    #+END_SRC
 
-
 ** Dired
 #+begin_src emacs-lisp
 (setq
@@ -684,6 +683,7 @@ point reaches the beginning or end of the buffer, stop there."
 (use-package golden-ratio
   :config
   (golden-ratio-mode 1)
+  (add-to-list 'golden-ratio-extra-commands 'ace-window)
   :custom
   ;; (golden-ratio-auto-scale t)
   (golden-ratio-exclude-modes '(occur-mode)))
@@ -1166,6 +1166,52 @@ the languages in ISPELL-LANGUAGES when invoked."
 #+end_src
 ** Embark
 #+begin_src emacs-lisp :lexical no
+(defun shell-quote-wildcard-pattern (pattern)
+  "Quote characters special to the shell in PATTERN, leave wildcards alone.
+
+PATTERN is assumed to represent a file-name wildcard suitable for the
+underlying filesystem.  For Unix and GNU/Linux, each character from the
+set [][ \\t\\n;<>&|()\\=`\\='\"#$] is quoted with a backslash; for DOS/Windows, all
+the parts of the pattern that don't include wildcard characters are
+quoted with double quotes.
+
+This function leaves alone existing quote characters (\\ on Unix and \"
+on Windows), so PATTERN can use them to quote wildcard characters that
+need to be passed verbatim to shell commands."
+  (save-match-data
+    (cond
+     ((memq system-type '(ms-dos windows-nt cygwin))
+      ;; DOS/Windows don't allow `"' in file names.  So if the
+      ;; argument has quotes, we can safely assume it is already
+      ;; quoted by the caller.
+      (if (or (string-search "\"" pattern)
+	          ;; We quote [&()#$`'] in case their shell is a port of a
+	          ;; Unixy shell.  We quote [,=+] because stock DOS and
+	          ;; Windows shells require that in some cases, such as
+	          ;; passing arguments to batch files that use positional
+	          ;; arguments like %1.
+	          (not (string-match "[ \t;&()#$`',=+]" pattern)))
+	      pattern
+	    (let ((result "\"")
+	          (beg 0)
+	          end)
+	      (while (string-match "[*?]+" pattern beg)
+	        (setq end (match-beginning 0)
+		          result (concat result (substring pattern beg end)
+				                 "\""
+				                 (substring pattern end (match-end 0))
+				                 "\"")
+		          beg (match-end 0)))
+	      (concat result (substring pattern beg) "\""))))
+     (t
+      (let ((beg 0))
+	    (while (string-match "[][ \t\n;<>&|()`'\"#$]" pattern beg) ; Deal with paths include '[' or ']'
+	      (setq pattern
+		        (concat (substring pattern 0 (match-beginning 0))
+			            "\\"
+			            (substring pattern (match-beginning 0)))
+		        beg (1+ (match-end 0)))))
+      pattern))))
 
 (use-package embark
   :ensure t
@@ -1216,28 +1262,6 @@ the languages in ISPELL-LANGUAGES when invoked."
 
 (use-package consult-projectile
   :bind ("C-c p" . consult-projectile))
-#+end_src
-** COMMENT Ivy
-#+begin_src emacs-lisp :lexical no
-(use-package ivy :ensure t
-  :diminish (ivy-mode . "")
-  :bind
-  (:map ivy-mode-map
-        ("C-'" . ivy-avy))
-  :config
-  (ivy-mode 1)
-  ;; add ‘recentf-mode’ and bookmarks to ‘ivy-switch-buffer’.
-  (setq ivy-use-virtual-buffers t)
-  ;; number of result lines to display
-  (setq ivy-height 10)
-  ;; does not count candidates
-  (setq ivy-count-format "")
-  ;; no regexp by default
-  (setq ivy-initial-inputs-alist nil)
-  ;; configure regexp engine.
-  (setq ivy-re-builders-alist
-	    ;; allow input not in order
-        '((t   . ivy--regex-ignore-order))))
 #+end_src
 ** Yasnippet
 #+begin_src emacs-lisp
@@ -1298,32 +1322,6 @@ the languages in ISPELL-LANGUAGES when invoked."
   (add-hook 'c++-mode-hook #'eglot-ensure)
   (add-hook 'c++-ts-mode-hook #'eglot-ensure))
 #+end_src
-** COMMENT Lsp mode
-#+begin_src emacs-lisp :lexical no
-(use-package lsp-mode
-  :defer t
-  :commands lsp
-  :custom
-  (lsp-keymap-prefix "C-x l")
-  (lsp-auto-guess-root nil)
-  (lsp-prefer-flymake nil) ; Use flycheck instead of flymake
-  (lsp-enable-file-watchers nil)
-  (lsp-enable-folding nil)
-  (read-process-output-max (* 1024 1024))
-  (lsp-keep-workspace-alive nil)
-  (lsp-eldoc-hook nil)
-  :bind (:map lsp-mode-map ("C-c C-f" . lsp-format-buffer))
-  :hook ((java-mode python-mode go-mode rust-mode
-                    js-mode js2-mode typescript-mode web-mode
-                    c-mode c++-mode objc-mode) . lsp-deferred)
-  :config
-  (defun lsp-update-server ()
-    "Update LSP server."
-    (interactive)
-    ;; Equals to `C-u M-x lsp-install-server'
-    (lsp-install-server t)))
-#+end_src
-
 ** TODO COMMENT Editor config
 #+begin_src emacs-lisp
   ;; EditorConfig Emacs Plugin
@@ -1589,59 +1587,6 @@ the languages in ISPELL-LANGUAGES when invoked."
         org-roam-ui-follow t
         org-roam-ui-update-on-save t
         org-roam-ui-open-on-start t))
-#+end_src
-*** TODO COMMENT Nersery
-#+begin_src emacs-lisp :lexical no
-(use-package nursery
-  :straight (:host github :repo "chrisbarrett/nursery")
-  )
-
-(use-package org-roam-review
-  :commands (org-roam-review
-             org-roam-review-list-by-maturity
-             org-roam-review-list-recently-added)
-
-  ;; ;; Optional - tag all newly-created notes as seedlings.
-  ;; :hook (org-roam-capture-new-node . org-roam-review-set-seedling)
-
-  ;; ;; Optional - keybindings for applying Evergreen note properties.
-  ;; :general
-  ;; (:keymaps 'org-mode-map
-  ;; "C-c r r" '(org-roam-review-accept :wk "accept")
-  ;; "C-c r u" '(org-roam-review-bury :wk "bury")
-  ;; "C-c r x" '(org-roam-review-set-excluded :wk "set excluded")
-  ;; "C-c r b" '(org-roam-review-set-budding :wk "set budding")
-  ;; "C-c r s" '(org-roam-review-set-seedling :wk "set seedling")
-  ;; "C-c r e" '(org-roam-review-set-evergreen :wk "set evergreen"))
-
-  ;; ;; Optional - bindings for evil-mode compatability.
-  ;; :general
-  ;; (:states '(normal) :keymaps 'org-roam-review-mode-map
-  ;; "TAB" 'magit-section-cycle
-  ;; "g r" 'org-roam-review-refresh)
-  )
-
-(use-package org-roam-search
-  :commands (org-roam-search))
-
-(use-package org-roam-links
-  :commands (org-roam-links))
-
-(use-package org-roam-dblocks
-  :hook (org-mode . org-roam-dblocks-autoupdate-mode))
-
-(use-package org-roam-rewrite
-  :commands (org-roam-rewrite-rename
-             org-roam-rewrite-remove
-             org-roam-rewrite-inline
-             org-roam-rewrite-extract))
-
-(use-package org-roam-slipbox
-  :after org-roam
-  :demand t
-  :config
-  (org-roam-slipbox-buffer-identification-mode +1)
-  (org-roam-slipbox-tag-mode +1))
 #+end_src
 ** Org transclusion
 #+begin_src emacs-lisp :lexical no
@@ -2059,5 +2004,5 @@ the languages in ISPELL-LANGUAGES when invoked."
 (use-package nov
   :hook
   (nov-mode-hook . my-nov-font-setup))
-
 #+end_src
+
