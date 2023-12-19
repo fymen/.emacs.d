@@ -60,8 +60,11 @@
 ** Basics
 #+begin_src emacs-lisp
 (setq-default tab-width 4                       ; Smaller tabs
-              ;; fill-column 79                    ; Maximum line width
+              fill-column 80                    ; Maximum line width
               ;; auto-fill-function 'do-auto-fill  ; Auto-fill-mode everywhere
+              sentence-end-double-space nil           ; Use a single space after dots
+              bidi-paragraph-direction 'left-to-right ; Faster
+              truncate-string-ellipsis "…"           ; Nicer ellipsis
               truncate-lines t                  ; Don't fold lines
               indent-tabs-mode nil              ; Use spaces instead of tabs
               split-width-threshold 80           ; Split Horizontally by default
@@ -417,11 +420,13 @@ An alternative: https://github.com/manateelazycat/auto-save/tree/master
 #+end_src
 ** Uniquify
 #+begin_src emacs-lisp
-  ;; Every buffer should have a unique name 
-  (require 'uniquify)
-  (setq
-   uniquify-buffer-name-style 'post-forward
-   uniquify-separator ":")
+;; Every buffer should have a unique name
+(require 'uniquify)
+(setq
+ uniquify-buffer-name-style 'post-forward
+ uniquify-separator " • "
+ uniquify-after-kill-buffer-p t
+ uniquify-ignore-buffers-re "^\\*")
 #+end_src
 ** Hippie expand
 #+begin_src emacs-lisp
@@ -454,19 +459,20 @@ Only in elisp and c mode.
     :config
     (global-hungry-delete-mode))
 #+end_src
-** Unfill paragraph
+** Smart fill paragraph
 #+begin_src emacs-lisp
-  ;;; Stefan Monnier <foo at acm.org>. It is the opposite of
-  ;;; fill-paragraph
-  (defun unfill-paragraph (&optional region)
-    "Takes a multi-line paragraph and makes it into a single line of text."
-    (interactive (progn (barf-if-buffer-read-only) '(t)))
-    (let ((fill-column (point-max))
-          ;; This would override `fill-column' if it's an integer.
-          (emacs-lisp-docstring-fill-column t))
-      (fill-paragraph nil region)))
-  ;; Handy key definition
-  (define-key global-map "\M-Q" 'unfill-paragraph)
+(defun my/fill-unfill ()
+  "Like `fill-paragraph', but unfill if used twice."
+  (interactive)
+  (let ((fill-column
+         (if (eq last-command #'my/fill-unfill)
+             (progn (setq this-command nil)
+                    (point-max))
+           fill-column)))
+    (call-interactively #'fill-paragraph)))
+
+(bind-key "M-q"  #'my/fill-unfill)
+;; (bind-key [remap fill-paragraph]  #'my/fill-unfill)
 #+end_src
 ** Smart move to the beginning of line
 #+BEGIN_SRC emacs-lisp
@@ -665,17 +671,38 @@ point reaches the beginning or end of the buffer, stop there."
 ** ace-window
 #+begin_src emacs-lisp
 (use-package ace-window
-  :bind ("C-x o" . ace-window))
+  :ensure t
+  :init (setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l)
+              aw-ignore-current nil
+              aw-leading-char-style 'char
+              aw-scope 'frame)
+  :bind (("M-o" . ace-window)
+         ("M-O" . ace-swap-window)))
+#+end_src
+** golden-ratio
+#+begin_src emacs-lisp :lexical no
+(use-package golden-ratio
+  :config
+  (golden-ratio-mode 1)
+  :custom
+  ;; (golden-ratio-auto-scale t)
+  (golden-ratio-exclude-modes '(occur-mode)))
+#+end_src
+** solaire-mode
+#+begin_src emacs-lisp :lexical no
+(use-package solaire-mode
+  :config
+  (solaire-global-mode +1))
 #+end_src
 ** beacon-mode
 Never to lose your cursor again.
 #+begin_src emacs-lisp
-  (use-package beacon
-    :diminish beacon-mode
-    :init
-    (beacon-mode 1)
-    (setq beacon-push-mark 35)
-    (setq beacon-color "#666600"))
+(use-package beacon
+  :diminish beacon-mode
+  :init
+  (beacon-mode 1)
+  (setq beacon-push-mark 35)
+  (setq beacon-color (find-color "zenburn-green-1")))
 #+end_src
 ** Rainbow delimiters
 #+begin_src emacs-lisp
@@ -778,20 +805,26 @@ your project root:
   :straight (:host github :repo "manateelazycat/company-english-helper")
   :config (setq company-english-helper-fuzz-search-p t))
 #+end_src
-
-#+begin_src emacs-lisp :tangle no
+** COMMENT Corfu
+#+begin_src emacs-lisp
 ;; Modular text completion framework
 (use-package corfu
   :init
   (global-corfu-mode 1)
   (corfu-popupinfo-mode 1)
   :config
-  (setq corfu-cycle t
-        corfu-auto t
-        corfu-auto-delay 0
-        corfu-auto-prefix 2
-        corfu-quit-at-boundary 'separator
-        corfu-popupinfo-delay 0.5))
+  (setq corfu-cycle t                ; Enable cycling for `corfu-next/previous'
+        corfu-auto t                 ; Enable auto completion
+        corfu-auto-delay 60.0        ; Delay before auto-completion shows up
+        corfu-separator ?\s          ; Orderless field separator
+        corfu-quit-at-boundary nil   ; Never quit at completion boundary
+        corfu-quit-no-match t        ; Quit when no match
+        corfu-preview-current nil    ; Disable current candidate preview
+        corfu-preselect-first nil    ; Disable candidate preselection
+        corfu-on-exact-match nil     ; Configure handling of exact matches
+        corfu-echo-documentation nil ; Disable documentation in the echo area
+        corfu-scroll-margin 5)       ; Use scroll margin
+  )
 #+end_src
 ** COMMENT Input method
 #+begin_src emacs-lisp :lexical no
@@ -984,7 +1017,31 @@ the languages in ISPELL-LANGUAGES when invoked."
   (keymap-set vertico-map "C-l" #'vertico-directory-delete-word))
 
 (use-package savehist
-  :init
+  :config
+  (setq savehist-additional-variables
+        '(tablist-named-filter
+          projectile-project-command-history
+          kill-ring
+          command-history
+          set-variable-value-history
+          custom-variable-history
+          query-replace-history
+          read-expression-history
+          minibuffer-history
+          read-char-history
+          face-name-history
+          bookmark-history
+          file-name-history))
+  (put 'minibuffer-history         'history-length 50)
+  (put 'file-name-history          'history-length 50)
+  (put 'set-variable-value-history 'history-length 25)
+  (put 'custom-variable-history    'history-length 25)
+  (put 'query-replace-history      'history-length 25)
+  (put 'read-expression-history    'history-length 25)
+  (put 'read-char-history          'history-length 25)
+  (put 'face-name-history          'history-length 25)
+  (put 'bookmark-history           'history-length 25)
+  (setq history-delete-duplicates t)
   (savehist-mode))
 ;; Emacs completion style that matches multiple regexps in any order
 (use-package orderless
@@ -1124,11 +1181,6 @@ the languages in ISPELL-LANGUAGES when invoked."
   :init
   ;; Optionally replace the key help with a completing-read interface
   (setq prefix-help-command #'embark-prefix-help-command)
-
-  ;; Show the Embark target at point via Eldoc.  You may adjust the Eldoc
-  ;; strategy, if you want to see the documentation from multiple providers.
-  (add-hook 'eldoc-documentation-functions #'embark-eldoc-first-target)
-  ;; (setq eldoc-documentation-strategy #'eldoc-documentation-compose-eagerly)
 
   :config
   ;; Hide the mode line of the Embark live/completions buffers
@@ -1293,16 +1345,32 @@ the languages in ISPELL-LANGUAGES when invoked."
   :config
   (setq org-adapt-indentation t
         org-hide-leading-stars t
-        org-hide-emphasis-markers t
         org-src-fontify-natively t
         org-edit-src-content-indentation 0
-        org-ellipsis "⤵")
-
+        org-ellipsis " …"              ; Nicer ellipsis
+        org-tags-column 1              ; Tags next to header title
+        org-hide-emphasis-markers t    ; Hide markers
+        org-cycle-separator-lines 2    ; Number of empty lines between sections
+        org-use-tag-inheritance nil    ; Tags ARE NOT inherited
+        org-use-property-inheritance t ; Properties ARE inherited
+        org-indent-indentation-per-level 2 ; Indentation per level
+        org-link-use-indirect-buffer-for-internals t ; Indirect buffer for internal links
+        org-fontify-quote-and-verse-blocks t ; Specific face for quote and verse blocks
+        org-return-follows-link nil    ; Follow links when hitting return
+        org-image-actual-width nil     ; Resize image to window width
+        org-indirect-buffer-display 'other-window ; Tab on a task expand it in a new window
+        org-outline-path-complete-in-steps nil) ; No steps in path display
   (add-hook 'org-mode-hook (lambda () (org-indent-mode t))))
 
 #+end_src
 ** org-babel
 #+begin_src emacs-lisp
+(setq-default org-src-fontify-natively t         ; Fontify code in code blocks.
+              org-adapt-indentation nil          ; Adaptive indentation
+              org-src-tab-acts-natively t        ; Tab acts as in source editing
+              org-confirm-babel-evaluate nil     ; No confirmation before executing code
+              org-edit-src-content-indentation 0 ; No relative indentation for code blocks
+              org-fontify-whole-block-delimiter-line t) ; Fontify whole block
 (use-package gnuplot)
 (use-package plantuml-mode)
 ;; active Babel languages
@@ -1731,9 +1799,6 @@ the languages in ISPELL-LANGUAGES when invoked."
   :if (memq window-system '(mac ns x))
   :config
   (exec-path-from-shell-initialize))
-
-
-
 #+end_src
 * Exwm
 #+begin_src emacs-lisp
@@ -1874,8 +1939,32 @@ the languages in ISPELL-LANGUAGES when invoked."
           ("https://jvns.ca/atom.xml" blog)
           ("https://norvig.com/rss-feed.xml" blog)
           ("https://karthinks.com/software/index.xml", blog)
+          ("https://kristofferbalintona.me/index.xml", blog)
+          ;; https://github.com/rougier
           ))
   )
+
+(use-package elfeed-tube
+  :ensure t ;; or :straight t
+  :after elfeed
+  :demand t
+  :config
+  ;; (setq elfeed-tube-auto-save-p nil) ; default value
+  ;; (setq elfeed-tube-auto-fetch-p t)  ; default value
+  (elfeed-tube-setup)
+
+  :bind (:map elfeed-show-mode-map
+              ("F" . elfeed-tube-fetch)
+              ([remap save-buffer] . elfeed-tube-save)
+              :map elfeed-search-mode-map
+              ("F" . elfeed-tube-fetch)
+              ([remap save-buffer] . elfeed-tube-save)))
+
+(use-package elfeed-tube-mpv
+  :ensure t ;; or :straight t
+  :bind (:map elfeed-show-mode-map
+              ("C-c C-f" . elfeed-tube-mpv-follow-mode)
+              ("C-c C-w" . elfeed-tube-mpv-where)))
 #+end_src
 * COMMENT EAF
 #+begin_src emacs-lisp
