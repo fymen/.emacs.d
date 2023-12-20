@@ -8,5 +8,5 @@
 
 (if (file-exists-p
      (setq private-file
-           (expand-file-name "private.org" user-emacs-directory)))
+           (expand-file-name "private.org" "~/personal/")))
     (org-babel-load-file private-file))

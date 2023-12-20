@@ -111,18 +111,27 @@
 #+end_src
 
 ** Auto save
-The aim is save =C-x C-s=, the most frequently used key.
-An alternative: https://github.com/manateelazycat/auto-save/tree/master
-#+begin_src emacs-lisp
-(use-package real-auto-save
+The aim is save our hands from =C-x C-s=, the most frequently used key.
+#+begin_src emacs-lisp :lexical no
+(use-package auto-save
+  :straight (:host github :repo "manateelazycat/auto-save"
+                   :branch "master")
   :config
-  (setq real-auto-save-interval 2)
-  (add-hook 'org-mode-hook 'real-auto-save-mode)
-  (add-hook 'prog-mode-hook 'real-auto-save-mode)
-  (add-hook 'text-mode-hook 'real-auto-save-mode)
-  (add-hook 'conf-mode-hook 'real-auto-save-mode)
+  (auto-save-enable)
+  :custom
+  (auto-save-silent t)
+  ;; (auto-save-delete-trailing-whitespace t)
+
+;;; custom predicates if you don't want auto save.
+;;; disable auto save mode when current filetype is an gpg file.
+  (auto-save-disable-predicates
+   '((lambda ()
+       (string-suffix-p
+        "gpg"
+        (file-name-extension (buffer-name)) t))))
   )
 #+end_src
+
 ** Desktop save
 #+begin_src emacs-lisp
   (desktop-save-mode 1)
@@ -947,7 +956,7 @@ your project root:
 #+begin_src emacs-lisp :lexical no
 (use-package ws-butler
   :config
-  (add-hook 'prog-mode-hook #'ws-butler-mode))
+  (ws-butler-global-mode))
 #+end_src
 ** Fly spell
 #+begin_src emacs-lisp
@@ -1537,7 +1546,6 @@ need to be passed verbatim to shell commands."
          ("C-c n c" . org-roam-capture)
          ("C-c n t" . org-roam-tag-add)
          ("C-c n T" . org-roam-tag-remove)
-         ;; ("C-c n o" . helm-org-roam)
          ;; Dailies
          ("C-c n j" . org-roam-dailies-capture-today))
   :config
@@ -1830,13 +1838,13 @@ need to be passed verbatim to shell commands."
 ** Dictionary & popweb
 #+begin_src emacs-lisp :lexical no
 (use-package popweb
-  ;; :straight (:host github :repo "manateelazycat/popweb"
-                   ;; :branch "main")
-  :load-path (lambda () (expand-file-name "extension/popweb" user-emacs-directory))
-  )
+  :straight (:host github :repo "manateelazycat/popweb"
+                   :branch "main")
+  :commands (popweb popweb-epc))
 
 (use-package popweb-dict
-  :load-path "extension/popweb/extension/dict"
+  :load-path "straight/repos/popweb/extension/dict/"
+
   :bind ("C-c d" . popweb-dict-collins-input)
 
   :config
@@ -1874,21 +1882,18 @@ need to be passed verbatim to shell commands."
   (use-package elfeed-goodies)
   ;; (setf url-queue-timeout 60)
   ;; (setf elfeed-curl-extra-arguments '("--socks5-hostname" "127.0.0.1:1080"))
+
   (elfeed-goodies/setup)
-  (setq elfeed-feeds
-        '(
-          ("https://catcoding.me/atom.xml" blog)
-          ("https://nullprogram.com/feed/" blog dev)
-          ("https://nullprogram.com/feed/" blog dev)
-          ("https://world.hey.com/dhh/feed.atom" blog)
-          ("https://jvns.ca/atom.xml" blog)
-          ("https://norvig.com/rss-feed.xml" blog)
-          ("https://karthinks.com/software/index.xml", blog)
-          ("https://kristofferbalintona.me/index.xml", blog)
-          ;; https://github.com/rougier
-          ))
   )
 
+(use-package elfeed-org
+  :config
+  (elfeed-org)
+  :custom
+  (rmh-elfeed-org-files "~/personal/elfeed.org")
+  )
+
+;; Have to install mpv and yl-dlp to make it work
 (use-package elfeed-tube
   :ensure t ;; or :straight t
   :after elfeed
@@ -2005,4 +2010,3 @@ need to be passed verbatim to shell commands."
   :hook
   (nov-mode-hook . my-nov-font-setup))
 #+end_src
-
