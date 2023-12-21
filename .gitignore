@@ -29,3 +29,9 @@ projectile*
 /org-roam.db
 /extension/
 /straight/
+/.cache/
+/history
+/nov-places
+/places
+/popweb/
+/tree-sitter/

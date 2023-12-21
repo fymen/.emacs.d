@@ -1840,7 +1840,8 @@ need to be passed verbatim to shell commands."
 (use-package popweb
   :straight (:host github :repo "manateelazycat/popweb"
                    :branch "main")
-  :commands (popweb popweb-epc))
+  :load-path "straight/repos/popweb/"
+  )
 
 (use-package popweb-dict
   :load-path "straight/repos/popweb/extension/dict/"
@@ -1890,7 +1891,7 @@ need to be passed verbatim to shell commands."
   :config
   (elfeed-org)
   :custom
-  (rmh-elfeed-org-files "~/personal/elfeed.org")
+  (rmh-elfeed-org-files (list "~/personal/elfeed.org"))
   )
 
 ;; Have to install mpv and yl-dlp to make it work
