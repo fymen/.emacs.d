@@ -51,16 +51,16 @@
 #+begin_src emacs-lisp
 (setq load-prefer-newer t)
 (use-package auto-compile
- :ensure t
- :config
-  (auto-compile-on-load-mode 1)
-  (auto-compile-on-save-mode 1))
+  :ensure t
+  :config
+  ;; (auto-compile-on-save-mode 1)
+  (auto-compile-on-load-mode 1))
 #+end_src
 * General
 ** Basics
 #+begin_src emacs-lisp
 (setq-default tab-width 4                       ; Smaller tabs
-              ;; fill-column 80                    ; Maximum line width
+              fill-column 75                    ; Maximum line width
               ;; auto-fill-function 'do-auto-fill  ; Auto-fill-mode everywhere
               sentence-end-double-space nil           ; Use a single space after dots
               bidi-paragraph-direction 'left-to-right ; Faster
@@ -102,6 +102,24 @@
       ;; Horizontal Scroll
       hscroll-step 1
       hscroll-margin 1)
+
+(dolist (mode
+         '(abbrev-mode                  ; E.g. sopl -> System.out.println
+           column-number-mode           ; Show column number in mode line
+           delete-selection-mode        ; Replace selected text
+           dirtrack-mode                ; directory tracking in *shell*
+           global-so-long-mode          ; Mitigate performance for long lines
+           recentf-mode                 ; Recently opened files
+           winner-mode					; “undo” and “redo” changes in WindowConfiguration
+           global-superword-mode        ;
+           global-auto-revert-mode
+           global-visual-line-mode
+           global-hl-line-mode
+           save-place-mode
+           show-paren-mode))            ; Highlight matching parentheses
+  (funcall mode 1))
+
+(fset 'yes-or-no-p 'y-or-n-p)
 
 (global-set-key (kbd "C-w") 'backward-kill-word)
 (global-set-key (kbd "C-x C-k") 'kill-region)
@@ -195,7 +213,7 @@ The aim is save our hands from =C-x C-s=, the most frequently used key.
         ;; (set-frame-font "Firacode 15")
         (set-fontset-font (frame-parameter nil 'font)
                           charset (font-spec :family "WenQuanYi Micro Hei Mono"
-                                             :size 16))
+                                             :size 18))
         ;; Default Browser
         (setq browse-url-browser-function 'browse-url-generic
               browse-url-generic-program "firefox"
@@ -382,23 +400,6 @@ The aim is save our hands from =C-x C-s=, the most frequently used key.
 #+end_src
 ** Extra settings
 #+begin_src emacs-lisp
-(global-hl-line-mode 1)
-(fset 'yes-or-no-p 'y-or-n-p)
-
-(dolist (mode
-         '(abbrev-mode                  ; E.g. sopl -> System.out.println
-           column-number-mode           ; Show column number in mode line
-           delete-selection-mode        ; Replace selected text
-           dirtrack-mode                ; directory tracking in *shell*
-           global-so-long-mode          ; Mitigate performance for long lines
-           recentf-mode                 ; Recently opened files
-           winner-mode					; “undo” and “redo” changes in WindowConfiguration
-           global-superword-mode        ;
-           global-auto-revert-mode
-           save-place-mode
-           show-paren-mode))            ; Highlight matching parentheses
-  (funcall mode 1))
-
 (use-package winpoint
   ;; Keep cursor while opening two buffers for a file.
   ;; https://raw.githubusercontent.com/manateelazycat/lazycat-emacs/47ed27a317c9d81b9ae4727a62c43bccc585b8b1/site-lisp/extensions/lazycat/winpoint.el
@@ -710,8 +711,7 @@ Never to lose your cursor again.
   :diminish beacon-mode
   :init
   (beacon-mode 1)
-  (setq beacon-push-mark 35)
-  (setq beacon-color (find-color "zenburn-green-1")))
+  (setq beacon-push-mark 35))
 #+end_src
 ** Rainbow delimiters
 #+begin_src emacs-lisp
@@ -746,7 +746,8 @@ Never to lose your cursor again.
 (use-package olivetti
   :defer t
   :bind ("C-c o" . olivetti-mode)
-  :config)
+  :custom
+  (olivetti-body-width (+ 6 fill-column)))
 #+end_src
 
 ** Word count
@@ -1367,8 +1368,8 @@ need to be passed verbatim to shell commands."
         org-image-actual-width nil     ; Resize image to window width
         org-indirect-buffer-display 'other-window ; Tab on a task expand it in a new window
         org-outline-path-complete-in-steps nil) ; No steps in path display
-  (add-hook 'org-mode-hook (lambda () (org-indent-mode t))))
-
+  (add-hook 'org-mode-hook (lambda () (org-indent-mode t)))
+  (add-hook 'org-mode-hook (lambda () (olivetti-mode t))))
 #+end_src
 ** org-babel
 #+begin_src emacs-lisp
@@ -1877,15 +1878,35 @@ need to be passed verbatim to shell commands."
 
 ** Elfeed
 #+begin_src emacs-lisp :lexical no
-(use-package elfeed
-  :bind ("C-x w" . elfeed)
-  :config
-  (use-package elfeed-goodies)
-  ;; (setf url-queue-timeout 60)
-  ;; (setf elfeed-curl-extra-arguments '("--socks5-hostname" "127.0.0.1:1080"))
+(defun er-google ()
+  "Google the selected region if any, display a query prompt otherwise."
+  (interactive)
+  (browse-url
+   (concat
+    "http://www.google.com/search?ie=utf-8&oe=utf-8&q="
+    (url-hexify-string (if mark-active
+                           (buffer-substring (region-beginning) (region-end))
+                         (read-string "Google: "))))))
 
-  (elfeed-goodies/setup)
-  )
+(use-package elfeed
+  :bind
+  ("C-x w" . elfeed)
+  (:map elfeed-show-mode-map
+        ("S" . er-google))
+  :config
+  (defun my-show-elfeed (buffer)
+    (with-current-buffer buffer
+      (setq buffer-read-only nil)
+      (goto-char (point-min))
+      (re-search-forward "\n\n")
+      (fill-individual-paragraphs (point) (point-max))
+      (setq buffer-read-only t)
+      (olivetti-mode))
+    (switch-to-buffer buffer))
+  (setq elfeed-show-mode-hook
+        (lambda ()
+	      (set-face-attribute 'variable-pitch (selected-frame) :font (font-spec :family "Inconsolata" :size 24))
+          (setq elfeed-show-entry-switch #'my-show-elfeed))))
 
 (use-package elfeed-org
   :config
@@ -1896,12 +1917,10 @@ need to be passed verbatim to shell commands."
 
 ;; Have to install mpv and yl-dlp to make it work
 (use-package elfeed-tube
-  :ensure t ;; or :straight t
+  :ensure t
   :after elfeed
   :demand t
   :config
-  ;; (setq elfeed-tube-auto-save-p nil) ; default value
-  ;; (setq elfeed-tube-auto-fetch-p t)  ; default value
   (elfeed-tube-setup)
 
   :bind (:map elfeed-show-mode-map
@@ -1912,8 +1931,9 @@ need to be passed verbatim to shell commands."
               ([remap save-buffer] . elfeed-tube-save)))
 
 (use-package elfeed-tube-mpv
-  :ensure t ;; or :straight t
+  :ensure t
   :bind (:map elfeed-show-mode-map
+              ("v" . elfeed-tube-mpv)
               ("C-c C-f" . elfeed-tube-mpv-follow-mode)
               ("C-c C-w" . elfeed-tube-mpv-where)))
 #+end_src
@@ -2010,4 +2030,8 @@ need to be passed verbatim to shell commands."
 (use-package nov
   :hook
   (nov-mode-hook . my-nov-font-setup))
+#+end_src
+#+begin_src emacs-lisp :lexical no
+(use-package scratch
+  :bind ("C-c s" . scratch))
 #+end_src
