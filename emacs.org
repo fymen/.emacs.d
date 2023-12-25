@@ -924,6 +924,14 @@ your project root:
 (use-package markdown-mode
   :defer t)
 #+end_src
+
+
+** nix-mode
+#+begin_src emacs-lisp :lexical no
+(use-package nix-mode
+  :mode "\\.nix\\'")
+#+end_src
+
 ** dtrt-indent
 #+BEGIN_SRC emacs-lisp
 (use-package dtrt-indent)
