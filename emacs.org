@@ -745,9 +745,7 @@ Never to lose your cursor again.
 ;; Minor mode for a nice writing environment
 (use-package olivetti
   :defer t
-  :bind ("C-c o" . olivetti-mode)
-  :custom
-  (olivetti-body-width (+ 6 fill-column)))
+  :bind ("C-c o" . olivetti-mode))
 #+end_src
 
 ** Word count
@@ -1900,12 +1898,13 @@ need to be passed verbatim to shell commands."
       (goto-char (point-min))
       (re-search-forward "\n\n")
       (fill-individual-paragraphs (point) (point-max))
-      (setq buffer-read-only t)
-      (olivetti-mode))
-    (switch-to-buffer buffer))
+      (setq buffer-read-only t))
+    (switch-to-buffer buffer)
+    (olivetti-mode)
+    (elfeed-show-refresh))
   (setq elfeed-show-mode-hook
         (lambda ()
-	      (set-face-attribute 'variable-pitch (selected-frame) :font (font-spec :family "Inconsolata" :size 24))
+	      (set-face-attribute 'variable-pitch (selected-frame) :font (font-spec :family "Open Sans" :size 20))
           (setq elfeed-show-entry-switch #'my-show-elfeed))))
 
 (use-package elfeed-org
