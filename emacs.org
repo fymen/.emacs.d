@@ -200,6 +200,7 @@ The aim is save our hands from =C-x C-s=, the most frequently used key.
 #+end_src
 ** OS related && fonts
 #+begin_src emacs-lisp
+(setq my-font-size 18)
 (when (eq system-type 'darwin)
   (set-face-attribute 'default nil)
   (set-face-attribute 'default nil :height 150))
@@ -208,12 +209,12 @@ The aim is save our hands from =C-x C-s=, the most frequently used key.
   (if window-system
       ;; Chinese Font
       (dolist (charset '(kana han symbol cjk-misc bopomofo))
-        (set-frame-font "Inconsolata 18")
+        (set-frame-font (concat "Inconsolata " (number-to-string my-font-size)))
         ;; (set-frame-font "CascadiaCode 16")
         ;; (set-frame-font "Firacode 15")
         (set-fontset-font (frame-parameter nil 'font)
                           charset (font-spec :family "WenQuanYi Micro Hei Mono"
-                                             :size 18))
+                                             :size my-font-size))
         ;; Default Browser
         (setq browse-url-browser-function 'browse-url-generic
               browse-url-generic-program "firefox"
@@ -1912,7 +1913,7 @@ need to be passed verbatim to shell commands."
     (elfeed-show-refresh))
   (setq elfeed-show-mode-hook
         (lambda ()
-	      (set-face-attribute 'variable-pitch (selected-frame) :font (font-spec :family "Open Sans" :size 20))
+	      (set-face-attribute 'variable-pitch (selected-frame) :font (font-spec :family "Open Sans" :size my-font-size))
           (setq elfeed-show-entry-switch #'my-show-elfeed))))
 
 (use-package elfeed-org
