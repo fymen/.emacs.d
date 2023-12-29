@@ -200,7 +200,7 @@ The aim is save our hands from =C-x C-s=, the most frequently used key.
 #+end_src
 ** OS related && fonts
 #+begin_src emacs-lisp
-(setq my-font-size 18)
+(setq my-font-size 12)
 (when (eq system-type 'darwin)
   (set-face-attribute 'default nil)
   (set-face-attribute 'default nil :height 150))
@@ -948,6 +948,7 @@ your project root:
      :config
      (add-hook 'emacs-lisp-mode-hook #'aggressive-indent-mode)
      (add-hook 'c-mode-hook #'aggressive-indent-mode)
+     (add-hook 'nix-mode-hook #'aggressive-indent-mode)
      (add-hook 'c++-mode-hook #'aggressive-indent-mode)
      (add-hook 'c++-ts-mode-hook #'aggressive-indent-mode)
      (add-hook 'css-mode-hook #'aggressive-indent-mode))
@@ -1577,7 +1578,7 @@ need to be passed verbatim to shell commands."
   (consult-org-roam-buffer-narrow-key ?r)
   ;; Display org-roam buffers right after non-org-roam buffers
   ;; in consult-buffer (and not down at the bottom)
-  (consult-org-roam-buffer-after-buffers t)
+  (consult-org-roam-buffer-after-buffers nil)
   :config
   ;; Eventually suppress previewing for certain functions
   (consult-customize
@@ -1849,7 +1850,8 @@ need to be passed verbatim to shell commands."
   :straight (:host github :repo "manateelazycat/popweb"
                    :branch "main")
   :load-path "straight/repos/popweb/"
-  )
+  :custom
+  (popweb-zoom-factor 1.6))
 
 (use-package popweb-dict
   :load-path "straight/repos/popweb/extension/dict/"
@@ -1860,7 +1862,7 @@ need to be passed verbatim to shell commands."
   (popweb-dict-create "collins"
                       "https://www.collinsdictionary.com/dictionary/english/%s"
                       (concat
-                       "window.scrollTo(0, 390); "
+                       "window.scrollTo(0, 240); "
                        "document.getElementsByClassName('navigation')[0].style.display = 'none'; "
                        "document.getElementsByTagName('body')[0].style.margin = '0'; "
                        "document.getElementsByTagName('header')[0].style.display = 'none'; "
@@ -1913,7 +1915,7 @@ need to be passed verbatim to shell commands."
     (elfeed-show-refresh))
   (setq elfeed-show-mode-hook
         (lambda ()
-	      (set-face-attribute 'variable-pitch (selected-frame) :font (font-spec :family "Open Sans" :size my-font-size))
+	      (set-face-attribute 'variable-pitch (selected-frame) :font (font-spec :family "Open Sans" :size (* my-font-size 3)))
           (setq elfeed-show-entry-switch #'my-show-elfeed))))
 
 (use-package elfeed-org
