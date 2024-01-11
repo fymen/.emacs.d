@@ -1,0 +1,18 @@
+#+STARTUP: content
+* elfeed :elfeed:
+** Blogs
+*** https://catcoding.me/atom.xml :rust:
+*** https://nullprogram.com/feed/ :C:
+*** https://world.hey.com/dhh/feed.atom
+*** https://jvns.ca/atom.xml
+*** https://norvig.com/rss-feed.xml
+*** https://kristofferbalintona.me/index.xml
+*** Emacs :emacs:
+**** https://manateelazycat.github.io/feed.xml
+**** https://karthinks.com/software/index.xml :embark:
+** Youtubers :youtube:
+*** Mathematics :math:
+**** [[https://www.youtube.com/feeds/videos.xml?=UCYO_jab_esuFRV4b17AJtAw][3Blue1Brown]]
+**** [[https://www.youtube.com/feeds/videos.xml?channel_id=UC9Cz481L3CeYm-ZqwqevCPQ][Visualkernel]] :linear_algebra:
+*** Computer Science :CS:
+**** [[https://www.youtube.com/feeds/videos.xml?channel_id=UCcabW7890RKJzL968QWEykA][CS50]]

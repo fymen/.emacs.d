@@ -8,5 +8,5 @@
 
 (if (file-exists-p
      (setq private-file
-           (expand-file-name "private.org" "~/personal/")))
+           (expand-file-name ".private.org" "~/")))
     (org-babel-load-file private-file))
