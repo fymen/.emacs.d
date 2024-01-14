@@ -1026,7 +1026,6 @@ the languages in ISPELL-LANGUAGES when invoked."
      :config
      (setq git-gutter:update-interval 0.02)
      (add-to-list 'git-gutter:disabled-modes 'agenix-mode)
-     (add-to-list 'git-gutter:disabled-modes 'org-mode)
      (global-git-gutter-mode +1))
 
    (use-package git-gutter-fringe
@@ -1626,7 +1625,7 @@ need to be passed verbatim to shell commands."
 (use-package org-fragtog
   :after org
   :custom
-  (org-startup-with-latex-preview t)
+  (org-startup-with-latex-preview nil)
   :hook
   (org-mode . org-fragtog-mode)
   :custom
