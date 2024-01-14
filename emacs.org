@@ -110,7 +110,6 @@
            delete-selection-mode        ; Replace selected text
            dirtrack-mode                ; directory tracking in *shell*
            global-so-long-mode          ; Mitigate performance for long lines
-           recentf-mode                 ; Recently opened files
            winner-mode					; “undo” and “redo” changes in WindowConfiguration
            global-superword-mode        ;
            global-auto-revert-mode
@@ -119,6 +118,11 @@
            save-place-mode
            show-paren-mode))            ; Highlight matching parentheses
   (funcall mode 1))
+
+(use-package recentf
+  :config
+  (setq recentf-auto-cleanup 'never) ;; disable before we start recentf!
+  (recentf-mode 1))
 
 (fset 'yes-or-no-p 'y-or-n-p)
 
@@ -1181,6 +1185,9 @@ the languages in ISPELL-LANGUAGES when invoked."
    ;; :preview-key "M-."
    :preview-key '(:debounce 0.4 any))
 
+  (add-to-list 'consult-preview-excluded-files "\\.age\\'")
+
+
   ;; Optionally configure the narrowing key.
   ;; Both < and C-+ work reasonably well.
   (setq consult-narrow-key "<") ;; "C-+"
@@ -1353,12 +1360,12 @@ need to be passed verbatim to shell commands."
   (add-hook 'c++-mode-hook #'eglot-ensure)
   (add-hook 'c++-ts-mode-hook #'eglot-ensure))
 #+end_src
-** TODO COMMENT Editor config
+** Editor config
 #+begin_src emacs-lisp
-  ;; EditorConfig Emacs Plugin
-  (use-package editorconfig
-    :config
-    (editorconfig-mode 1))
+;; EditorConfig Emacs Plugin
+(use-package editorconfig
+  :config
+  (editorconfig-mode 1))
 #+end_src
 
 * Org mode
