@@ -4,6 +4,7 @@
 #+begin_src emacs-lisp
 (require 'use-package)
 (setq use-package-always-ensure t)
+(setq use-package-verbose t)
 
 (setq package-archives
     '(("GNU ELPA"     . "https://elpa.gnu.org/packages/")
@@ -38,27 +39,48 @@
 ** Paradox
 #+begin_src emacs-lisp
 (use-package async
-             :ensure t)
+  :ensure t)
 (use-package paradox
-             :ensure t
-             :config
-             (setq paradox-execute-asynchronously t
-                   ;; Avoid being ask for the token
-                   paradox-github-token 0))
-
+  :defer t
+  :config
+  (setq paradox-execute-asynchronously t
+        ;; Avoid being ask for the token
+        paradox-github-token 0))
 #+end_src
 ** Auto compile
 #+begin_src emacs-lisp
 (setq load-prefer-newer t)
 (use-package auto-compile
+  :defer t
   :ensure t
   :config
   ;; (auto-compile-on-save-mode 1)
   (auto-compile-on-load-mode 1))
 #+end_src
+** GUI
+#+begin_src emacs-lisp
+(when (functionp 'menu-bar-mode)
+  (menu-bar-mode -1))
+(when (functionp 'set-scroll-bar-mode)
+  (set-scroll-bar-mode 'nil))
+(when (functionp 'mouse-wheel-mode)
+  (mouse-wheel-mode -1))
+(when (functionp 'tooltip-mode)
+  (tooltip-mode -1))
+(when (functionp 'tool-bar-mode)
+  (tool-bar-mode -1))
+(when (functionp 'blink-cursor-mode)
+  (blink-cursor-mode -1))
+(when (functionp 'column-number-mode)
+  (column-number-mode 1))
+(when (functionp 'line-number-mode)
+    (line-number-mode 1))
+#+end_src
 * General
 ** Basics
 #+begin_src emacs-lisp
+(setq gc-cons-threshold 10000000)
+
 (setq-default tab-width 4                       ; Smaller tabs
               fill-column 75                    ; Maximum line width
               ;; auto-fill-function 'do-auto-fill  ; Auto-fill-mode everywhere
@@ -120,6 +142,7 @@
   (funcall mode 1))
 
 (use-package recentf
+  :defer
   :config
   (setq recentf-auto-cleanup 'never) ;; disable before we start recentf!
   (recentf-mode 1))
@@ -137,6 +160,7 @@
 The aim is save our hands from =C-x C-s=, the most frequently used key.
 #+begin_src emacs-lisp :lexical no
 (use-package auto-save
+  :defer t
   :straight (:host github :repo "manateelazycat/auto-save"
                    :branch "master")
   :config
@@ -158,25 +182,6 @@ The aim is save our hands from =C-x C-s=, the most frequently used key.
 ** Desktop save
 #+begin_src emacs-lisp
   (desktop-save-mode 1)
-#+end_src
-** GUI
-#+begin_src emacs-lisp
-(when (functionp 'menu-bar-mode)
-  (menu-bar-mode -1))
-(when (functionp 'set-scroll-bar-mode)
-  (set-scroll-bar-mode 'nil))
-(when (functionp 'mouse-wheel-mode)
-  (mouse-wheel-mode -1))
-(when (functionp 'tooltip-mode)
-  (tooltip-mode -1))
-(when (functionp 'tool-bar-mode)
-  (tool-bar-mode -1))
-(when (functionp 'blink-cursor-mode)
-  (blink-cursor-mode -1))
-(when (functionp 'column-number-mode)
-  (column-number-mode 1))
-(when (functionp 'line-number-mode)
-    (line-number-mode 1))
 #+end_src
 ** Prettify symbols
 #+begin_src emacs-lisp
@@ -309,35 +314,8 @@ The aim is save our hands from =C-x C-s=, the most frequently used key.
     (global-set-key [remap query-replace-regexp] 'anzu-query-replace-regexp)
     (global-set-key [remap query-replace] 'anzu-query-replace))
 #+end_src
-** Mode line & awesome-tray
-#+begin_src emacs-lisp :lexical no
-(defun find-color (name)
-  "Find the color associated with a name in a given color list."
-  (cdr (assoc name zenburn-default-colors-alist)))
-
-(use-package awesome-tray
-  :straight (:host github :repo "manateelazycat/awesome-tray"
-                   :branch "master")
-  :after zenburn-theme
-  :init
-  (setq awesome-tray-mode-line-active-color "DarkGray")
-  (setq awesome-tray-file-path-show-filename t)
-  :config
-  (awesome-tray-mode 1)
-  (eval-after-load "zenburn-theme"
-    '(progn
-       ;; change mode-line color
-       (set-face-attribute 'awesome-tray-green-face  nil  :foreground (find-color "zenburn-green"))
-       (set-face-attribute 'awesome-tray-green-path-face  nil  :foreground (find-color "zenburn-green+4"))
-       (set-face-attribute 'awesome-tray-orange-face  nil  :foreground (find-color "zenburn-orange"))
-       (set-face-attribute 'awesome-tray-cyan-face  nil  :foreground (find-color "zenburn-cyan"))
-       (set-face-attribute 'awesome-tray-yellow-face  nil  :foreground (find-color "zenburn-yellow"))
-       (set-face-attribute 'awesome-tray-pink-face  nil  :foreground (find-color "zenburn-magenta"))
-       (set-face-attribute 'awesome-tray-red-face  nil  :foreground (find-color "zenburn-red"))
-       )))
-#+end_src
-
-#+begin_src emacs-lisp :tangle no
+** Mode line
+#+begin_src emacs-lisp
 (use-package smart-mode-line
   :init
   (setq sml/no-confirm-load-theme t
@@ -345,29 +323,35 @@ The aim is save our hands from =C-x C-s=, the most frequently used key.
         powerline-default-separator-dir '(right . left)
         sml/mode-width 0
         sml/name-width 20
-        sml/theme 'powerline)
+        sml/theme 'respectful)
   :config
-  (use-package smart-mode-line-powerline-theme)
   (sml/setup)
   (display-time-mode 1))
 
-#+end_src
-
-#+begin_src emacs-lisp :tangle no
-(use-package telephone-line
-  :init
-  (setq telephone-line-primary-left-separator 'telephone-line-cubed-left
-      telephone-line-secondary-left-separator 'telephone-line-cubed-hollow-left
-      telephone-line-primary-right-separator 'telephone-line-cubed-right
-      telephone-line-secondary-right-separator 'telephone-line-cubed-hollow-right)
-  (setq telephone-line-height 24
-        telephone-line-evil-use-short-tag t)
+(use-package mini-modeline
+  :after smart-mode-line
   :config
- (telephone-line-mode 1))
+  (setq mini-modeline-r-format '("%e" mode-line-front-space
+                                 mode-line-mule-info
+                                 mode-line-client
+                                 mode-line-modified
+                                 mode-line-remote
+                                 mode-line-frame-identification
+                                 mode-line-buffer-identification
+                                 " " mode-line-position " "
+                                 ;; evil-mode-line-tag
+                                 ;; (:eval (string-trim (format-mode-line mode-line-modes)))
+                                 mode-line-misc-info))
+  
+  (setq mini-modeline-face-attr '(:background "#383838"))
+  (custom-set-faces '(mini-modeline-mode-line
+                      ((t (:background "#989890" :box nil :height 0.14)))))
+  (mini-modeline-mode t))
 #+end_src
 ** Open newline & move text
 #+begin_src emacs-lisp :lexical no
 (use-package move-text
+  :defer t
   :straight (:host github :repo "manateelazycat/move-text"))
 
 (defun scroll-up-one-line()
@@ -409,6 +393,7 @@ The aim is save our hands from =C-x C-s=, the most frequently used key.
 ** Extra settings
 #+begin_src emacs-lisp
 (use-package winpoint
+    :defer t
   ;; Keep cursor while opening two buffers for a file.
   ;; https://raw.githubusercontent.com/manateelazycat/lazycat-emacs/47ed27a317c9d81b9ae4727a62c43bccc585b8b1/site-lisp/extensions/lazycat/winpoint.el
   :if (file-exists-p
@@ -419,6 +404,7 @@ The aim is save our hands from =C-x C-s=, the most frequently used key.
   (add-hook 'org-mode-hook 'winpoint-mode))
 
 (use-package cursor-chg
+    :defer t
   ;; make cursor terser
   ;; https://raw.githubusercontent.com/emacsmirror/emacswiki.org/master/cursor-chg.el
   :if (file-exists-p
@@ -467,15 +453,17 @@ The aim is save our hands from =C-x C-s=, the most frequently used key.
 Only in elisp and c mode.
 #+begin_src emacs-lisp
 (use-package smartscan
+  :defer t
   :config
   (add-hook 'emacs-lisp-mode-hook 'smartscan-mode)
   (add-hook 'c-mode-hook 'smartscan-mode))
 #+end_src
 ** Hungry delete
 #+begin_src emacs-lisp
-  (use-package hungry-delete
-    :config
-    (global-hungry-delete-mode))
+(use-package hungry-delete
+  :defer t
+  :config
+  (global-hungry-delete-mode))
 #+end_src
 ** Smart fill paragraph
 #+begin_src emacs-lisp
@@ -619,24 +607,25 @@ point reaches the beginning or end of the buffer, stop there."
 #+end_src
 ** ibuffer-vc
 #+begin_src emacs-lisp
-  (use-package ibuffer-vc
-    :config
-    (add-hook 'ibuffer-hook
-              (lambda ()
-                (ibuffer-vc-set-filter-groups-by-vc-root)
-                (unless (eq ibuffer-sorting-mode 'alphabetic)
-                  (ibuffer-do-sort-by-alphabetic))))
-    (setq ibuffer-formats
-          '((mark modified read-only vc-status-mini " "
-                  (name 18 18 :left :elide)
-                  " "
-                  (size 9 -1 :right)
-                  " "
-                  (mode 16 16 :left :elide)
-                  " "
-                  (vc-status 16 16 :left)
-                  " "
-                filename-and-process))))
+(use-package ibuffer-vc
+  :defer t
+  :config
+  (add-hook 'ibuffer-hook
+            (lambda ()
+              (ibuffer-vc-set-filter-groups-by-vc-root)
+              (unless (eq ibuffer-sorting-mode 'alphabetic)
+                (ibuffer-do-sort-by-alphabetic))))
+  (setq ibuffer-formats
+        '((mark modified read-only vc-status-mini " "
+                (name 18 18 :left :elide)
+                " "
+                (size 9 -1 :right)
+                " "
+                (mode 16 16 :left :elide)
+                " "
+                (vc-status 16 16 :left)
+                " "
+              filename-and-process))))
 #+end_src
 ** narrow-or-widen-dwim
    #+BEGIN_SRC emacs-lisp
@@ -676,7 +665,9 @@ point reaches the beginning or end of the buffer, stop there."
  dired-listing-switches "-lha"          ; human-readable listing
  ls-lisp-dirs-first t
  )
-(use-package dired-filetype-face)
+(dired-async-mode 1)
+(use-package dired-filetype-face
+  :defer t)
 
 ;; auto refresh dired when file changes
 (add-hook 'dired-mode-hook 'auto-revert-mode)
@@ -688,6 +679,7 @@ point reaches the beginning or end of the buffer, stop there."
 ** ace-window
 #+begin_src emacs-lisp
 (use-package ace-window
+  :defer t
   :ensure t
   :init (setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l)
               aw-ignore-current nil
@@ -696,26 +688,12 @@ point reaches the beginning or end of the buffer, stop there."
   :bind (("M-o" . ace-window)
          ("M-O" . ace-swap-window)))
 #+end_src
-** COMMENT golden-ratio
-#+begin_src emacs-lisp :lexical no
-(use-package golden-ratio
-  :config
-  (golden-ratio-mode 1)
-  (add-to-list 'golden-ratio-extra-commands 'ace-window)
-  :custom
-  ;; (golden-ratio-auto-scale t)
-  (golden-ratio-exclude-modes '(occur-mode ediff-mode magit-ediff-mode)))
-#+end_src
-** solaire-mode
-#+begin_src emacs-lisp :lexical no
-(use-package solaire-mode
-  :config
-  (solaire-global-mode +1))
-#+end_src
+
 ** beacon-mode
 Never to lose your cursor again.
 #+begin_src emacs-lisp
 (use-package beacon
+  :defer t
   :diminish beacon-mode
   :init
   (beacon-mode 1)
@@ -729,24 +707,26 @@ Never to lose your cursor again.
 #+end_src
 ** Expand region
 #+begin_src emacs-lisp
-  (use-package expand-region
-    :bind ("C-=" . er/expand-region))
+(use-package expand-region
+  :defer t
+  :bind ("C-=" . er/expand-region))
 #+end_src
 
 ** Key frequency
 #+begin_src emacs-lisp
-  (use-package keyfreq
-    :init
-    :config
-    (setq keyfreq-excluded-commands
-          '(self-insert-command
-            abort-recursive-edit
-            forward-char
-            backward-char
-            previous-line
-            next-line))
-    (keyfreq-mode 1)
-    (keyfreq-autosave-mode 1))
+(use-package keyfreq
+  :defer t
+  :init
+  :config
+  (setq keyfreq-excluded-commands
+        '(self-insert-command
+          abort-recursive-edit
+          forward-char
+          backward-char
+          previous-line
+          next-line))
+  (keyfreq-mode 1)
+  (keyfreq-autosave-mode 1))
 #+end_src
 ** Olivetti (for prose writing)
 #+begin_src emacs-lisp
@@ -758,11 +738,13 @@ Never to lose your cursor again.
 
 ** Word count
 #+begin_src emacs-lisp
-  (use-package wc-mode)
+  (use-package wc-mode
+    :defer t)
 #+end_src
 ** Multiple cursors
 #+begin_src emacs-lisp
 (use-package multiple-cursors
+  :defer t
   :bind (;("C-M" . mc/edit-lines)
          ("C->" . mc/mark-next-like-this)
          ("C-<" . mc/mark-previous-like-this)
@@ -771,11 +753,13 @@ Never to lose your cursor again.
 ** Smart comment
    #+begin_src emacs-lisp
    (use-package comment-dwim-2
+     :defer t
      :bind ("M-;" . comment-dwim-2))
    #+end_src
 ** Auto completion
 #+begin_src emacs-lisp
 (use-package company
+  :defer t
   :ensure t
   :diminish company-mode
   :init
@@ -786,7 +770,7 @@ Never to lose your cursor again.
   (add-to-list 'company-backends 'company-clang)
   (with-eval-after-load 'company
     (company-flx-mode +1))
-  
+
   :config
   (bind-keys :map company-active-map
              ("C-n" . company-select-next)
@@ -805,6 +789,7 @@ Never to lose your cursor again.
 
 #+begin_src emacs-lisp :lexical no
 (use-package company-c-headers
+  :defer t
   :config
   (add-to-list 'company-backends 'company-c-headers))
 #+end_src
@@ -818,6 +803,7 @@ your project root:
 
 #+begin_src emacs-lisp :lexical no
 (use-package company-english-helper
+  :defer t
   :straight (:host github :repo "manateelazycat/company-english-helper")
   :config (setq company-english-helper-fuzz-search-p t))
 #+end_src
@@ -885,6 +871,7 @@ your project root:
 (add-hook 'c++-ts-mode-hook 'linux-cpp-mode)
 
 (use-package color-identifiers-mode
+  :defer t
   :config
   (add-hook 'c-mode-hook 'color-identifiers-mode)
   (add-hook 'c++-mode-hook 'color-identifiers-mode)
@@ -893,6 +880,7 @@ your project root:
 
 #+begin_src emacs-lisp :lexical no
 (use-package modern-cpp-font-lock
+  :defer t
   :diminish t
   :init (modern-c++-font-lock-global-mode t))
 #+end_src
@@ -947,12 +935,14 @@ your project root:
 ;;   (direnv-mode))
 
 (use-package envrc
+  :defer t
   :config
   (envrc-global-mode))
 #+end_src
 ** dtrt-indent
 #+BEGIN_SRC emacs-lisp
-(use-package dtrt-indent)
+(use-package dtrt-indent
+    :defer t)
 (add-hook 'c-mode-common-hook
           (lambda()
             (require 'dtrt-indent)
@@ -962,6 +952,7 @@ your project root:
 ** Aggressive indent
    #+begin_src emacs-lisp
    (use-package aggressive-indent
+     :defer t
      :config
      (add-hook 'emacs-lisp-mode-hook #'aggressive-indent-mode)
      (add-hook 'c-mode-hook #'aggressive-indent-mode)
@@ -972,6 +963,7 @@ your project root:
    #+end_src
    #+begin_src emacs-lisp :lexical no
    (use-package indent-guide
+     :defer t
      :config
      (indent-guide-global-mode)
      (set-face-background 'indent-guide-face "dimgray")
@@ -981,6 +973,7 @@ your project root:
 ** Clear trailing spaces automatically
 #+begin_src emacs-lisp :lexical no
 (use-package ws-butler
+  :defer t
   :config
   (ws-butler-global-mode))
 #+end_src
@@ -1016,11 +1009,13 @@ the languages in ISPELL-LANGUAGES when invoked."
 #+begin_src emacs-lisp
 ;; A Git porcelain inside Emacs.
 (use-package magit
+  :defer t
   :bind ("C-x g" . magit-status))
 
-(use-package git-timemachine)
+(use-package git-timemachine
+  :defer t)
 #+end_src
-** Git gutter
+** COMMENT Git gutter
    #+begin_src emacs-lisp
    (use-package git-gutter
      :config
@@ -1037,6 +1032,7 @@ the languages in ISPELL-LANGUAGES when invoked."
 ** Marginalia
 #+begin_src emacs-lisp :lexical no
 (use-package marginalia
+  :defer t
   :ensure t
   :custom
   (marginalia-align 'right)
@@ -1053,6 +1049,7 @@ the languages in ISPELL-LANGUAGES when invoked."
   (keymap-set vertico-map "C-l" #'vertico-directory-delete-word))
 
 (use-package savehist
+  :defer t
   :config
   (setq savehist-additional-variables
         '(tablist-named-filter
@@ -1197,6 +1194,7 @@ the languages in ISPELL-LANGUAGES when invoked."
 *** consult-dir
 #+begin_src emacs-lisp :lexical no
 (use-package consult-dir
+  :defer t
   :ensure t
   :bind (("C-x C-d" . consult-dir)
          :map vertico-map
@@ -1253,6 +1251,7 @@ need to be passed verbatim to shell commands."
       pattern))))
 
 (use-package embark
+  :defer t
   :ensure t
   :bind
   (("C-." . embark-act)         ;; pick some comfortable binding
@@ -1289,6 +1288,7 @@ need to be passed verbatim to shell commands."
 
 ;; Consult users will also want the embark-consult package.
 (use-package embark-consult
+  :defer t
   :ensure t ; only need to install it, embark loads it after consult if found
   :hook
   (embark-collect-mode . consult-preview-at-point-mode))
@@ -1296,6 +1296,7 @@ need to be passed verbatim to shell commands."
 ** Projectile
 #+begin_src emacs-lisp :lexical no
 (use-package projectile
+  :defer t
   :config
   (projectile-mode +1))
 
@@ -1305,6 +1306,7 @@ need to be passed verbatim to shell commands."
 ** Yasnippet
 #+begin_src emacs-lisp
 (use-package yasnippet
+  :defer t
   :diminish t
   :init
   ;; (setq helm-yas-space-match-any-greedy t)
@@ -1318,7 +1320,7 @@ need to be passed verbatim to shell commands."
                               (yas-minor-mode -1))))
 #+end_src
 
-** Compilation
+** Smart compilation
 #+begin_src emacs-lisp
 (setq compilation-ask-about-save nil          ; Just save before compiling
       compilation-always-kill t               ; Just kill old compile processes before starting the new one
@@ -1326,6 +1328,7 @@ need to be passed verbatim to shell commands."
 
 
 (use-package smart-compile
+  :defer t
   :bind ("<f5>" . smart-compile)
   :config
   (add-to-list 'smart-compile-alist '("\\.c\\'"          . "gcc -O2 %f -lm -o %n && ./%n"))
@@ -1336,6 +1339,7 @@ need to be passed verbatim to shell commands."
 ** Smartparens
 #+begin_src emacs-lisp
 (use-package smartparens-mode
+  :defer t
   :ensure smartparens  ;; install the package
   :hook (prog-mode text-mode markdown-mode) ;; add `smartparens-mode` to these hooks
   :config
@@ -1346,7 +1350,7 @@ need to be passed verbatim to shell commands."
 ** Tree sit auto
 #+begin_src emacs-lisp :lexical no
 (use-package treesit-auto
-  :demand t
+  :defer t
   :config
   (setq treesit-auto-install 'prompt)
   (global-treesit-auto-mode))
@@ -1365,6 +1369,7 @@ need to be passed verbatim to shell commands."
 #+begin_src emacs-lisp
 ;; EditorConfig Emacs Plugin
 (use-package editorconfig
+  :defer t
   :config
   (editorconfig-mode 1))
 #+end_src
@@ -1408,8 +1413,10 @@ need to be passed verbatim to shell commands."
               org-confirm-babel-evaluate nil     ; No confirmation before executing code
               org-edit-src-content-indentation 0 ; No relative indentation for code blocks
               org-fontify-whole-block-delimiter-line t) ; Fontify whole block
-(use-package gnuplot)
-(use-package plantuml-mode)
+(use-package gnuplot
+  :defer t)
+(use-package plantuml-mode
+  :defer t)
 ;; active Babel languages
 (org-babel-do-load-languages
  'org-babel-load-languages
@@ -1488,6 +1495,7 @@ need to be passed verbatim to shell commands."
 ** org-journal
 #+begin_src emacs-lisp
 (use-package org-journal
+  :defer t
   :init
   (setq org-journal-dir "~/org/journal/"
         org-journal-date-format "%A, %d %B %Y"
@@ -1495,29 +1503,13 @@ need to be passed verbatim to shell commands."
   :bind
   ("<f6>" . org-journal-new-entry))
 #+end_src
-** Gpt shell
-#+begin_src emacs-lisp :lexical no
-(use-package chatgpt-shell
-  :ensure t)
-#+end_src
-** org-ai
-#+begin_src emacs-lisp
-(use-package org-ai
-  :ensure t
-  :commands (org-ai-mode
-             org-ai-global-mode)
-  :init
-  (add-hook 'org-mode-hook #'org-ai-mode) ; enable org-ai in org-mode
-  (org-ai-global-mode) ; installs global keybindings on C-c M-a
-  :config
-  (setq org-ai-default-chat-model "gpt-3.5-turbo") ; if you are on the gpt-4 beta:
-  (org-ai-install-yasnippets)) ; if you are using yasnippet and want `ai` snippets
-#+end_src
+
 
 ** org-download
 #+begin_src emacs-lisp
 (use-package org-download
     :after org
+    :defer t
     :bind
     (:map org-mode-map
     (("s-Y" . org-download-screenshot)
@@ -1571,6 +1563,7 @@ need to be passed verbatim to shell commands."
 ** org-roam
 #+begin_src emacs-lisp
 (use-package org-roam
+  :defer t
   :ensure t
   :init
   (when (file-directory-p "~/org/roam/")
@@ -1594,6 +1587,7 @@ need to be passed verbatim to shell commands."
 *** org-roam-ui
 #+begin_src emacs-lisp
 (use-package org-roam-ui
+  :defer t
   :after org-roam
   ;;         normally we'd recommend hooking orui after org-roam, but since org-roam does not have
   ;;         a hookable mode anymore, you're advised to pick something yourself
@@ -1609,6 +1603,7 @@ need to be passed verbatim to shell commands."
 #+begin_src emacs-lisp :lexical no
 (use-package org-transclusion
   :after org
+  :defer t
   :bind
   (:map org-mode-map
         ("<f12>" . org-transclusion-mode)))
@@ -1617,6 +1612,7 @@ need to be passed verbatim to shell commands."
 ** Org hugo
 #+begin_src emacs-lisp
 (use-package ox-hugo
+  :defer t
   :after ox)
 #+end_src
 
@@ -1835,12 +1831,14 @@ It will reset the =PATH= variable generated by =direnv=, disable it.
 #+begin_src emacs-lisp
 ;; Display available keybindings in popup
 (use-package which-key
+  :defer t
   :config
   (which-key-mode 1))
 #+end_src
-** Pdf tools
+** COMMENT Pdf tools
    #+begin_src emacs-lisp
    (use-package pdf-tools
+     :defer t
      :config
      (pdf-tools-install))
    (use-package org-noter)
@@ -1849,6 +1847,7 @@ It will reset the =PATH= variable generated by =direnv=, disable it.
 ** Dictionary & popweb
 #+begin_src emacs-lisp :lexical no
 (use-package popweb
+  :defer t
   :straight (:host github :repo "manateelazycat/popweb"
                    :branch "main")
   :load-path "straight/repos/popweb/"
@@ -1856,6 +1855,7 @@ It will reset the =PATH= variable generated by =direnv=, disable it.
   (popweb-zoom-factor 1.5))
 
 (use-package popweb-dict
+  :defer t
   :load-path "straight/repos/popweb/extension/dict/"
 
   :bind ("C-c d" . popweb-dict-collins-input)
@@ -1900,6 +1900,7 @@ It will reset the =PATH= variable generated by =direnv=, disable it.
                          (read-string "Google: "))))))
 
 (use-package elfeed
+  :defer t
   :bind
   ("C-x w" . elfeed)
   (:map elfeed-show-mode-map
@@ -1921,6 +1922,8 @@ It will reset the =PATH= variable generated by =direnv=, disable it.
           (setq elfeed-show-entry-switch #'my-show-elfeed))))
 
 (use-package elfeed-org
+  :ensure t
+  :after elfeed
   :config
   (elfeed-org)
   :custom
@@ -1932,7 +1935,6 @@ It will reset the =PATH= variable generated by =direnv=, disable it.
 (use-package elfeed-tube
   :ensure t
   :after elfeed
-  :demand t
   :config
   (elfeed-tube-setup)
 
@@ -1944,6 +1946,7 @@ It will reset the =PATH= variable generated by =direnv=, disable it.
               ([remap save-buffer] . elfeed-tube-save)))
 
 (use-package elfeed-tube-mpv
+  :after elfeed
   :ensure t
   :bind (:map elfeed-show-mode-map
               ("v" . elfeed-tube-mpv)
@@ -2017,6 +2020,26 @@ It will reset the =PATH= variable generated by =direnv=, disable it.
 #+end_src
 
 * AGI
+** org-ai
+#+begin_src emacs-lisp
+(use-package org-ai
+  :defer t
+  :ensure t
+  :init
+  (add-hook 'org-mode-hook #'org-ai-mode) ; enable org-ai in org-mode
+  (org-ai-global-mode) ; installs global keybindings on C-c M-a
+  :config
+  (setq org-ai-default-chat-model "gpt-3.5-turbo") ; if you are on the gpt-4 beta:
+  (org-ai-install-yasnippets)) ; if you are using yasnippet and want `ai` snippets
+#+end_src
+
+** Gpt shell
+#+begin_src emacs-lisp :lexical no
+(use-package chatgpt-shell
+  :defer t
+  :ensure t)
+#+end_src
+** COMMENT ellama
 #+begin_src emacs-lisp :lexical no
 (use-package ellama
   :init
@@ -2030,12 +2053,13 @@ It will reset the =PATH= variable generated by =direnv=, disable it.
 ** leetcode
 #+begin_src emacs-lisp :lexical no
 (use-package leetcode
+  :defer t
   :config
   (setq leetcode-prefer-language "cpp")
   (setq leetcode-save-solutions t)
   (setq leetcode-directory "~/gitest/org-samples/C++/leetcode/"))
 #+end_src
-** epub
+** COMMENT epub
 #+begin_src emacs-lisp :lexical no
 (defun my-nov-font-setup ()
   (face-remap-add-relative 'variable-pitch :family "Liberation Serif" :height 1.0))
@@ -2044,10 +2068,7 @@ It will reset the =PATH= variable generated by =direnv=, disable it.
   :hook
   (nov-mode-hook . my-nov-font-setup))
 #+end_src
-#+begin_src emacs-lisp :lexical no
-(use-package scratch
-  :bind ("C-c s" . scratch))
-#+end_src
+
 ** All the icons
 #+begin_src emacs-lisp :lexical no
 (use-package all-the-icons
@@ -2060,7 +2081,36 @@ It will reset the =PATH= variable generated by =direnv=, disable it.
   :config (all-the-icons-completion-mode))
 #+end_src
 * Secrets
+** Agenix
 #+begin_src emacs-lisp :lexical no
 (use-package agenix
+  :defer t
   :ensure t)
+#+end_src
+
+#+begin_src emacs-lisp :lexical no
+(use-package scratch
+  :defer t
+  :bind ("C-c s" . scratch))
+#+end_src
+** Password store
+#+begin_src emacs-lisp :lexical no
+(use-package password-store
+  :defer t
+  )
+#+end_src
+** gnupg
+#+begin_src emacs-lisp :lexical no
+(setq epg-gpg-program "gpg2")
+#+end_src
+
+#+begin_src emacs-lisp :lexical no
+(use-package format-all
+  :defer t
+  :commands format-all-mode
+  :hook (prog-mode . format-all-mode)
+  :config
+  (setq-default format-all-formatters '(("C"     (astyle "--mode=c"))
+                                        ("Shell" (shfmt "-i" "4" "-ci"))))
+  (add-to-list 'format-all-default-formatters '("Nix" alejandra)))
 #+end_src

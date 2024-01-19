@@ -10,6 +10,8 @@
 *** Emacs :emacs:
 **** https://manateelazycat.github.io/feed.xml
 **** https://karthinks.com/software/index.xml :embark:
+*** NixOS
+https://blog.wesleyac.com/feed.xml
 ** Youtubers :youtube:
 *** Mathematics :math:
 **** [[https://www.youtube.com/feeds/videos.xml?=UCYO_jab_esuFRV4b17AJtAw][3Blue1Brown]]
