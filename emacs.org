@@ -1234,6 +1234,7 @@ need to be passed verbatim to shell commands."
    ("C-h B" . embark-bindings)  ;; alternative for `describe-bindings'
    :map embark-file-map
    ("S" . sudo-find-file)
+   ("M-e" . vterm)
    :map embark-identifier-map
    ("/" . org-emphasize))
 
